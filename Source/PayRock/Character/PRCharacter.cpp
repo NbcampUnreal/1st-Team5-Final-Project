@@ -6,6 +6,8 @@
 #include "PayRock/Player/PRPlayerState.h"
 #include "PayRock/Player/PRPlayerController.h"
 #include "PayRock/UI/HUD/BaseHUD.h"
+#include "Perception/AISense_Damage.h"
+#include "Perception/AISense_Sight.h"
 
 APRCharacter::APRCharacter()
 {
@@ -17,6 +19,13 @@ APRCharacter::APRCharacter()
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
+}
+
+void APRCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+
+	SetupStimuliSource();
 }
 
 void APRCharacter::PossessedBy(AController* NewController)
@@ -52,3 +61,18 @@ void APRCharacter::InitAbilityActorInfo()
 	InitPrimaryAttributes();
 }
 
+void APRCharacter::SetupStimuliSource()
+{
+	StimuliSourceComponent = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("StimuliSource"));
+	StimuliSourceComponent->bAutoRegister = true;
+	
+	TArray<TSubclassOf<UAISense>> Senses = {
+		UAISense_Sight::StaticClass(),
+		UAISense_Damage::StaticClass()
+	};
+
+	for (auto Sense : Senses)
+	{
+		StimuliSourceComponent->RegisterForSense(Sense);
+	}
+}
