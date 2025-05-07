@@ -21,9 +21,10 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-
 	virtual void InitAbilityActorInfo();
+	void InitPrimaryAttributes() const;
 
+protected:
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	TObjectPtr<USkeletalMeshComponent> Weapon;
 
@@ -31,4 +32,6 @@ protected:
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 	UPROPERTY()
 	TObjectPtr<UAttributeSet> AttributeSet;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
+	TSubclassOf<class UGameplayEffect> InitPrimaryAttributeEffect;
 };
