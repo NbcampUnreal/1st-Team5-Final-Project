@@ -30,7 +30,8 @@ void ABaseCharacter::ApplyEffectToSelf(const TSubclassOf<UGameplayEffect>& Effec
 {
 	checkf(IsValid(AbilitySystemComponent), TEXT("ABaseCharacter::ApplyEffectToSelf() - ASC invalid"));
 	checkf(IsValid(EffectClass), TEXT("ABaseCharacter::ApplyEffectToSelf() - GE class invalid"))
-	const FGameplayEffectContextHandle ContextHandle = AbilitySystemComponent->MakeEffectContext();
+	FGameplayEffectContextHandle ContextHandle = AbilitySystemComponent->MakeEffectContext();
+	ContextHandle.AddSourceObject(this);
 	const FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(
 		EffectClass, EffectLevel, ContextHandle);
 	AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
@@ -40,4 +41,5 @@ void ABaseCharacter::InitializeDefaultAttributes() const
 {
 	ApplyEffectToSelf(InitPrimaryAttributeEffect, 1.f);
 	ApplyEffectToSelf(InitSecondaryAttributeEffect, 1.f);
+	ApplyEffectToSelf(InitVitalAttributeEffect, 1.f);
 }

@@ -8,8 +8,6 @@
 
 UPRAttributeSet::UPRAttributeSet()
 {
-	InitHealth(50.f);
-	InitMana(75.f);
 }
 
 void UPRAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
+#include "CombatInterface.h"
 #include "GameFramework/Character.h"
 #include "BaseCharacter.generated.h"
 
@@ -11,7 +12,7 @@ class UGameplayEffect;
 class UAttributeSet;
 
 UCLASS()
-class PAYROCK_API ABaseCharacter : public ACharacter, public IAbilitySystemInterface
+class PAYROCK_API ABaseCharacter : public ACharacter, public IAbilitySystemInterface, public ICombatInterface
 {
 	GENERATED_BODY()
 
@@ -38,4 +39,6 @@ protected:
 	TSubclassOf<UGameplayEffect> InitPrimaryAttributeEffect;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
 	TSubclassOf<UGameplayEffect> InitSecondaryAttributeEffect;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
+	TSubclassOf<UGameplayEffect> InitVitalAttributeEffect;
 };

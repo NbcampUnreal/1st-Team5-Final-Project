@@ -33,6 +33,13 @@ void APRCharacter::OnRep_PlayerState()
 	InitAbilityActorInfo();
 }
 
+int32 APRCharacter::GetCharacterLevel()
+{
+	const APRPlayerState* PRPlayerState = GetPlayerState<APRPlayerState>();
+	check(PRPlayerState);
+	return PRPlayerState->GetCharacterLevel();
+}
+
 void APRCharacter::InitAbilityActorInfo()
 {
 	APRPlayerState* PRPlayerState = GetPlayerState<APRPlayerState>();
