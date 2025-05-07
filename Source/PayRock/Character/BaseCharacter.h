@@ -7,6 +7,7 @@
 #include "GameFramework/Character.h"
 #include "BaseCharacter.generated.h"
 
+class UGameplayEffect;
 class UAttributeSet;
 
 UCLASS()
@@ -22,7 +23,8 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void InitAbilityActorInfo();
-	void InitPrimaryAttributes() const;
+	void ApplyEffectToSelf(const TSubclassOf<UGameplayEffect>& EffectClass, const float& EffectLevel) const;
+	void InitializeDefaultAttributes() const;
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "Combat")
@@ -33,5 +35,7 @@ protected:
 	UPROPERTY()
 	TObjectPtr<UAttributeSet> AttributeSet;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
-	TSubclassOf<class UGameplayEffect> InitPrimaryAttributeEffect;
+	TSubclassOf<UGameplayEffect> InitPrimaryAttributeEffect;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
+	TSubclassOf<UGameplayEffect> InitSecondaryAttributeEffect;
 };
