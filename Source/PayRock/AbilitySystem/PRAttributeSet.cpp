@@ -18,6 +18,13 @@ void UPRAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
+	DOREPLIFETIME_CONDITION_NOTIFY(UPRAttributeSet, Strength, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UPRAttributeSet, Intelligence, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UPRAttributeSet, Dexterity, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UPRAttributeSet, Vitality, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UPRAttributeSet, Spirit, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UPRAttributeSet, Luck, COND_None, REPNOTIFY_Always);
+	
 	DOREPLIFETIME_CONDITION_NOTIFY(UPRAttributeSet, Health, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UPRAttributeSet, MaxHealth, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UPRAttributeSet, Mana, COND_None, REPNOTIFY_Always);
@@ -84,6 +91,36 @@ void UPRAttributeSet::SetEffectProperties(const FGameplayEffectModCallbackData& 
 		Props.TargetCharacter = Cast<ACharacter>(Props.TargetAvatarActor);
 		Props.TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Props.TargetAvatarActor);
 	}
+}
+
+void UPRAttributeSet::OnRep_Strength(const FGameplayAttributeData& OldStrength) const
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UPRAttributeSet, Strength, OldStrength);
+}
+
+void UPRAttributeSet::OnRep_Intelligence(const FGameplayAttributeData& OldIntelligence) const
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UPRAttributeSet, Intelligence, OldIntelligence);
+}
+
+void UPRAttributeSet::OnRep_Dexterity(const FGameplayAttributeData& OldDexterity) const
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UPRAttributeSet, Dexterity, OldDexterity);
+}
+
+void UPRAttributeSet::OnRep_Vitality(const FGameplayAttributeData& OldVitality) const
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UPRAttributeSet, Vitality, OldVitality);
+}
+
+void UPRAttributeSet::OnRep_Spirit(const FGameplayAttributeData& OldSpirit) const
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UPRAttributeSet, Spirit, OldSpirit);
+}
+
+void UPRAttributeSet::OnRep_Luck(const FGameplayAttributeData& OldLuck) const
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UPRAttributeSet, Luck, OldLuck);
 }
 
 void UPRAttributeSet::OnRep_Health(const FGameplayAttributeData& OldHealth) const

@@ -49,5 +49,6 @@ void APRCharacter::InitAbilityActorInfo()
 			HUD->InitOverlay(PC, GetPlayerState(), AbilitySystemComponent, AttributeSet);
 		}
 	}
+	InitPrimaryAttributes();
 }
 
