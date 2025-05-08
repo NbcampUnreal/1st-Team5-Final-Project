@@ -7,6 +7,7 @@
 #include "EnhancedInputComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "PayRock/AbilitySystem/PRAbilitySystemComponent.h"
+#include "PayRock/Input/PRInputComponent.h"
 #include "PayRock/Player/PRPlayerState.h"
 #include "PayRock/Player/PRPlayerController.h"
 #include "PayRock/UI/HUD/BaseHUD.h"
@@ -45,7 +46,7 @@ APRCharacter::APRCharacter()
     MouseSensitivity = 1.0f;
 
     GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
-    GetCharacterMovement()->CrouchedHalfHeight = 60.f; 
+    GetCharacterMovement()->SetCrouchedHalfHeight(60.f); 
 
     SetupStimuliSource();
 }
@@ -243,6 +244,14 @@ void APRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
             }
         }
     }
+
+    if (UPRInputComponent* PRInputComponent = Cast<UPRInputComponent>(PlayerInputComponent))
+    {
+        PRInputComponent->BindAbilityActions(InputConfig, this,
+            &APRCharacter::AbilityInputTagPressed,
+            &APRCharacter::AbilityInputTagReleased,
+            &APRCharacter::AbilityInputTagHeld);
+    }
 }
 
 void APRCharacter::Move(const FInputActionValue& Value)
@@ -342,4 +351,19 @@ void APRCharacter::StopGuard(const FInputActionValue& value)
 
 void APRCharacter::Interact(const FInputActionValue& value)
 {
+}
+
+void APRCharacter::AbilityInputTagPressed(FGameplayTag InputTag)
+{
+    GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Red, "Testing Pressed");
+}
+
+void APRCharacter::AbilityInputTagReleased(FGameplayTag InputTag)
+{
+    GEngine->AddOnScreenDebugMessage(2, 5.f, FColor::Blue, "Testing Released");
+}
+
+void APRCharacter::AbilityInputTagHeld(FGameplayTag InputTag)
+{
+    GEngine->AddOnScreenDebugMessage(3, 5.f, FColor::Green, "Testing Held");
 }

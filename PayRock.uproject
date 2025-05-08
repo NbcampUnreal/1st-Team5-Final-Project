@@ -13,7 +13,8 @@
 				"AIModule",
 				"GameplayAbilities",
 				"Engine",
-				"AdvancedSessions"
+				"AdvancedSessions",
+				"EnhancedInput"
 			]
 		}
 	],
