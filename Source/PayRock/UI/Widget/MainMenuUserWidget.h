@@ -30,6 +30,10 @@ protected:
     UPROPERTY(meta = (BindWidgetOptional))
     UButton* OptionsButton;
 
+    /** 크레딧 버튼 - 필요 시 사용 */
+    UPROPERTY(meta = (BindWidgetOptional))
+    UButton* CreditButton;
+
 private:
     UFUNCTION()
     void HandleStartGameClicked();
