@@ -16,12 +16,15 @@ AEnemyController::AEnemyController()
 	SightConfig->PeripheralVisionAngleDegrees = PeripheralVisionAngle;
 	SightConfig->DetectionByAffiliation.bDetectEnemies = true;
 	SightConfig->DetectionByAffiliation.bDetectFriendlies = true;
+	SightConfig->DetectionByAffiliation.bDetectNeutrals = true;
 
 	AIPerceptionComponent->ConfigureSense(*SightConfig);
 	AIPerceptionComponent->SetDominantSense(SightConfig->GetSenseImplementation());
 	
 	DamageConfig = CreateDefaultSubobject<UAISenseConfig_Damage>(TEXT("DamageConfig"));
 	AIPerceptionComponent->ConfigureSense(*DamageConfig);
+
+	SetPerceptionComponent(*AIPerceptionComponent);
 }
 
 void AEnemyController::BeginPlay()
@@ -30,7 +33,7 @@ void AEnemyController::BeginPlay()
 
 	if (AIPerceptionComponent)
 	{
-		AIPerceptionComponent->OnPerceptionUpdated.AddDynamic(this, &AEnemyController::OnPerceptionUpdated);
+		AIPerceptionComponent->OnTargetPerceptionUpdated.AddDynamic(this, &AEnemyController::OnTargetPerceptionUpdated);
 	}
 }
 
@@ -43,11 +46,21 @@ void AEnemyController::OnPossess(APawn* InPawn)
 		if (DefaultBehaviorTree)
 		{
 			UBlackboardComponent* RawBBComp = BlackboardComponent.Get();
-			if (UseBlackboard(DefaultBehaviorTree->BlackboardAsset, RawBBComp))
+			// if (UseBlackboard(DefaultBehaviorTree->BlackboardAsset, RawBBComp))
+			// {
+			// 	BlackboardComponent = RawBBComp;
+			// 	BehaviorTreeComponent->StartTree(*DefaultBehaviorTree);
+			// 	RunBehaviorTree(DefaultBehaviorTree);
+			// 	GetBlackboardComponent()->SetValueAsVector(TEXT("StartPosition"), Enemy->GetActorLocation());
+			// }
+			if (DefaultBehaviorTree)
 			{
-				BlackboardComponent = RawBBComp;
-				BehaviorTreeComponent->StartTree(*DefaultBehaviorTree);
-				GetBlackboardComponent()->SetValueAsVector(TEXT("StartPosition"), Enemy->GetActorLocation());
+				if (UseBlackboard(DefaultBehaviorTree->BlackboardAsset, RawBBComp))
+				{
+					BlackboardComponent = RawBBComp;
+					RunBehaviorTree(DefaultBehaviorTree); 
+					GetBlackboardComponent()->SetValueAsVector(TEXT("StartPosition"), Enemy->GetActorLocation());
+				}
 			}
 		}
 	}
@@ -63,13 +76,11 @@ void AEnemyController::OnUnPossess()
 	}
 }
 
-void AEnemyController::OnPerceptionUpdated(const TArray<AActor*>& UpdatedActors)
+void AEnemyController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
-	for (AActor* Actor : UpdatedActors)
+	if (Actor)
 	{
-		if (Actor)
-		{
-			GetBlackboardComponent()->SetValueAsObject(TEXT("TargetActor"), Actor);
-		}
+		GetBlackboardComponent()->SetValueAsObject(TEXT("TargetActor"), Actor);
+		GetBlackboardComponent()->SetValueAsBool(TEXT("bPlayerDetect"), Stimulus.WasSuccessfullySensed());
 	}
 }

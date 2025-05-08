@@ -52,7 +52,13 @@ void UBTTask_PatrolWithIdle::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* 
     if (BB->GetValueAsBool("bPlayerDetected"))
     {
         GetWorld()->GetTimerManager().ClearTimer(IdleTimerHandle);
-        FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+
+        if (bWaitingForIdle || !bReachedDestination)
+        {
+            bWaitingForIdle = false;
+            FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+        }
+
         return;
     }
 
@@ -90,4 +96,6 @@ void UBTTask_PatrolWithIdle::StartIdleDelay()
             FinishLatentTask(*CachedOwnerComp, EBTNodeResult::Succeeded);
         }
     }, IdleDuration, false);
+
+    
 }
