@@ -1,0 +1,26 @@
+// PayRockGames
+
+
+#include "BTTask_Chase.h"
+#include "AIController.h"
+#include "BehaviorTree/BlackboardComponent.h"
+#include "NavigationSystem.h"
+
+UBTTask_Chase::UBTTask_Chase()
+{
+	NodeName = "Chase Target";
+}
+
+EBTNodeResult::Type UBTTask_Chase::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
+{
+	AAIController* AICon = OwnerComp.GetAIOwner();
+	APawn* Pawn = AICon ? AICon->GetPawn() : nullptr;
+	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
+	if (!AICon || !Pawn || !BB) return EBTNodeResult::Failed;
+
+	AActor* Target = Cast<AActor>(BB->GetValueAsObject("TargetActor"));
+	if (!Target) return EBTNodeResult::Failed;
+
+	AICon->MoveToActor(Target, 100.f); 
+	return EBTNodeResult::Succeeded;
+}
