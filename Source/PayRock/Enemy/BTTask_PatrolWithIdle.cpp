@@ -2,6 +2,7 @@
 #include "AIController.h"
 #include "NavigationSystem.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "DrawDebugHelpers.h"
 #include "GameFramework/Character.h"
 
 UBTTask_PatrolWithIdle::UBTTask_PatrolWithIdle()
@@ -25,7 +26,8 @@ EBTNodeResult::Type UBTTask_PatrolWithIdle::ExecuteTask(UBehaviorTreeComponent& 
     if (!BB) return EBTNodeResult::Failed;
 
     FVector StartPosition = BB->GetValueAsVector("StartPosition");
-
+    
+    DrawDebugSphere(GetWorld(), StartPosition, PatrolRadius, 12, FColor::Green, false, 5.0f, 0, 2.0f);
     FNavLocation RandomLocation;
     UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(GetWorld());
     if (NavSys && NavSys->GetRandomReachablePointInRadius(StartPosition, PatrolRadius, RandomLocation))

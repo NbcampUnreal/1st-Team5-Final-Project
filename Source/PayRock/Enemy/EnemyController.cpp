@@ -47,6 +47,7 @@ void AEnemyController::OnPossess(APawn* InPawn)
 			{
 				BlackboardComponent = RawBBComp;
 				BehaviorTreeComponent->StartTree(*DefaultBehaviorTree);
+				GetBlackboardComponent()->SetValueAsVector(TEXT("StartPosition"), Enemy->GetActorLocation());
 			}
 		}
 	}
