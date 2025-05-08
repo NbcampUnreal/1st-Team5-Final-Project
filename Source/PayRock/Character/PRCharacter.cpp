@@ -355,15 +355,17 @@ void APRCharacter::Interact(const FInputActionValue& value)
 
 void APRCharacter::AbilityInputTagPressed(FGameplayTag InputTag)
 {
-    GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Red, "Testing Pressed");
 }
 
 void APRCharacter::AbilityInputTagReleased(FGameplayTag InputTag)
 {
-    GEngine->AddOnScreenDebugMessage(2, 5.f, FColor::Blue, "Testing Released");
-}
+    UPRAbilitySystemComponent* ASC = Cast<UPRAbilitySystemComponent>(AbilitySystemComponent);
+    if (!ASC) return;
+    ASC->AbilityInputTagReleased(InputTag);}
 
 void APRCharacter::AbilityInputTagHeld(FGameplayTag InputTag)
 {
-    GEngine->AddOnScreenDebugMessage(3, 5.f, FColor::Green, "Testing Held");
+    UPRAbilitySystemComponent* ASC = Cast<UPRAbilitySystemComponent>(AbilitySystemComponent);
+    if (!ASC) return;
+    ASC->AbilityInputTagHeld(InputTag);
 }
