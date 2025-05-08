@@ -17,6 +17,8 @@ APRCharacter::APRCharacter()
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
+
+	SetupStimuliSource();
 }
 
 void APRCharacter::PossessedBy(AController* NewController)
@@ -59,3 +61,18 @@ void APRCharacter::InitAbilityActorInfo()
 	InitializeDefaultAttributes();
 }
 
+void APRCharacter::SetupStimuliSource()
+{
+	StimuliSourceComponent = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("StimuliSource"));
+	StimuliSourceComponent->bAutoRegister = true;
+	
+	TArray<TSubclassOf<UAISense>> Senses = {
+		UAISense_Sight::StaticClass(),
+		UAISense_Damage::StaticClass()
+	};
+
+	for (auto Sense : Senses)
+	{
+		StimuliSourceComponent->RegisterForSense(Sense);
+	}
+}

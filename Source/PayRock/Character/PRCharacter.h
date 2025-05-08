@@ -20,7 +20,13 @@ public:
 	/** Combat Interface */
 	virtual int32 GetCharacterLevel() override;
 	/** end Combat Interface */
-
+	
 private:
 	virtual void InitAbilityActorInfo() override;
+	void SetupStimuliSource();
+
+protected:
+	//AI 감지 관련 함수
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
+	UAIPerceptionStimuliSourceComponent* StimuliSourceComponent;
 };
