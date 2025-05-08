@@ -20,7 +20,7 @@ void AEnemyCharacter::BeginPlay()
 	Super::BeginPlay();
 	
 	InitAbilityActorInfo();
-	InitPrimaryAttributes();
+	InitializeDefaultAttributes();
 	AddCharacterAbilities();
 }
 
