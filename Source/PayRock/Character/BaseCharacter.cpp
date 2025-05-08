@@ -26,13 +26,20 @@ void ABaseCharacter::InitAbilityActorInfo()
 {
 }
 
-void ABaseCharacter::InitPrimaryAttributes() const
+void ABaseCharacter::ApplyEffectToSelf(const TSubclassOf<UGameplayEffect>& EffectClass, const float& EffectLevel) const
 {
-	checkf(IsValid(AbilitySystemComponent), TEXT("ABaseCharacter::InitPrimaryAttributes() - ASC invalid - check BP"));
-	checkf(IsValid(InitPrimaryAttributeEffect), TEXT("ABaseCharacter::InitPrimaryAttributes() - GE invalid - check BP"))
-	const FGameplayEffectContextHandle ContextHandle = AbilitySystemComponent->MakeEffectContext();
+	checkf(IsValid(AbilitySystemComponent), TEXT("ABaseCharacter::ApplyEffectToSelf() - ASC invalid"));
+	checkf(IsValid(EffectClass), TEXT("ABaseCharacter::ApplyEffectToSelf() - GE class invalid"))
+	FGameplayEffectContextHandle ContextHandle = AbilitySystemComponent->MakeEffectContext();
+	ContextHandle.AddSourceObject(this);
 	const FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(
-		InitPrimaryAttributeEffect, 1.f, ContextHandle);
+		EffectClass, EffectLevel, ContextHandle);
 	AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 }
 
+void ABaseCharacter::InitializeDefaultAttributes() const
+{
+	ApplyEffectToSelf(InitPrimaryAttributeEffect, 1.f);
+	ApplyEffectToSelf(InitSecondaryAttributeEffect, 1.f);
+	ApplyEffectToSelf(InitVitalAttributeEffect, 1.f);
+}

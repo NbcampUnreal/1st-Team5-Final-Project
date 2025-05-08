@@ -20,10 +20,23 @@ void AEnemyCharacter::BeginPlay()
 	Super::BeginPlay();
 	
 	InitAbilityActorInfo();
+	InitializeDefaultAttributes();
+	AddCharacterAbilities();
 }
 
 void AEnemyCharacter::InitAbilityActorInfo()
 {
 	AbilitySystemComponent->InitAbilityActorInfo(this, this);
 	Cast<UPRAbilitySystemComponent>(AbilitySystemComponent)->OnAbilityActorInfoInitialized();
+}
+
+void AEnemyCharacter::AddCharacterAbilities()
+{
+	if (!HasAuthority() || !AbilitySystemComponent)
+		return;
+
+	for (TSubclassOf<UGameplayAbility>& StartupAbility : DefaultAbilities)
+	{
+		AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(StartupAbility, 1, INDEX_NONE, this));
+	}
 }
