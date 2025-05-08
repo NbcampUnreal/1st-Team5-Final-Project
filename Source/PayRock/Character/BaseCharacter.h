@@ -25,6 +25,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void InitAbilityActorInfo();
+	virtual void AddCharacterAbilities();
 	void ApplyEffectToSelf(const TSubclassOf<UGameplayEffect>& EffectClass, const float& EffectLevel) const;
 	void InitializeDefaultAttributes() const;
 

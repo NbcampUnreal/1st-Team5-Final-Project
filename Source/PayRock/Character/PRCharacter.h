@@ -21,6 +21,9 @@ public:
 	/** Combat Interface */
 	virtual int32 GetCharacterLevel() override;
 	/** end Combat Interface */
+
+protected:
+	virtual void AddCharacterAbilities() override;
 	
 private:
 	virtual void InitAbilityActorInfo() override;
