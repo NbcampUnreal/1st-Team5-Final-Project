@@ -33,7 +33,7 @@ APRCharacter::APRCharacter()
     CameraComp->SetupAttachment(SpringArmComp, USpringArmComponent::SocketName);
     CameraComp->bUsePawnControlRotation = false;
     GetMesh()->SetUsingAbsoluteRotation(false);
-    GetMesh()->SetRelativeRotation(FRotator(0.f, -90.f, 0.f)); // SkeletalMesh ±âº» Á¤·Ä º¸Á¤
+    GetMesh()->SetRelativeRotation(FRotator(0.f, -90.f, 0.f)); // SkeletalMesh ï¿½âº» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
     NormalSpeed = 600.0f;
     SprintSpeedMultiplier = 1.5f;
@@ -52,9 +52,10 @@ APRCharacter::APRCharacter()
 
 void APRCharacter::PossessedBy(AController* NewController)
 {
-    Super::PossessedBy(NewController);
-
-    InitAbilityActorInfo();
+	Super::PossessedBy(NewController);
+	
+	InitAbilityActorInfo();
+	AddCharacterAbilities();
 }
 
 void APRCharacter::OnRep_PlayerState()
@@ -117,7 +118,7 @@ void APRCharacter::SetupStimuliSource()
 
 void APRCharacter::SetSpeed(float NewSpeedMultiplier)
 {
-    float SpeedMultiplier = FMath::Clamp(NewSpeedMultiplier, 0.1f, 1.0f); // ¼Óµµ°¡ ³Ê¹« ÀÛ¾ÆÁöÁö ¾Êµµ·Ï Á¦ÇÑ
+    float SpeedMultiplier = FMath::Clamp(NewSpeedMultiplier, 0.1f, 1.0f); // ï¿½Óµï¿½ï¿½ï¿½ ï¿½Ê¹ï¿½ ï¿½Û¾ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Êµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
     GetCharacterMovement()->MaxWalkSpeed = NormalSpeed * SpeedMultiplier;
     SprintSpeed = NormalSpeed * SprintSpeedMultiplier * SpeedMultiplier;
@@ -131,14 +132,14 @@ void APRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 {
     Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-    // Enhanced InputComponent·Î Ä³½ºÆÃ
+    // Enhanced InputComponentï¿½ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½
     if (UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(PlayerInputComponent))
     {
         if (APRPlayerController* PlayerController = Cast<APRPlayerController>(GetController()))
         {
             if (PlayerController->MoveAction)
             {
-                // ÀÌµ¿
+                // ï¿½Ìµï¿½
                 EnhancedInput->BindAction(
                     PlayerController->MoveAction,
                     ETriggerEvent::Triggered,
@@ -149,7 +150,7 @@ void APRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
             if (PlayerController->JumpAction)
             {
-                // Á¡ÇÁ (Space)
+                // ï¿½ï¿½ï¿½ï¿½ (Space)
                 EnhancedInput->BindAction(
                     PlayerController->JumpAction,
                     ETriggerEvent::Triggered,
@@ -157,7 +158,7 @@ void APRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
                     &APRCharacter::StartJump
                 );
 
-                // Á¡ÇÁ ¸ØÃß±â
+                // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ß±ï¿½
                 EnhancedInput->BindAction(
                     PlayerController->JumpAction,
                     ETriggerEvent::Completed,
@@ -168,7 +169,7 @@ void APRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
             if (PlayerController->LookAction)
             {
-                // ½Ã¼±
+                // ï¿½Ã¼ï¿½
                 EnhancedInput->BindAction(
                     PlayerController->LookAction,
                     ETriggerEvent::Triggered,
@@ -179,14 +180,14 @@ void APRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
             if (PlayerController->SprintAction)
             {
-                // ½ºÇÁ¸°Æ®
+                // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
                 EnhancedInput->BindAction(
                     PlayerController->SprintAction,
                     ETriggerEvent::Triggered,
                     this,
                     &APRCharacter::StartSprint
                 );
-                // ´Ù½Ã °È±â
+                // ï¿½Ù½ï¿½ ï¿½È±ï¿½
                 EnhancedInput->BindAction(
                     PlayerController->SprintAction,
                     ETriggerEvent::Completed,
@@ -197,14 +198,14 @@ void APRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
             if (PlayerController->CrouchAction)
             {
-                // ¾É±â
+                // ï¿½É±ï¿½
                 EnhancedInput->BindAction(
                     PlayerController->CrouchAction,
                     ETriggerEvent::Triggered,
                     this,
                     &APRCharacter::StartCrouch
                 );
-                // ¾É±â ¸ØÃß°í ÀÏ¾î¼­±â
+                // ï¿½É±ï¿½ ï¿½ï¿½ï¿½ß°ï¿½ ï¿½Ï¾î¼­ï¿½ï¿½
                 EnhancedInput->BindAction(
                     PlayerController->CrouchAction,
                     ETriggerEvent::Completed,
@@ -215,7 +216,7 @@ void APRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
             if (PlayerController->AttackAction)
             {
-                // °ø°Ý
+                // ï¿½ï¿½ï¿½ï¿½
                 EnhancedInput->BindAction(
                     PlayerController->AttackAction,
                     ETriggerEvent::Triggered,
@@ -232,7 +233,7 @@ void APRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
             if (PlayerController->InteractAction)
             {
-                //»óÈ£ÀÛ¿ë
+                //ï¿½ï¿½È£ï¿½Û¿ï¿½
                 EnhancedInput->BindAction(
                     PlayerController->InteractAction,
                     ETriggerEvent::Triggered,
@@ -251,18 +252,18 @@ void APRCharacter::Move(const FInputActionValue& Value)
     const FVector2D MoveInput = Value.Get<FVector2D>();
     if (MoveInput.IsNearlyZero()) return;
 
-    // Ä³¸¯ÅÍ°¡ ¹Ù¶óº¸´Â ¹æÇâ ±âÁØ È¸Àü
+    // Ä³ï¿½ï¿½ï¿½Í°ï¿½ ï¿½Ù¶óº¸´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È¸ï¿½ï¿½
     const FRotator ControlRot = Controller->GetControlRotation();
     const FRotator YawRot(0.f, ControlRot.Yaw, 0.f);
 
     const FVector Forward = FRotationMatrix(YawRot).GetUnitAxis(EAxis::X);
     const FVector Right = FRotationMatrix(YawRot).GetUnitAxis(EAxis::Y);
 
-    // ÀüÃ¼ ÀÌµ¿ ¹æÇâ °è»ê
+    // ï¿½ï¿½Ã¼ ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
     FVector MoveDir = Forward * MoveInput.Y + Right * MoveInput.X;
-    MoveDir.Normalize(); // ´ë°¢¼± Á¤±ÔÈ­
+    MoveDir.Normalize(); // ï¿½ë°¢ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½È­
 
-    // µÚ·Î°¡´Â ÀÔ·ÂÀÏ °æ¿ì ¼Óµµ °¨¼Ó
+    // ï¿½Ú·Î°ï¿½ï¿½ï¿½ ï¿½Ô·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Óµï¿½ ï¿½ï¿½ï¿½ï¿½
     float SpeedMultiplier = (MoveInput.Y < 0.f) ? BackwardSpeedMultiplier : 1.0f;
 
     AddMovementInput(MoveDir, SpeedMultiplier);
