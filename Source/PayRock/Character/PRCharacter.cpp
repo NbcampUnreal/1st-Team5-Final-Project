@@ -1,6 +1,7 @@
 // PayRockGames
 
 #include "PRCharacter.h"
+#include "DrawDebugHelpers.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -10,6 +11,7 @@
 #include "PayRock/Player/PRPlayerState.h"
 #include "PayRock/Player/PRPlayerController.h"
 #include "PayRock/UI/HUD/BaseHUD.h"
+#include "PayRock/Interface/PRInterface.h"
 #include "Perception/AISense_Damage.h"
 #include "Perception/AISense_Sight.h"
 
@@ -236,7 +238,7 @@ void APRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
                 //��ȣ�ۿ�
                 EnhancedInput->BindAction(
                     PlayerController->InteractAction,
-                    ETriggerEvent::Triggered,
+                    ETriggerEvent::Started, // ← 여기
                     this,
                     &APRCharacter::Interact
                 );
@@ -340,6 +342,71 @@ void APRCharacter::StopGuard(const FInputActionValue& value)
 {
 }
 
+AActor* APRCharacter::FindInteractableActor() const
+{
+    // 캡슐 기준 위치에서 시작
+    FVector Start = GetCapsuleComponent()->GetComponentLocation() + FVector(0.f, 0.f, BaseEyeHeight); // 눈높이 정도 보정
+    FVector Direction = GetActorForwardVector();
+    FVector End = Start + (Direction * InteractionDistance);
+
+    FCollisionQueryParams Params;
+    Params.AddIgnoredActor(this);
+    Params.AddIgnoredComponent(GetMesh());
+
+    FHitResult Hit;
+    bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params);
+
+    DrawDebugLine(GetWorld(), Start, End, bHit ? FColor::Green : FColor::Red, false, 1.f, 0, 1.f);
+
+    if (bHit && Hit.GetActor())
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Hit Actor: %s"), *Hit.GetActor()->GetName());
+
+        if (Hit.GetActor()->Implements<UPRInterface>())
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Interactable interface detected!"));
+            return Hit.GetActor();
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Hit Actor has no PRInterface"));
+        }
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("No actor hit by line trace"));
+    }
+
+    return nullptr;
+}
+
 void APRCharacter::Interact(const FInputActionValue& value)
 {
+    UE_LOG(LogTemp, Warning, TEXT("Interact key pressed"));
+
+    AActor* Target = FindInteractableActor();
+    if (!Target)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("No interactable actor found"));
+        return;
+    }
+
+    UE_LOG(LogTemp, Warning, TEXT("Found Actor: %s"), *Target->GetName());
+
+    if (IPRInterface* Interactable = Cast<IPRInterface>(Target))
+    {
+        if (Interactable->CanInteract(this))
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Can interact with: %s"), *Target->GetName());
+            Interactable->Interact(this);
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Cannot interact (CanInteract() returned false)"));
+        }
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("Target does not implement IPRInterface"));
+    }
 }

@@ -68,6 +68,13 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
 	UAIPerceptionStimuliSourceComponent* StimuliSourceComponent;
 
+	// 상호작용 관련 함수
+	UFUNCTION(BlueprintCallable, Category = "Interaction")
+	AActor* FindInteractableActor() const;
+
+	UPROPERTY(EditAnywhere, Category = "Interaction")
+	float InteractionDistance = 100.f;
+
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	// IA_Move와 IA_Jump 등을 처리할 함수 원형
