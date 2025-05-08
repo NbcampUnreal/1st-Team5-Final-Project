@@ -6,6 +6,8 @@
 #include "PayRock/Player/PRPlayerState.h"
 #include "PayRock/Player/PRPlayerController.h"
 #include "PayRock/UI/HUD/BaseHUD.h"
+#include "Perception/AISense_Damage.h"
+#include "Perception/AISense_Sight.h"
 
 APRCharacter::APRCharacter()
 {

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "BaseCharacter.h"
+#include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "PRCharacter.generated.h"
 
 UCLASS()
