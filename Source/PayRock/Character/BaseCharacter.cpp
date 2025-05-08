@@ -26,6 +26,10 @@ void ABaseCharacter::InitAbilityActorInfo()
 {
 }
 
+void ABaseCharacter::AddCharacterAbilities()
+{
+}
+
 void ABaseCharacter::ApplyEffectToSelf(const TSubclassOf<UGameplayEffect>& EffectClass, const float& EffectLevel) const
 {
 	checkf(IsValid(AbilitySystemComponent), TEXT("ABaseCharacter::ApplyEffectToSelf() - ASC invalid"));

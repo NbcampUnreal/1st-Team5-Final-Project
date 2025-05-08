@@ -71,6 +71,15 @@ int32 APRCharacter::GetCharacterLevel()
     return PRPlayerState->GetCharacterLevel();
 }
 
+void APRCharacter::AddCharacterAbilities()
+{
+	UPRAbilitySystemComponent* PR_ASC = CastChecked<UPRAbilitySystemComponent>(AbilitySystemComponent);
+	if (!HasAuthority()) return;
+
+	PR_ASC->AddCharacterAbilities(DefaultAbilities);
+	PR_ASC->AddCharacterPassiveAbilities(DefaultPassiveAbilities);
+}
+
 void APRCharacter::InitAbilityActorInfo()
 {
     APRPlayerState* PRPlayerState = GetPlayerState<APRPlayerState>();
