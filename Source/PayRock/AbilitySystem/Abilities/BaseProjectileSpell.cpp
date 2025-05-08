@@ -12,7 +12,7 @@ void UBaseProjectileSpell::ActivateAbility(
 	if (!HasAuthority(&ActivationInfo)) return;
 	
 	FTransform SpawnTransform;
-	//TODO: maybe set location to the location of the socket that the weapon attaches to?
+	//TODO: maybe set location to the location of the top socket in the weapon? - use ICombatInterface
 	SpawnTransform.SetLocation(GetAvatarActorFromActorInfo()->GetActorLocation());
 	SpawnTransform.SetRotation(GetAvatarActorFromActorInfo()->GetActorForwardVector().ToOrientationQuat());
 	
