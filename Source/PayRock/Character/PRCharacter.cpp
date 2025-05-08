@@ -6,6 +6,8 @@
 #include "PayRock/Player/PRPlayerState.h"
 #include "PayRock/Player/PRPlayerController.h"
 #include "PayRock/UI/HUD/BaseHUD.h"
+#include "Perception/AISense_Damage.h"
+#include "Perception/AISense_Sight.h"
 
 APRCharacter::APRCharacter()
 {
@@ -17,6 +19,8 @@ APRCharacter::APRCharacter()
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
+
+	SetupStimuliSource();
 }
 
 void APRCharacter::PossessedBy(AController* NewController)
@@ -31,6 +35,13 @@ void APRCharacter::OnRep_PlayerState()
 	Super::OnRep_PlayerState();
 	
 	InitAbilityActorInfo();
+}
+
+int32 APRCharacter::GetCharacterLevel()
+{
+	const APRPlayerState* PRPlayerState = GetPlayerState<APRPlayerState>();
+	check(PRPlayerState);
+	return PRPlayerState->GetCharacterLevel();
 }
 
 void APRCharacter::InitAbilityActorInfo()
@@ -49,6 +60,21 @@ void APRCharacter::InitAbilityActorInfo()
 			HUD->InitOverlay(PC, GetPlayerState(), AbilitySystemComponent, AttributeSet);
 		}
 	}
-	InitPrimaryAttributes();
+	InitializeDefaultAttributes();
 }
 
+void APRCharacter::SetupStimuliSource()
+{
+	StimuliSourceComponent = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("StimuliSource"));
+	StimuliSourceComponent->bAutoRegister = true;
+	
+	TArray<TSubclassOf<UAISense>> Senses = {
+		UAISense_Sight::StaticClass(),
+		UAISense_Damage::StaticClass()
+	};
+
+	for (auto Sense : Senses)
+	{
+		StimuliSourceComponent->RegisterForSense(Sense);
+	}
+}
