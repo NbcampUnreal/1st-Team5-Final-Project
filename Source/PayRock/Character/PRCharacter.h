@@ -4,14 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "BaseCharacter.h"
-#include "GameFramework/Character.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "PRCharacter.generated.h"
 
+class UPRInputConfig;
 class USpringArmComponent; // 스프링 암 관련 클래스 헤더
 class UCameraComponent; // 카메라 관련 클래스 전방 선언
 struct FInputActionValue; // Enhanced Input에서 액션 값을 받을 때 사용하는 구조체
-class APRPlayerController;
 
 UCLASS()
 class PAYROCK_API APRCharacter : public ABaseCharacter
@@ -20,8 +19,6 @@ class PAYROCK_API APRCharacter : public ABaseCharacter
 
 public:
 	APRCharacter();
-
-	APRPlayerController* PRController;
 
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void OnRep_PlayerState() override;
@@ -98,4 +95,13 @@ protected:
 	void StopGuard(const FInputActionValue& value);
 	UFUNCTION()
 	void Interact(const FInputActionValue& value);
+
+private:
+	/* Callback functions for binding ability input actions based on Input Tags  */
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<UPRInputConfig> InputConfig;
+
+	void AbilityInputTagPressed(FGameplayTag InputTag);
+	void AbilityInputTagReleased(FGameplayTag InputTag);
+	void AbilityInputTagHeld(FGameplayTag InputTag);
 };
