@@ -235,10 +235,9 @@ void APRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
             if (PlayerController->InteractAction)
             {
-                //��ȣ�ۿ�
                 EnhancedInput->BindAction(
                     PlayerController->InteractAction,
-                    ETriggerEvent::Started, // ← 여기
+                    ETriggerEvent::Started,
                     this,
                     &APRCharacter::Interact
                 );
