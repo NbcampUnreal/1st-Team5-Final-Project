@@ -115,6 +115,8 @@ void APRCharacter::SetupStimuliSource()
     {
         StimuliSourceComponent->RegisterForSense(Sense);
     }
+    
+    StimuliSourceComponent->RegisterWithPerceptionSystem();
 }
 
 void APRCharacter::SetSpeed(float NewSpeedMultiplier)
