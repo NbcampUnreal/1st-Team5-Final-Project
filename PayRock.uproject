@@ -12,7 +12,8 @@
 				"UMG",
 				"AIModule",
 				"GameplayAbilities",
-				"Engine"
+				"Engine",
+				"AdvancedSessions"
 			]
 		}
 	],
