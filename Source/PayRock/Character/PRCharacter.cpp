@@ -1,6 +1,7 @@
 // PayRockGames
 
 #include "PRCharacter.h"
+#include "Net/UnrealNetwork.h"
 #include "DrawDebugHelpers.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Camera/CameraComponent.h"
@@ -17,6 +18,8 @@
 
 APRCharacter::APRCharacter()
 {
+    PrimaryActorTick.bCanEverTick = true;
+
     GetCharacterMovement()->bOrientRotationToMovement = false;
     GetCharacterMovement()->RotationRate = FRotator(0, 400.f, 0);
     GetCharacterMovement()->bConstrainToPlane = true;
@@ -25,7 +28,6 @@ APRCharacter::APRCharacter()
     bUseControllerRotationPitch = false;
     bUseControllerRotationYaw = true;
     bUseControllerRotationRoll = false;
-
 
     SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
     SpringArmComp->SetupAttachment(RootComponent);
@@ -50,6 +52,8 @@ APRCharacter::APRCharacter()
     GetCharacterMovement()->CrouchedHalfHeight = 60.f; 
 
     SetupStimuliSource();
+
+    bReplicates = true;
 }
 
 void APRCharacter::PossessedBy(AController* NewController)
@@ -269,14 +273,15 @@ void APRCharacter::Move(const FInputActionValue& Value)
 
     AddMovementInput(MoveDir, SpeedMultiplier);
 }
+
 void APRCharacter::StartJump(const FInputActionValue& value)
 {
-    if (GetCharacterMovement()->IsCrouching())
-    {
-        return;
-    }
+    if (GetCharacterMovement()->IsCrouching()) return;
 
     Jump();
+    bJustJumped = true;
+    bResetJustJumpedNextFrame = true;
+    JustJumpedElapsedTime = 0.f; // 타이머 초기화
 }
 
 void APRCharacter::StopJump(const FInputActionValue& value)
@@ -408,4 +413,87 @@ void APRCharacter::Interact(const FInputActionValue& value)
     {
         UE_LOG(LogTemp, Error, TEXT("Target does not implement IPRInterface"));
     }
+}
+
+void APRCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+    DOREPLIFETIME(APRCharacter, MoveDirection);
+    DOREPLIFETIME(APRCharacter, bIsSprinting);
+    DOREPLIFETIME(APRCharacter, bIsCrouching);
+    DOREPLIFETIME(APRCharacter, bIsInAir);
+    DOREPLIFETIME(APRCharacter, bIsAttacking);
+    DOREPLIFETIME(APRCharacter, bIsGuarding);
+}
+
+void APRCharacter::OnRep_MoveDirection()
+{
+}
+
+void APRCharacter::OnRep_Sprinting() 
+{
+}
+
+void APRCharacter::OnRep_Crouching() 
+{
+}
+
+void APRCharacter::OnRep_InAir() 
+{
+}
+
+void APRCharacter::OnRep_Attacking() 
+{
+}
+
+void APRCharacter::OnRep_Guarding() 
+{
+}
+
+void APRCharacter::Tick(float DeltaSeconds)
+{
+    Super::Tick(DeltaSeconds);
+    const FVector Velocity = GetVelocity();
+    const FRotator ActorRot = GetActorRotation();
+
+    MoveDirection = CalculateDirectionCustom(Velocity, ActorRot);
+    bIsInAir = GetCharacterMovement()->IsFalling();
+    bIsCrouching = GetCharacterMovement()->IsCrouching();
+
+    // 다음 프레임에 자동 리셋
+    if (bResetJustJumpedNextFrame)
+    {
+        JustJumpedElapsedTime += DeltaSeconds;
+
+        if (JustJumpedElapsedTime >= 0.2f)
+        {
+            bJustJumped = false;
+            bResetJustJumpedNextFrame = false;
+            JustJumpedElapsedTime = 0.f;
+        }
+    }
+}
+
+float APRCharacter::CalculateDirectionCustom(const FVector& Velocity, const FRotator& BaseRotation)
+{
+    if (Velocity.IsNearlyZero())
+    {
+        return 0.f;
+    }
+
+    const FVector Forward = FRotationMatrix(BaseRotation).GetUnitAxis(EAxis::X);
+    const FVector Right = FRotationMatrix(BaseRotation).GetUnitAxis(EAxis::Y);
+    const FVector NormalizedVel = Velocity.GetSafeNormal2D();
+
+    const float ForwardDot = FVector::DotProduct(Forward, NormalizedVel);
+    const float RightDot = FVector::DotProduct(Right, NormalizedVel);
+
+    const float Angle = FMath::RadiansToDegrees(FMath::Atan2(RightDot, ForwardDot));
+    return Angle;
+}
+
+void APRCharacter::SetJustJumped(bool bNewValue)
+{
+    bJustJumped = bNewValue;
 }

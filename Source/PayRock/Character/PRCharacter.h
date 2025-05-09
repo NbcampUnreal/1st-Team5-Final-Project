@@ -26,6 +26,8 @@ public:
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void OnRep_PlayerState() override;
 
+	virtual void Tick(float DeltaSeconds) override;
+
 	// SpringArm Component
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	USpringArmComponent* SpringArmComp;
@@ -53,6 +55,41 @@ public:
 	/** Combat Interface */
 	virtual int32 GetCharacterLevel() override;
 	/** end Combat Interface */
+
+	//애니메이션 상태 리플리케이션용 변수들
+	//캐릭터 방향 계산
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	float CalculateDirectionCustom(const FVector& Velocity, const FRotator& BaseRotation);
+
+	// 블렌드 스페이스에 사용될 이동 방향
+	UPROPERTY(ReplicatedUsing = OnRep_MoveDirection, VisibleAnywhere, BlueprintReadOnly, Category = "Anim|Movement")
+	float MoveDirection = 0.f;
+
+	// 걷기/뛰기
+	UPROPERTY(ReplicatedUsing = OnRep_Sprinting, VisibleAnywhere, BlueprintReadOnly, Category = "Anim|Movement")
+	bool bIsSprinting = false;
+
+	// 앉기
+	UPROPERTY(ReplicatedUsing = OnRep_Crouching, VisibleAnywhere, BlueprintReadOnly, Category = "Anim|Movement")
+	bool bIsCrouching = false;
+
+	// 공중 여부 (점프/낙하)
+	UPROPERTY(ReplicatedUsing = OnRep_InAir, VisibleAnywhere, BlueprintReadOnly, Category = "Anim|Movement")
+	bool bIsInAir = false;
+
+	// 공격 중인지
+	UPROPERTY(ReplicatedUsing = OnRep_Attacking, VisibleAnywhere, BlueprintReadOnly, Category = "Anim|Combat")
+	bool bIsAttacking = false;
+
+	// 방어 중인지
+	UPROPERTY(ReplicatedUsing = OnRep_Guarding, VisibleAnywhere, BlueprintReadOnly, Category = "Anim|Combat")
+	bool bIsGuarding = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Anim|Movement")
+	bool bJustJumped = false;
+
+	bool bResetJustJumpedNextFrame = false;
+	float JustJumpedElapsedTime = 0.f;
 
 
 protected:
@@ -105,4 +142,24 @@ protected:
 	void StopGuard(const FInputActionValue& value);
 	UFUNCTION()
 	void Interact(const FInputActionValue& value);
+
+	UFUNCTION()
+	void OnRep_MoveDirection();
+
+	UFUNCTION()
+	void OnRep_Sprinting();
+
+	UFUNCTION()
+	void OnRep_Crouching();
+
+	UFUNCTION()
+	void OnRep_InAir();
+
+	UFUNCTION()
+	void OnRep_Attacking();
+
+	UFUNCTION()
+	void OnRep_Guarding();
+
+	void SetJustJumped(bool bNewValue); // 인라인 가능
 };
