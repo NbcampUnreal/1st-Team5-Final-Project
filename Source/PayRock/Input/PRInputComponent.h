@@ -22,7 +22,7 @@ template <class UserClass, typename PressedFuncType, typename ReleasedFuncType, 
 void UPRInputComponent::BindAbilityActions(const UPRInputConfig* InputConfig, UserClass* Object,
 	PressedFuncType PressedFunc, ReleasedFuncType ReleasedFunc, HeldFuncType HeldFunc)
 {
-	checkf(InputConfig, TEXT("PRInputComponent::BindAbilityActions InputConfig invalid"));
+	if(!InputConfig) return;
 
 	for (const FPRInputAction& Action : InputConfig->AbilityInputActions)
 	{
