@@ -9,6 +9,7 @@
 #include "EnhancedInputComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "PayRock/AbilitySystem/PRAbilitySystemComponent.h"
+#include "PayRock/Input/PRInputComponent.h"
 #include "PayRock/Player/PRPlayerState.h"
 #include "PayRock/Player/PRPlayerController.h"
 #include "PayRock/UI/HUD/BaseHUD.h"
@@ -49,7 +50,7 @@ APRCharacter::APRCharacter()
     MouseSensitivity = 1.0f;
 
     GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
-    GetCharacterMovement()->CrouchedHalfHeight = 60.f; 
+    GetCharacterMovement()->SetCrouchedHalfHeight(60.f); 
 
     SetupStimuliSource();
 
@@ -120,6 +121,8 @@ void APRCharacter::SetupStimuliSource()
     {
         StimuliSourceComponent->RegisterForSense(Sense);
     }
+    
+    StimuliSourceComponent->RegisterWithPerceptionSystem();
 }
 
 void APRCharacter::SetSpeed(float NewSpeedMultiplier)
@@ -247,6 +250,14 @@ void APRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
                 );
             }
         }
+    }
+
+    if (UPRInputComponent* PRInputComponent = Cast<UPRInputComponent>(PlayerInputComponent))
+    {
+        PRInputComponent->BindAbilityActions(InputConfig, this,
+            &APRCharacter::AbilityInputTagPressed,
+            &APRCharacter::AbilityInputTagReleased,
+            &APRCharacter::AbilityInputTagHeld);
     }
 }
 
@@ -496,4 +507,21 @@ float APRCharacter::CalculateDirectionCustom(const FVector& Velocity, const FRot
 void APRCharacter::SetJustJumped(bool bNewValue)
 {
     bJustJumped = bNewValue;
+}
+
+void APRCharacter::AbilityInputTagPressed(FGameplayTag InputTag)
+{
+}
+
+void APRCharacter::AbilityInputTagReleased(FGameplayTag InputTag)
+{
+    UPRAbilitySystemComponent* ASC = Cast<UPRAbilitySystemComponent>(AbilitySystemComponent);
+    if (!ASC) return;
+    ASC->AbilityInputTagReleased(InputTag);}
+
+void APRCharacter::AbilityInputTagHeld(FGameplayTag InputTag)
+{
+    UPRAbilitySystemComponent* ASC = Cast<UPRAbilitySystemComponent>(AbilitySystemComponent);
+    if (!ASC) return;
+    ASC->AbilityInputTagHeld(InputTag);
 }
