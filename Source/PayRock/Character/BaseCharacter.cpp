@@ -2,6 +2,7 @@
 
 #include "BaseCharacter.h"
 #include "AbilitySystemComponent.h"
+#include "PayRock/PRGameplayTags.h"
 
 ABaseCharacter::ABaseCharacter()
 {
@@ -20,6 +21,24 @@ UAbilitySystemComponent* ABaseCharacter::GetAbilitySystemComponent() const
 void ABaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+}
+
+FVector ABaseCharacter::GetCombatSocketLocation_Implementation(const FGameplayTag& SocketTag)
+{
+	const FPRGameplayTags& GameplayTags = FPRGameplayTags::Get();
+	if (SocketTag.MatchesTagExact(GameplayTags.CombatSocket_Weapon) && IsValid(Weapon))
+	{
+		return Weapon->GetSocketLocation(WeaponSocketName);
+	}
+	if (SocketTag.MatchesTagExact(GameplayTags.CombatSocket_RightHand))
+	{
+		return GetMesh()->GetSocketLocation(RightHandSocketName);
+	}
+	if (SocketTag.MatchesTagExact(GameplayTags.CombatSocket_LeftHand))
+	{
+		return GetMesh()->GetSocketLocation(LeftHandSocketName);
+	}
+	return FVector();
 }
 
 void ABaseCharacter::InitAbilityActorInfo()

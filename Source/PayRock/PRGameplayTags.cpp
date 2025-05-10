@@ -104,4 +104,14 @@ void FPRGameplayTags::InitializeNativeGameplayTags()
     GameplayTags.InputTag_4 = UGameplayTagsManager::Get().AddNativeGameplayTag(
         FName("InputTag.4")
         );
+
+    GameplayTags.InputTag_2 = UGameplayTagsManager::Get().AddNativeGameplayTag(
+       FName("CombatSocket.Weapon")
+       );
+    GameplayTags.InputTag_3 = UGameplayTagsManager::Get().AddNativeGameplayTag(
+        FName("CombatSocket.RightHand")
+        );
+    GameplayTags.InputTag_4 = UGameplayTagsManager::Get().AddNativeGameplayTag(
+        FName("CombatSocket.LeftHand")
+        );
 }

@@ -24,6 +24,8 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual FVector GetCombatSocketLocation_Implementation(const FGameplayTag& SocketTag) override;
+	
 	virtual void InitAbilityActorInfo();
 	virtual void AddCharacterAbilities();
 	void ApplyEffectToSelf(const TSubclassOf<UGameplayEffect>& EffectClass, const float& EffectLevel) const;
@@ -32,6 +34,13 @@ protected:
 protected:
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	TObjectPtr<USkeletalMeshComponent> Weapon;
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	FName RightHandSocketName;
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	FName LeftHandSocketName;
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	FName WeaponSocketName;
+	
 	UPROPERTY()
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 	UPROPERTY()
