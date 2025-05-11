@@ -124,4 +124,8 @@ void FPRGameplayTags::InitializeNativeGameplayTags()
     GameplayTags.Player_Block_InputReleased = UGameplayTagsManager::Get().AddNativeGameplayTag(
        FName("Player.Block.InputReleased")
        );
+
+    GameplayTags.Damage = UGameplayTagsManager::Get().AddNativeGameplayTag(
+       FName("Damage")
+       );
 }
