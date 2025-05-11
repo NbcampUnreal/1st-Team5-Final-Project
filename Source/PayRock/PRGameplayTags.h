@@ -53,6 +53,12 @@ public:
 	FGameplayTag CombatSocket_Weapon;
 	FGameplayTag CombatSocket_RightHand;
 	FGameplayTag CombatSocket_LeftHand;
+
+	FGameplayTag Player_Block_InputPressed;
+	FGameplayTag Player_Block_InputHeld;
+	FGameplayTag Player_Block_InputReleased;
+
+	FGameplayTag Damage;
 	
 private:
 	static FPRGameplayTags GameplayTags;

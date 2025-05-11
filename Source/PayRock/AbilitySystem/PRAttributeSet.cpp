@@ -5,6 +5,7 @@
 #include "GameplayEffectExtension.h"
 #include "GameFramework/Character.h"
 #include "Net/UnrealNetwork.h"
+#include "PayRock/Character/CombatInterface.h"
 
 UPRAttributeSet::UPRAttributeSet()
 {
@@ -49,6 +50,7 @@ void UPRAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 	DOREPLIFETIME_CONDITION_NOTIFY(UPRAttributeSet, Mana, COND_None, REPNOTIFY_Always);
 }
 
+/*
 void UPRAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
 {
 	Super::PreAttributeChange(Attribute, NewValue);
@@ -62,23 +64,7 @@ void UPRAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, fl
 		NewValue = FMath::Clamp(NewValue, 0.f, GetMaxMana());
 	}
 }
-
-void UPRAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
-{
-	Super::PostGameplayEffectExecute(Data);
-
-	FEffectProperties Props;
-	SetEffectProperties(Data, Props);
-
-	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
-	{
-		SetHealth(FMath::Clamp(GetHealth(), 0.f, GetMaxHealth()));
-	}
-	if (Data.EvaluatedData.Attribute == GetManaAttribute())
-	{
-		SetMana(FMath::Clamp(GetMana(), 0.f, GetMaxMana()));
-	}
-}
+*/
 
 void UPRAttributeSet::SetEffectProperties(const FGameplayEffectModCallbackData& Data, FEffectProperties& Props)
 {
@@ -108,6 +94,63 @@ void UPRAttributeSet::SetEffectProperties(const FGameplayEffectModCallbackData& 
 		Props.TargetController = Data.Target.AbilityActorInfo->PlayerController.Get();
 		Props.TargetCharacter = Cast<ACharacter>(Props.TargetAvatarActor);
 		Props.TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Props.TargetAvatarActor);
+	}
+}
+
+void UPRAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
+{
+	Super::PostGameplayEffectExecute(Data);
+
+	FEffectProperties Props;
+	SetEffectProperties(Data, Props);
+
+	//if (Props.TargetCharacter->Implements<UCombatInterface>() && ICombatInterface::Execute_IsDead(Props.TargetCharacter)) return;
+
+	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
+	{
+		SetHealth(FMath::Clamp(GetHealth(), 0.f, GetMaxHealth()));
+	}
+	if (Data.EvaluatedData.Attribute == GetManaAttribute())
+	{
+		SetMana(FMath::Clamp(GetMana(), 0.f, GetMaxMana()));
+	}
+	if (Data.EvaluatedData.Attribute == GetIncomingDamageAttribute())
+	{
+		HandleIncomingDamage(Props);
+	}
+}
+
+void UPRAttributeSet::HandleIncomingDamage(const FEffectProperties& Props)
+{
+	const float LocalIncomingDamage = GetIncomingDamage();
+	SetIncomingDamage(0.f);
+	if (LocalIncomingDamage > 0.f)
+	{
+		float NewHealth = FMath::Clamp(GetHealth() - LocalIncomingDamage, 0.f, GetMaxHealth());
+
+		/*FOnAttributeChangeData AttributeChangeData;
+		AttributeChangeData.Attribute = GetHealthAttribute();
+		AttributeChangeData.GEModData = &Data;
+		AttributeChangeData.OldValue = GetHealth();
+		AttributeChangeData.NewValue = NewHealth;*/
+		
+		SetHealth(NewHealth);
+		// GetHealthAttribute().SetNumericValueChecked(NewHealth, this);
+		
+		// GetOwningAbilitySystemComponent()->GetGameplayAttributeValueChangeDelegate(
+			// GetHealthAttribute()).Broadcast(AttributeChangeData);
+		
+		UE_LOG(LogTemp, Warning, TEXT("IncomingDamage: %f / Health(Current): %f / GetHealth(Base): %f"), LocalIncomingDamage, GetHealth(), GetOwningAbilitySystemComponent()->GetNumericAttributeBase(GetHealthAttribute()));
+
+		const bool bShouldDie = NewHealth <= 0.f;
+		if (NewHealth <= 0.f)
+		{
+			// Handle death
+		}
+		else
+		{
+			// Handle knockback, status effects, etc.
+		}
 	}
 }
 

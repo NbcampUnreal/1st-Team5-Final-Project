@@ -1,6 +1,10 @@
 // PayRockGames
 
 #include "BaseProjectileSpell.h"
+
+#include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystemComponent.h"
+#include "PayRock/PRGameplayTags.h"
 #include "PayRock/Actor/BaseProjectile.h"
 #include "PayRock/Character/CombatInterface.h"
 
@@ -21,7 +25,15 @@ void UBaseProjectileSpell::SpawnProjectile(const FGameplayTag& SocketTag)
 		Cast<APawn>(GetAvatarActorFromActorInfo()),
 		ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
 
-	//TODO: Give the Projectile a Gameplay Effect Spec for causing Damage
-
+	// Damage Gameplay Effect
+	const UAbilitySystemComponent* SourceASC =
+		UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetAvatarActorFromActorInfo());
+	const FGameplayEffectSpecHandle EffectSpecHandle =
+		SourceASC->MakeOutgoingSpec(DamageEffectClass, GetAbilityLevel(), SourceASC->MakeEffectContext()); 
+	FPRGameplayTags GameplayTags = FPRGameplayTags::Get();
+	float Magnitude = 50.f; // TODO: Calculation based on attributes
+	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(EffectSpecHandle, GameplayTags.Damage, Magnitude);
+	Projectile->DamageEffectSpecHandle = EffectSpecHandle;
+	
 	Projectile->FinishSpawning(SpawnTransform);
 }

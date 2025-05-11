@@ -2,11 +2,16 @@
 
 #include "BaseCharacter.h"
 #include "AbilitySystemComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "PayRock/PRGameplayTags.h"
 
 ABaseCharacter::ABaseCharacter()
 {
 	PrimaryActorTick.bCanEverTick = false;
+
+	// Stop blocking the camera
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
+	GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 
 	Weapon = CreateDefaultSubobject<USkeletalMeshComponent>("Weapon");
 	Weapon->SetupAttachment(GetMesh(), FName("WeaponHandSocket"));
