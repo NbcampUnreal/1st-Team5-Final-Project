@@ -8,6 +8,7 @@
 #include "Components/CapsuleComponent.h"
 #include "EnhancedInputComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "PayRock/PRGameplayTags.h"
 #include "PayRock/AbilitySystem/PRAbilitySystemComponent.h"
 #include "PayRock/Input/PRInputComponent.h"
 #include "PayRock/Player/PRPlayerState.h"
@@ -511,17 +512,33 @@ void APRCharacter::SetJustJumped(bool bNewValue)
 
 void APRCharacter::AbilityInputTagPressed(FGameplayTag InputTag)
 {
+    if (!AbilitySystemComponent ||
+        AbilitySystemComponent->HasMatchingGameplayTag(FPRGameplayTags::Get().Player_Block_InputPressed)) return;
+    
+    if (UPRAbilitySystemComponent* ASC = Cast<UPRAbilitySystemComponent>(AbilitySystemComponent))
+    {
+        ASC->AbilityInputTagPressed(InputTag);
+    }
 }
 
 void APRCharacter::AbilityInputTagReleased(FGameplayTag InputTag)
 {
-    UPRAbilitySystemComponent* ASC = Cast<UPRAbilitySystemComponent>(AbilitySystemComponent);
-    if (!ASC) return;
-    ASC->AbilityInputTagReleased(InputTag);}
+    if (!AbilitySystemComponent ||
+        AbilitySystemComponent->HasMatchingGameplayTag(FPRGameplayTags::Get().Player_Block_InputReleased)) return;
+    
+    if (UPRAbilitySystemComponent* ASC = Cast<UPRAbilitySystemComponent>(AbilitySystemComponent))
+    {
+        ASC->AbilityInputTagReleased(InputTag);
+    }
+}
 
 void APRCharacter::AbilityInputTagHeld(FGameplayTag InputTag)
 {
-    UPRAbilitySystemComponent* ASC = Cast<UPRAbilitySystemComponent>(AbilitySystemComponent);
-    if (!ASC) return;
-    ASC->AbilityInputTagHeld(InputTag);
+    if (!AbilitySystemComponent ||
+        AbilitySystemComponent->HasMatchingGameplayTag(FPRGameplayTags::Get().Player_Block_InputHeld)) return;
+    
+    if (UPRAbilitySystemComponent* ASC = Cast<UPRAbilitySystemComponent>(AbilitySystemComponent))
+    {
+        ASC->AbilityInputTagHeld(InputTag);
+    }
 }

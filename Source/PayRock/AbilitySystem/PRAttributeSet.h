@@ -201,4 +201,11 @@ public:
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_Mana, Category = "VitalAttributes")
 	FGameplayAttributeData Mana;
 	ATTRIBUTE_ACCESSORS(UPRAttributeSet, Mana);
+
+	/*
+	 * Meta Attributes
+	 */
+	UPROPERTY(BlueprintReadOnly, Category = "MetaAttributes")
+	FGameplayAttributeData IncomingDamage;
+	ATTRIBUTE_ACCESSORS(UPRAttributeSet, IncomingDamage);
 };
