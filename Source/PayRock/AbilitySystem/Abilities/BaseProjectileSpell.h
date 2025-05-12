@@ -12,10 +12,12 @@ class PAYROCK_API UBaseProjectileSpell : public UBaseGameplayAbility
 	GENERATED_BODY()
 
 protected:
-	virtual void ActivateAbility(
-		const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
-		const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
-
+	UFUNCTION(BlueprintCallable)
+	void SpawnProjectile(const FGameplayTag& SocketTag);
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TSubclassOf<class ABaseProjectile> ProjectileClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TSubclassOf<UGameplayEffect> DamageEffectClass;
 };

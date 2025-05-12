@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
+#include "GameplayTagContainer.h"
 #include "CombatInterface.generated.h"
 
 UINTERFACE()
@@ -19,4 +20,7 @@ class PAYROCK_API ICombatInterface
 
 public:
 	virtual int32 GetCharacterLevel();
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	FVector GetCombatSocketLocation(const FGameplayTag& SocketTag);
 };
