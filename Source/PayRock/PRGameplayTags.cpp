@@ -152,4 +152,11 @@ void FPRGameplayTags::InitializeNativeGameplayTags()
     GameplayTags.Damage_Magic = UGameplayTagsManager::Get().AddNativeGameplayTag(
        FName("Damage.Magic")
        );
+
+    GameplayTags.Ability_Attack = UGameplayTagsManager::Get().AddNativeGameplayTag(
+        FName("Ability.Attack")
+        );
+    GameplayTags.Cooldown_Attack = UGameplayTagsManager::Get().AddNativeGameplayTag(
+        FName("Cooldown.Attack")
+        );
 }

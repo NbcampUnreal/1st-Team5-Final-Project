@@ -32,6 +32,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "AI")
 	float IdleDuration = 4.0f;
+	
+	UPROPERTY(EditAnywhere, Category = "AI")
+	float PatrolMoveSpeed = 200.0f;
 
 	bool bWaitingForIdle = false;
 	bool bReachedDestination = false;

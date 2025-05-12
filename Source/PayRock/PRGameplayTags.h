@@ -61,6 +61,10 @@ public:
 	FGameplayTag Damage_Physical;
 	FGameplayTag Damage_Magic;
 	
+	FGameplayTag Damage;
+
+	FGameplayTag Ability_Attack;
+	FGameplayTag Cooldown_Attack;
 private:
 	static FPRGameplayTags GameplayTags;
 };
