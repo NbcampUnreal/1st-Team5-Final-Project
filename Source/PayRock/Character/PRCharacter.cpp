@@ -39,11 +39,12 @@ APRCharacter::APRCharacter()
     CameraComp->SetupAttachment(SpringArmComp, USpringArmComponent::SocketName);
     CameraComp->bUsePawnControlRotation = false;
     GetMesh()->SetUsingAbsoluteRotation(false);
-    GetMesh()->SetRelativeRotation(FRotator(0.f, -90.f, 0.f)); // SkeletalMesh �⺻ ���� ����
+    GetMesh()->SetRelativeRotation(FRotator(0.f, -90.f, 0.f)); // SkeletalMesh
 
-    NormalSpeed = 600.0f;
-    SprintSpeedMultiplier = 1.5f;
-    CrouchSpeed = 300.0f;
+    NormalSpeed = 350.0f;
+    SprintSpeedMultiplier = 2.0f;
+    CrouchSpeed = 150.0f;
+    CurrentTargetSpeed = 600.0f;
     SprintSpeed = NormalSpeed * SprintSpeedMultiplier;
     BackwardSpeedMultiplier = 0.5f;
     GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
@@ -128,7 +129,7 @@ void APRCharacter::SetupStimuliSource()
 
 void APRCharacter::SetSpeed(float NewSpeedMultiplier)
 {
-    float SpeedMultiplier = FMath::Clamp(NewSpeedMultiplier, 0.1f, 1.0f); // �ӵ��� �ʹ� �۾����� �ʵ��� ����
+    float SpeedMultiplier = FMath::Clamp(NewSpeedMultiplier, 0.1f, 1.0f);
 
     GetCharacterMovement()->MaxWalkSpeed = NormalSpeed * SpeedMultiplier;
     SprintSpeed = NormalSpeed * SprintSpeedMultiplier * SpeedMultiplier;
@@ -136,6 +137,47 @@ void APRCharacter::SetSpeed(float NewSpeedMultiplier)
 
     UE_LOG(LogTemp, Warning, TEXT("Speed Updated -> Walk: %f | Sprint: %f"),
         GetCharacterMovement()->MaxWalkSpeed, SprintSpeed);
+}
+
+void APRCharacter::SetSpeedMode(bool bSprintState)
+{
+    const float NewTargetSpeed = bSprintState ? NormalSpeed * SprintSpeedMultiplier : NormalSpeed;
+    const float NewInterpRate = bSprintState ? SpeedInterpRateSprint : SpeedInterpRateWalk;
+
+    // 클라 즉시 반영
+    CurrentTargetSpeed = NewTargetSpeed;
+    CurrentInterpRate = NewInterpRate;
+
+    if (HasAuthority())
+    {
+        ReplicatedMaxWalkSpeed = NewTargetSpeed;
+    }
+}
+
+void APRCharacter::SetCrouchSpeed()
+{
+    if (HasAuthority())
+    {
+        ReplicatedMaxWalkSpeed = CrouchSpeed;
+        OnRep_MaxWalkSpeed();
+    }
+}
+
+void APRCharacter::ResetToWalkSpeed()
+{
+    if (HasAuthority())
+    {
+        ReplicatedMaxWalkSpeed = NormalSpeed;
+        OnRep_MaxWalkSpeed();
+    }
+}
+
+void APRCharacter::OnRep_MaxWalkSpeed()
+{
+    CurrentTargetSpeed = ReplicatedMaxWalkSpeed;
+    CurrentInterpRate = (ReplicatedMaxWalkSpeed > NormalSpeed) ? SpeedInterpRateSprint : SpeedInterpRateWalk;
+
+    UE_LOG(LogTemp, Log, TEXT("OnRep_MaxWalkSpeed: target set to %f"), CurrentTargetSpeed);
 }
 
 void APRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -149,7 +191,6 @@ void APRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
         {
             if (PlayerController->MoveAction)
             {
-                // �̵�
                 EnhancedInput->BindAction(
                     PlayerController->MoveAction,
                     ETriggerEvent::Triggered,
@@ -160,15 +201,13 @@ void APRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
             if (PlayerController->JumpAction)
             {
-                // ���� (Space)
                 EnhancedInput->BindAction(
                     PlayerController->JumpAction,
-                    ETriggerEvent::Triggered,
+                    ETriggerEvent::Started,
                     this,
                     &APRCharacter::StartJump
                 );
 
-                // ���� ���߱�
                 EnhancedInput->BindAction(
                     PlayerController->JumpAction,
                     ETriggerEvent::Completed,
@@ -179,7 +218,6 @@ void APRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
             if (PlayerController->LookAction)
             {
-                // �ü�
                 EnhancedInput->BindAction(
                     PlayerController->LookAction,
                     ETriggerEvent::Triggered,
@@ -190,14 +228,12 @@ void APRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
             if (PlayerController->SprintAction)
             {
-                // ������Ʈ
                 EnhancedInput->BindAction(
                     PlayerController->SprintAction,
                     ETriggerEvent::Triggered,
                     this,
                     &APRCharacter::StartSprint
                 );
-                // �ٽ� �ȱ�
                 EnhancedInput->BindAction(
                     PlayerController->SprintAction,
                     ETriggerEvent::Completed,
@@ -208,14 +244,12 @@ void APRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
             if (PlayerController->CrouchAction)
             {
-                // �ɱ�
                 EnhancedInput->BindAction(
                     PlayerController->CrouchAction,
                     ETriggerEvent::Triggered,
                     this,
                     &APRCharacter::StartCrouch
                 );
-                // �ɱ� ���߰� �Ͼ��
                 EnhancedInput->BindAction(
                     PlayerController->CrouchAction,
                     ETriggerEvent::Completed,
@@ -269,18 +303,15 @@ void APRCharacter::Move(const FInputActionValue& Value)
     const FVector2D MoveInput = Value.Get<FVector2D>();
     if (MoveInput.IsNearlyZero()) return;
 
-    // ĳ���Ͱ� �ٶ󺸴� ���� ���� ȸ��
     const FRotator ControlRot = Controller->GetControlRotation();
     const FRotator YawRot(0.f, ControlRot.Yaw, 0.f);
 
     const FVector Forward = FRotationMatrix(YawRot).GetUnitAxis(EAxis::X);
     const FVector Right = FRotationMatrix(YawRot).GetUnitAxis(EAxis::Y);
 
-    // ��ü �̵� ���� ���
     FVector MoveDir = Forward * MoveInput.Y + Right * MoveInput.X;
-    MoveDir.Normalize(); // �밢�� ����ȭ
+    MoveDir.Normalize();
 
-    // �ڷΰ��� �Է��� ��� �ӵ� ����
     float SpeedMultiplier = (MoveInput.Y < 0.f) ? BackwardSpeedMultiplier : 1.0f;
 
     AddMovementInput(MoveDir, SpeedMultiplier);
@@ -291,9 +322,20 @@ void APRCharacter::StartJump(const FInputActionValue& value)
     if (GetCharacterMovement()->IsCrouching()) return;
 
     Jump();
-    bJustJumped = true;
-    bResetJustJumpedNextFrame = true;
-    JustJumpedElapsedTime = 0.f; // 타이머 초기화
+
+    if (HasAuthority())
+    {
+        SetJustJumped(true);
+    }
+    else
+    {
+        ServerStartJump();
+    }
+}
+void APRCharacter::ServerStartJump_Implementation()
+{
+    Jump(); // 서버도 점프 상태 반영
+    SetJustJumped(true); // bJustJumped 리플리케이션으로 애니메이션 연동
 }
 
 void APRCharacter::StopJump(const FInputActionValue& value)
@@ -310,18 +352,36 @@ void APRCharacter::Look(const FInputActionValue& value)
 
 void APRCharacter::StartSprint(const FInputActionValue& value)
 {
-    if (GetCharacterMovement())
+    SetSpeedMode(true); // 이걸로 대체
+
+    if (!HasAuthority())
     {
-        GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
+        ServerStartSprint();
     }
+
+    bIsSprinting = true; // 클라에서도 상태 유지
+}
+
+void APRCharacter::ServerStartSprint_Implementation()
+{
+    SetSpeedMode(true);
 }
 
 void APRCharacter::StopSprint(const FInputActionValue& value)
 {
-    if (GetCharacterMovement())
+    SetSpeedMode(false); // 이걸로 대체
+
+    if (!HasAuthority())
     {
-        GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
+        ServerStopSprint();
     }
+
+    bIsSprinting = false; // 클라에서도 상태 유지
+}
+
+void APRCharacter::ServerStopSprint_Implementation()
+{
+    SetSpeedMode(false);
 }
 
 void APRCharacter::StartCrouch(const FInputActionValue& value)
@@ -437,6 +497,8 @@ void APRCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
     DOREPLIFETIME(APRCharacter, bIsInAir);
     DOREPLIFETIME(APRCharacter, bIsAttacking);
     DOREPLIFETIME(APRCharacter, bIsGuarding);
+    DOREPLIFETIME(APRCharacter, bJustJumped);
+    DOREPLIFETIME(APRCharacter, ReplicatedMaxWalkSpeed);
 }
 
 void APRCharacter::OnRep_MoveDirection()
@@ -463,28 +525,26 @@ void APRCharacter::OnRep_Guarding()
 {
 }
 
+void APRCharacter::OnRep_JustJumped()
+{
+    // 애니메이션 BP에서 bJustJumped를 바탕으로 트리거 잡을 수 있음
+    UE_LOG(LogTemp, Log, TEXT("OnRep_JustJumped called. bJustJumped = %s"), bJustJumped ? TEXT("true") : TEXT("false"));
+}
+
 void APRCharacter::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
+
+    float CurrentSpeed = GetCharacterMovement()->MaxWalkSpeed;
+    float NewSpeed = FMath::FInterpTo(CurrentSpeed, CurrentTargetSpeed, DeltaSeconds, CurrentInterpRate);
+    GetCharacterMovement()->MaxWalkSpeed = NewSpeed;
+
     const FVector Velocity = GetVelocity();
     const FRotator ActorRot = GetActorRotation();
 
     MoveDirection = CalculateDirectionCustom(Velocity, ActorRot);
     bIsInAir = GetCharacterMovement()->IsFalling();
     bIsCrouching = GetCharacterMovement()->IsCrouching();
-
-    // 다음 프레임에 자동 리셋
-    if (bResetJustJumpedNextFrame)
-    {
-        JustJumpedElapsedTime += DeltaSeconds;
-
-        if (JustJumpedElapsedTime >= 0.2f)
-        {
-            bJustJumped = false;
-            bResetJustJumpedNextFrame = false;
-            JustJumpedElapsedTime = 0.f;
-        }
-    }
 }
 
 float APRCharacter::CalculateDirectionCustom(const FVector& Velocity, const FRotator& BaseRotation)
@@ -508,6 +568,25 @@ float APRCharacter::CalculateDirectionCustom(const FVector& Velocity, const FRot
 void APRCharacter::SetJustJumped(bool bNewValue)
 {
     bJustJumped = bNewValue;
+    OnRep_JustJumped();
+
+    if (bNewValue)
+    {
+        // 최소 0.2초 정도는 유지해야 애님 블렌딩이 가능
+        GetWorld()->GetTimerManager().SetTimer(
+            JumpResetHandle,
+            this,
+            &APRCharacter::ResetJustJumped,
+            0.2f,
+            false
+        );
+    }
+}
+
+void APRCharacter::ResetJustJumped()
+{
+    bJustJumped = false;
+    OnRep_JustJumped();
 }
 
 void APRCharacter::AbilityInputTagPressed(FGameplayTag InputTag)
