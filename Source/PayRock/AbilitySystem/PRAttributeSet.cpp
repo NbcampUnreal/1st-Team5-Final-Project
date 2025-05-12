@@ -139,9 +139,11 @@ void UPRAttributeSet::HandleIncomingDamage(const FEffectProperties& Props, const
 		
 		GetOwningAbilitySystemComponent()->GetGameplayAttributeValueChangeDelegate(
 			GetHealthAttribute()).Broadcast(AttributeChangeData);
-		
+
+		const float HealthBase = GetHealth();
+		const float HealthCurrent = GetOwningAbilitySystemComponent()->GetNumericAttributeBase(GetHealthAttribute());
 		UE_LOG(LogTemp, Warning, TEXT("IncomingDamage: %f / Health(Current): %f / GetHealth(Base): %f"),
-			LocalIncomingDamage, GetHealth(), GetOwningAbilitySystemComponent()->GetNumericAttributeBase(GetHealthAttribute()));
+			LocalIncomingDamage, HealthCurrent, HealthBase);
 
 		const bool bShouldDie = NewHealth <= 0.f;
 		if (NewHealth <= 0.f)
