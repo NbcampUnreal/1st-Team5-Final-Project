@@ -10,6 +10,7 @@
 #include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "PayRock/AbilitySystem/PRAttributeSet.h"
+#include "PayRock/AbilitySystem/Abilities/BaseDamageGameplayAbility.h"
 
 ABaseProjectile::ABaseProjectile()
 {
@@ -58,9 +59,9 @@ void ABaseProjectile::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, 
 
 	if (HasAuthority())
 	{
-		if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor))
+		if (UBaseDamageGameplayAbility* DamageAbility = Cast<UBaseDamageGameplayAbility>(SourceAbility))
 		{
-			TargetASC->ApplyGameplayEffectSpecToSelf(*DamageEffectSpecHandle.Data.Get());
+			DamageAbility->CauseDamage(OtherActor);
 		}
 		Destroy();
 	}
