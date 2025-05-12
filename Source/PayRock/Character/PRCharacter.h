@@ -7,6 +7,7 @@
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "PRCharacter.generated.h"
 
+class USphereComponent;
 class UPRInputConfig;
 class USpringArmComponent; // 스프링 암 관련 클래스 헤더
 class UCameraComponent; // 카메라 관련 클래스 전방 선언
@@ -32,6 +33,12 @@ public:
 	// Camera Component
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	UCameraComponent* CameraComp;
+
+	// Fist Collision Component
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CollisionComponent")
+	USphereComponent* LeftHandCollisionComp;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CollisionComponent")
+	USphereComponent* RightHandCollisionComp;
 
 	// Move Speed Property
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
@@ -90,6 +97,7 @@ public:
 
 
 protected:
+	virtual void BeginPlay() override;
 	virtual void AddCharacterAbilities() override;
 	
 private:
