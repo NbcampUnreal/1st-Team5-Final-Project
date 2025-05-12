@@ -34,6 +34,13 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	UCameraComponent* CameraComp;
 
+	// 이동 속도 값 (Replicated)
+	UPROPERTY(ReplicatedUsing = OnRep_MaxWalkSpeed)
+	float ReplicatedMaxWalkSpeed = 600.f;
+
+	// Crouch용 속도는 따로 사용할 경우 필요
+	UPROPERTY(EditDefaultsOnly, Category = "Movement")
+
 	// Fist Collision Component
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CollisionComponent")
 	USphereComponent* LeftHandCollisionComp;
@@ -49,8 +56,29 @@ public:
 	float SprintSpeed;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
 	float CrouchSpeed;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
+
+	// 걷기, 달리기 기준 속도 값
+	UPROPERTY(EditDefaultsOnly, Category = "Movement")
+	float NormalSpeed;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Movement")
+	float SprintSpeedMultiplier;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 	float BackwardSpeedMultiplier;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Movement")
+	float CurrentTargetSpeed; // 목표 속도
+
+	UPROPERTY(EditDefaultsOnly, Category = "Movement|Interp")
+	float SpeedInterpRateSprint = 6.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Movement|Interp")
+	float SpeedInterpRateWalk = 3.f;
+	float CurrentInterpRate = 5.f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
+	float SprintSpeed; // NormalSpeed * SprintSpeedMultiplier
 
 	// Mouse Sensitivity
 	UPROPERTY(EditAnywhere, Category = "Input")
@@ -89,12 +117,34 @@ public:
 	UPROPERTY(ReplicatedUsing = OnRep_Guarding, VisibleAnywhere, BlueprintReadOnly, Category = "Anim|Combat")
 	bool bIsGuarding = false;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Anim|Movement")
+	UPROPERTY(ReplicatedUsing = OnRep_JustJumped, VisibleAnywhere, BlueprintReadOnly, Category = "Anim|Movement")
 	bool bJustJumped = false;
+
+	UFUNCTION(BlueprintCallable, Category = "Anim|Movement")
+	float GetLastJumpDirection() const { return LastJumpDirection; }
 
 	bool bResetJustJumpedNextFrame = false;
 	float JustJumpedElapsedTime = 0.f;
 
+	UFUNCTION()
+	void OnRep_MaxWalkSpeed();
+
+	void SetSpeedMode(bool bSprintState);
+	void SetCrouchSpeed();
+	void ResetToWalkSpeed();
+
+	UFUNCTION(Server, Reliable)
+	void ServerStartJump();
+
+	UFUNCTION(Server, Reliable)
+	void ServerStartSprint();
+
+	UFUNCTION(Server, Reliable)
+	void ServerStopSprint();
+
+	// 마지막 점프 시점의 이동 방향
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Anim|Movement")
+	float LastJumpDirection = 0.f;
 
 protected:
 	virtual void BeginPlay() override;
@@ -166,7 +216,16 @@ protected:
 	UFUNCTION()
 	void OnRep_Guarding();
 
+	UFUNCTION()
+	void OnRep_JustJumped();
+
 	void SetJustJumped(bool bNewValue); // 인라인 가능
+
+	void ResetJustJumped();
+
+	// 점프 상태를 일정 시간 후 초기화하기 위한 타이머 핸들
+	FTimerHandle JumpResetHandle;
+
 
 private:
 	/* Callback functions for binding ability input actions based on Input Tags  */
