@@ -59,7 +59,9 @@ public:
 	FGameplayTag Player_Block_InputReleased;
 
 	FGameplayTag Damage;
-	
+
+	FGameplayTag Ability_Attack;
+	FGameplayTag Cooldown_Attack;
 private:
 	static FPRGameplayTags GameplayTags;
 };

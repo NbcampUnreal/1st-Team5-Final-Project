@@ -14,8 +14,13 @@ class PAYROCK_API AEnemyCharacter : public ABaseCharacter
 public:
 	AEnemyCharacter();
 
+	UAnimMontage* GetAttackMontage() const {return AttackMontage;}
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void InitAbilityActorInfo() override;
 	virtual void AddCharacterAbilities() override;
+private:
+	UPROPERTY(EditDefaultsOnly, Category = "Combat")
+	UAnimMontage* AttackMontage;
 };
