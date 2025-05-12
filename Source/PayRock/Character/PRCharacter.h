@@ -38,9 +38,6 @@ public:
 	UPROPERTY(ReplicatedUsing = OnRep_MaxWalkSpeed)
 	float ReplicatedMaxWalkSpeed = 600.f;
 
-	// Crouch용 속도는 따로 사용할 경우 필요
-	UPROPERTY(EditDefaultsOnly, Category = "Movement")
-
 	// Fist Collision Component
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CollisionComponent")
 	USphereComponent* LeftHandCollisionComp;
@@ -56,29 +53,16 @@ public:
 	float SprintSpeed;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
 	float CrouchSpeed;
-
-	// 걷기, 달리기 기준 속도 값
-	UPROPERTY(EditDefaultsOnly, Category = "Movement")
-	float NormalSpeed;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Movement")
-	float SprintSpeedMultiplier;
-
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 	float BackwardSpeedMultiplier;
-
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 	float CurrentTargetSpeed; // 목표 속도
-
 	UPROPERTY(EditDefaultsOnly, Category = "Movement|Interp")
 	float SpeedInterpRateSprint = 6.f;
-
 	UPROPERTY(EditDefaultsOnly, Category = "Movement|Interp")
 	float SpeedInterpRateWalk = 3.f;
 	float CurrentInterpRate = 5.f;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
-	float SprintSpeed; // NormalSpeed * SprintSpeedMultiplier
 
 	// Mouse Sensitivity
 	UPROPERTY(EditAnywhere, Category = "Input")
