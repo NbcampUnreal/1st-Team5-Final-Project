@@ -7,7 +7,7 @@
 #include "GameplayTagContainer.h"
 #include "CombatInterface.generated.h"
 
-UINTERFACE()
+UINTERFACE(MinimalAPI, BlueprintType)
 class UCombatInterface : public UInterface
 {
 	GENERATED_BODY()

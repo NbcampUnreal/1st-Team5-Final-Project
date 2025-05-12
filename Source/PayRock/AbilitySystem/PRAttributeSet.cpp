@@ -116,11 +116,11 @@ void UPRAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
 	}
 	if (Data.EvaluatedData.Attribute == GetIncomingDamageAttribute())
 	{
-		HandleIncomingDamage(Props);
+		HandleIncomingDamage(Props, Data);
 	}
 }
 
-void UPRAttributeSet::HandleIncomingDamage(const FEffectProperties& Props)
+void UPRAttributeSet::HandleIncomingDamage(const FEffectProperties& Props, const FGameplayEffectModCallbackData& Data)
 {
 	const float LocalIncomingDamage = GetIncomingDamage();
 	SetIncomingDamage(0.f);
@@ -128,19 +128,20 @@ void UPRAttributeSet::HandleIncomingDamage(const FEffectProperties& Props)
 	{
 		float NewHealth = FMath::Clamp(GetHealth() - LocalIncomingDamage, 0.f, GetMaxHealth());
 
-		/*FOnAttributeChangeData AttributeChangeData;
+		FOnAttributeChangeData AttributeChangeData;
 		AttributeChangeData.Attribute = GetHealthAttribute();
 		AttributeChangeData.GEModData = &Data;
 		AttributeChangeData.OldValue = GetHealth();
-		AttributeChangeData.NewValue = NewHealth;*/
+		AttributeChangeData.NewValue = NewHealth;
 		
-		SetHealth(NewHealth);
-		// GetHealthAttribute().SetNumericValueChecked(NewHealth, this);
+		//SetHealth(NewHealth);
+		GetHealthAttribute().SetNumericValueChecked(NewHealth, this);
 		
-		// GetOwningAbilitySystemComponent()->GetGameplayAttributeValueChangeDelegate(
-			// GetHealthAttribute()).Broadcast(AttributeChangeData);
+		GetOwningAbilitySystemComponent()->GetGameplayAttributeValueChangeDelegate(
+			GetHealthAttribute()).Broadcast(AttributeChangeData);
 		
-		UE_LOG(LogTemp, Warning, TEXT("IncomingDamage: %f / Health(Current): %f / GetHealth(Base): %f"), LocalIncomingDamage, GetHealth(), GetOwningAbilitySystemComponent()->GetNumericAttributeBase(GetHealthAttribute()));
+		UE_LOG(LogTemp, Warning, TEXT("IncomingDamage: %f / Health(Current): %f / GetHealth(Base): %f"),
+			LocalIncomingDamage, GetHealth(), GetOwningAbilitySystemComponent()->GetNumericAttributeBase(GetHealthAttribute()));
 
 		const bool bShouldDie = NewHealth <= 0.f;
 		if (NewHealth <= 0.f)
