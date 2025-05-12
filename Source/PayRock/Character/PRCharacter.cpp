@@ -72,6 +72,7 @@ void APRCharacter::BeginPlay()
     RightHandCollisionComp->AttachToComponent(
         GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, RightHandSocketName);
     RightHandCollisionComp->SetRelativeLocation(FVector::ZeroVector);
+    RightHandCollisionComp->SetSphereRadius(10.f);
     RightHandCollisionComp->SetCollisionResponseToAllChannels(ECR_Ignore);
     RightHandCollisionComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
     RightHandCollisionComp->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Overlap);
@@ -81,6 +82,7 @@ void APRCharacter::BeginPlay()
     LeftHandCollisionComp->AttachToComponent(
         GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, LeftHandSocketName);
     LeftHandCollisionComp->SetRelativeLocation(FVector::ZeroVector);
+    LeftHandCollisionComp->SetSphereRadius(10.f);
     LeftHandCollisionComp->SetCollisionResponseToAllChannels(ECR_Ignore);
     LeftHandCollisionComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
     LeftHandCollisionComp->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Overlap);
