@@ -7,6 +7,7 @@
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "EnhancedInputComponent.h"
+#include "Components/SphereComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "PayRock/PRGameplayTags.h"
 #include "PayRock/AbilitySystem/PRAbilitySystemComponent.h"
@@ -41,11 +42,15 @@ APRCharacter::APRCharacter()
     GetMesh()->SetUsingAbsoluteRotation(false);
     GetMesh()->SetRelativeRotation(FRotator(0.f, -90.f, 0.f)); // SkeletalMesh
 
-    NormalSpeed = 350.0f;
-    SprintSpeedMultiplier = 2.0f;
-    CrouchSpeed = 150.0f;
-    CurrentTargetSpeed = 600.0f;
+    RightHandCollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("RightHandCollision"));
+    LeftHandCollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("LefttHandCollision"));
+    
+    
+    NormalSpeed = 600.0f;
+    SprintSpeedMultiplier = 1.5f;
+    CrouchSpeed = 300.0f;
     SprintSpeed = NormalSpeed * SprintSpeedMultiplier;
+    CurrentTargetSpeed = 600.0f;
     BackwardSpeedMultiplier = 0.5f;
     GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
 
@@ -58,6 +63,29 @@ APRCharacter::APRCharacter()
 
     bReplicates = true;
     SetReplicateMovement(true);
+}
+
+void APRCharacter::BeginPlay()
+{
+    Super::BeginPlay();
+
+    RightHandCollisionComp->AttachToComponent(
+        GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, RightHandSocketName);
+    RightHandCollisionComp->SetRelativeLocation(FVector::ZeroVector);
+    RightHandCollisionComp->SetCollisionResponseToAllChannels(ECR_Ignore);
+    RightHandCollisionComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+    RightHandCollisionComp->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Overlap);
+    RightHandCollisionComp->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
+    RightHandCollisionComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+    LeftHandCollisionComp->AttachToComponent(
+        GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, LeftHandSocketName);
+    LeftHandCollisionComp->SetRelativeLocation(FVector::ZeroVector);
+    LeftHandCollisionComp->SetCollisionResponseToAllChannels(ECR_Ignore);
+    LeftHandCollisionComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+    LeftHandCollisionComp->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Overlap);
+    LeftHandCollisionComp->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
+    LeftHandCollisionComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void APRCharacter::PossessedBy(AController* NewController)

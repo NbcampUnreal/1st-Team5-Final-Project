@@ -7,6 +7,7 @@
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "PRCharacter.generated.h"
 
+class USphereComponent;
 class UPRInputConfig;
 class USpringArmComponent; // 스프링 암 관련 클래스 헤더
 class UCameraComponent; // 카메라 관련 클래스 전방 선언
@@ -39,6 +40,21 @@ public:
 
 	// Crouch용 속도는 따로 사용할 경우 필요
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
+
+	// Fist Collision Component
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CollisionComponent")
+	USphereComponent* LeftHandCollisionComp;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CollisionComponent")
+	USphereComponent* RightHandCollisionComp;
+
+	// Move Speed Property
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+	float NormalSpeed;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+	float SprintSpeedMultiplier;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
+	float SprintSpeed;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
 	float CrouchSpeed;
 
 	// 걷기, 달리기 기준 속도 값
@@ -131,6 +147,7 @@ public:
 	float LastJumpDirection = 0.f;
 
 protected:
+	virtual void BeginPlay() override;
 	virtual void AddCharacterAbilities() override;
 	
 private:
