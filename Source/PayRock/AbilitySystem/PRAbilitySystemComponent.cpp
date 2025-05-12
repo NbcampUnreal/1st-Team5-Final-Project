@@ -5,7 +5,7 @@
 
 void UPRAbilitySystemComponent::OnAbilityActorInfoInitialized()
 {
-	OnGameplayEffectAppliedDelegateToSelf.AddUObject(this, &UPRAbilitySystemComponent::OnEffectApplied);
+	OnGameplayEffectAppliedDelegateToSelf.AddUObject(this, &UPRAbilitySystemComponent::ClientOnEffectApplied);
 }
 
 void UPRAbilitySystemComponent::AddCharacterAbilities(const TArray<TSubclassOf<UGameplayAbility>>& StartupAbilities)
@@ -86,8 +86,9 @@ void UPRAbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag& Inpu
 	}
 }
 
-void UPRAbilitySystemComponent::OnEffectApplied(UAbilitySystemComponent* AbilitySystemComponent,
-                                                const FGameplayEffectSpec& EffectSpec, FActiveGameplayEffectHandle ActiveEffectHandle)
+void UPRAbilitySystemComponent::ClientOnEffectApplied_Implementation(
+	UAbilitySystemComponent* AbilitySystemComponent, const FGameplayEffectSpec& EffectSpec,
+	FActiveGameplayEffectHandle ActiveEffectHandle)
 {
 	FGameplayTagContainer TagContainer;
 	EffectSpec.GetAllAssetTags(TagContainer);

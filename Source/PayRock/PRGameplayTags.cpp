@@ -8,6 +8,9 @@ FPRGameplayTags FPRGameplayTags::GameplayTags;
 
 void FPRGameplayTags::InitializeNativeGameplayTags()
 {
+    /*
+     * Primary Attributes
+     */
 	GameplayTags.Attributes_Primary_Strength = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("Attributes.Primary.Strength")
 		);
@@ -29,7 +32,10 @@ void FPRGameplayTags::InitializeNativeGameplayTags()
     GameplayTags.Attributes_Primary_Luck = UGameplayTagsManager::Get().AddNativeGameplayTag(
         FName("Attributes.Primary.Luck")
         );
-    
+
+    /*
+     * Secondary Attributes
+     */
     GameplayTags.Attributes_Secondary_Armor = UGameplayTagsManager::Get().AddNativeGameplayTag(
         FName("Attributes.Secondary.Armor")
         );
@@ -78,7 +84,10 @@ void FPRGameplayTags::InitializeNativeGameplayTags()
     GameplayTags.Attributes_Secondary_CarryWeight = UGameplayTagsManager::Get().AddNativeGameplayTag(
         FName("Attributes.Secondary.CarryWeight")
         );
-    
+
+    /*
+     * Vital Attributes
+     */
     GameplayTags.Attributes_Vital_Health = UGameplayTagsManager::Get().AddNativeGameplayTag(
         FName("Attributes.Vital.Health")
         );
@@ -86,6 +95,9 @@ void FPRGameplayTags::InitializeNativeGameplayTags()
         FName("Attributes.Vital.Mana")
         );
 
+    /*
+     * Input
+     */
     GameplayTags.InputTag_LMB = UGameplayTagsManager::Get().AddNativeGameplayTag(
         FName("InputTag.LMB")
         );
@@ -105,6 +117,9 @@ void FPRGameplayTags::InitializeNativeGameplayTags()
         FName("InputTag.4")
         );
 
+    /*
+     * Combat Socket
+     */
     GameplayTags.CombatSocket_Weapon = UGameplayTagsManager::Get().AddNativeGameplayTag(
        FName("CombatSocket.Weapon")
        );
@@ -115,6 +130,9 @@ void FPRGameplayTags::InitializeNativeGameplayTags()
         FName("CombatSocket.LeftHand")
         );
 
+    /*
+     * Block Input
+     */
     GameplayTags.Player_Block_InputHeld = UGameplayTagsManager::Get().AddNativeGameplayTag(
        FName("Player.Block.InputHeld")
        );
@@ -125,7 +143,13 @@ void FPRGameplayTags::InitializeNativeGameplayTags()
        FName("Player.Block.InputReleased")
        );
 
-    GameplayTags.Damage = UGameplayTagsManager::Get().AddNativeGameplayTag(
-       FName("Damage")
+    /*
+     * Damage
+     */
+    GameplayTags.Damage_Physical = UGameplayTagsManager::Get().AddNativeGameplayTag(
+       FName("Damage.Physical")
+       );
+    GameplayTags.Damage_Magic = UGameplayTagsManager::Get().AddNativeGameplayTag(
+       FName("Damage.Magic")
        );
 }

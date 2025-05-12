@@ -52,7 +52,7 @@ public:
 	// virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
 
-	void HandleIncomingDamage(const FEffectProperties& Props);
+	void HandleIncomingDamage(const FEffectProperties& Props, const FGameplayEffectModCallbackData& Data);
 
 	/* Primary Attributes */
 	UFUNCTION()
