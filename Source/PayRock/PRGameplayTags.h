@@ -58,7 +58,8 @@ public:
 	FGameplayTag Player_Block_InputHeld;
 	FGameplayTag Player_Block_InputReleased;
 
-	FGameplayTag Damage;
+	FGameplayTag Damage_Physical;
+	FGameplayTag Damage_Magic;
 	
 private:
 	static FPRGameplayTags GameplayTags;
