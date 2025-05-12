@@ -104,6 +104,9 @@ public:
 	UPROPERTY(ReplicatedUsing = OnRep_JustJumped, VisibleAnywhere, BlueprintReadOnly, Category = "Anim|Movement")
 	bool bJustJumped = false;
 
+	UFUNCTION(BlueprintCallable, Category = "Anim|Movement")
+	float GetLastJumpDirection() const { return LastJumpDirection; }
+
 	bool bResetJustJumpedNextFrame = false;
 	float JustJumpedElapsedTime = 0.f;
 
@@ -122,6 +125,10 @@ public:
 
 	UFUNCTION(Server, Reliable)
 	void ServerStopSprint();
+
+	// 마지막 점프 시점의 이동 방향
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Anim|Movement")
+	float LastJumpDirection = 0.f;
 
 protected:
 	virtual void AddCharacterAbilities() override;

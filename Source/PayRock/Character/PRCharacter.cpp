@@ -52,19 +52,20 @@ APRCharacter::APRCharacter()
     MouseSensitivity = 1.0f;
 
     GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
-    GetCharacterMovement()->SetCrouchedHalfHeight(60.f); 
+    GetCharacterMovement()->SetCrouchedHalfHeight(60.f);
 
     SetupStimuliSource();
 
     bReplicates = true;
+    SetReplicateMovement(true);
 }
 
 void APRCharacter::PossessedBy(AController* NewController)
 {
-	Super::PossessedBy(NewController);
-	
-	InitAbilityActorInfo();
-	AddCharacterAbilities();
+    Super::PossessedBy(NewController);
+
+    InitAbilityActorInfo();
+    AddCharacterAbilities();
 }
 
 void APRCharacter::OnRep_PlayerState()
@@ -83,11 +84,11 @@ int32 APRCharacter::GetCharacterLevel()
 
 void APRCharacter::AddCharacterAbilities()
 {
-	UPRAbilitySystemComponent* PR_ASC = CastChecked<UPRAbilitySystemComponent>(AbilitySystemComponent);
-	if (!HasAuthority()) return;
+    UPRAbilitySystemComponent* PR_ASC = CastChecked<UPRAbilitySystemComponent>(AbilitySystemComponent);
+    if (!HasAuthority()) return;
 
-	PR_ASC->AddCharacterAbilities(DefaultAbilities);
-	PR_ASC->AddCharacterPassiveAbilities(DefaultPassiveAbilities);
+    PR_ASC->AddCharacterAbilities(DefaultAbilities);
+    PR_ASC->AddCharacterPassiveAbilities(DefaultPassiveAbilities);
 }
 
 void APRCharacter::InitAbilityActorInfo()
@@ -123,7 +124,7 @@ void APRCharacter::SetupStimuliSource()
     {
         StimuliSourceComponent->RegisterForSense(Sense);
     }
-    
+
     StimuliSourceComponent->RegisterWithPerceptionSystem();
 }
 
@@ -505,23 +506,23 @@ void APRCharacter::OnRep_MoveDirection()
 {
 }
 
-void APRCharacter::OnRep_Sprinting() 
+void APRCharacter::OnRep_Sprinting()
 {
 }
 
-void APRCharacter::OnRep_Crouching() 
+void APRCharacter::OnRep_Crouching()
 {
 }
 
-void APRCharacter::OnRep_InAir() 
+void APRCharacter::OnRep_InAir()
 {
 }
 
-void APRCharacter::OnRep_Attacking() 
+void APRCharacter::OnRep_Attacking()
 {
 }
 
-void APRCharacter::OnRep_Guarding() 
+void APRCharacter::OnRep_Guarding()
 {
 }
 
@@ -535,6 +536,7 @@ void APRCharacter::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
 
+    // 속도 보간 처리
     float CurrentSpeed = GetCharacterMovement()->MaxWalkSpeed;
     float NewSpeed = FMath::FInterpTo(CurrentSpeed, CurrentTargetSpeed, DeltaSeconds, CurrentInterpRate);
     GetCharacterMovement()->MaxWalkSpeed = NewSpeed;
@@ -545,6 +547,14 @@ void APRCharacter::Tick(float DeltaSeconds)
     MoveDirection = CalculateDirectionCustom(Velocity, ActorRot);
     bIsInAir = GetCharacterMovement()->IsFalling();
     bIsCrouching = GetCharacterMovement()->IsCrouching();
+
+    // 점프 중 방향 유지 회전 (공중 회전도 부드럽게 유지)
+    if (bIsInAir && Velocity.Size2D() > 10.f)
+    {
+        FRotator TargetRotation = Velocity.ToOrientationRotator();
+        FRotator NewRotation = FMath::RInterpTo(GetActorRotation(), TargetRotation, DeltaSeconds, 5.0f);
+        SetActorRotation(NewRotation);
+    }
 }
 
 float APRCharacter::CalculateDirectionCustom(const FVector& Velocity, const FRotator& BaseRotation)
@@ -572,7 +582,8 @@ void APRCharacter::SetJustJumped(bool bNewValue)
 
     if (bNewValue)
     {
-        // 최소 0.2초 정도는 유지해야 애님 블렌딩이 가능
+        LastJumpDirection = MoveDirection;  // 점프 직전 방향 저장
+
         GetWorld()->GetTimerManager().SetTimer(
             JumpResetHandle,
             this,
@@ -593,7 +604,7 @@ void APRCharacter::AbilityInputTagPressed(FGameplayTag InputTag)
 {
     if (!AbilitySystemComponent ||
         AbilitySystemComponent->HasMatchingGameplayTag(FPRGameplayTags::Get().Player_Block_InputPressed)) return;
-    
+
     if (UPRAbilitySystemComponent* ASC = Cast<UPRAbilitySystemComponent>(AbilitySystemComponent))
     {
         ASC->AbilityInputTagPressed(InputTag);
@@ -604,7 +615,7 @@ void APRCharacter::AbilityInputTagReleased(FGameplayTag InputTag)
 {
     if (!AbilitySystemComponent ||
         AbilitySystemComponent->HasMatchingGameplayTag(FPRGameplayTags::Get().Player_Block_InputReleased)) return;
-    
+
     if (UPRAbilitySystemComponent* ASC = Cast<UPRAbilitySystemComponent>(AbilitySystemComponent))
     {
         ASC->AbilityInputTagReleased(InputTag);
@@ -615,7 +626,7 @@ void APRCharacter::AbilityInputTagHeld(FGameplayTag InputTag)
 {
     if (!AbilitySystemComponent ||
         AbilitySystemComponent->HasMatchingGameplayTag(FPRGameplayTags::Get().Player_Block_InputHeld)) return;
-    
+
     if (UPRAbilitySystemComponent* ASC = Cast<UPRAbilitySystemComponent>(AbilitySystemComponent))
     {
         ASC->AbilityInputTagHeld(InputTag);
