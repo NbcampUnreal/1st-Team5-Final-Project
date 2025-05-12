@@ -3,14 +3,17 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "BaseGameplayAbility.h"
+#include "BaseDamageGameplayAbility.h"
 #include "BaseProjectileSpell.generated.h"
 
 UCLASS()
-class PAYROCK_API UBaseProjectileSpell : public UBaseGameplayAbility
+class PAYROCK_API UBaseProjectileSpell : public UBaseDamageGameplayAbility
 {
 	GENERATED_BODY()
 
+public:
+	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+	
 protected:
 	UFUNCTION(BlueprintCallable)
 	void SpawnProjectile(const FGameplayTag& SocketTag);
@@ -18,6 +21,5 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TSubclassOf<class ABaseProjectile> ProjectileClass;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TSubclassOf<UGameplayEffect> DamageEffectClass;
+	bool bSpawned;
 };

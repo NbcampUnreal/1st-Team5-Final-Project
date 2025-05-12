@@ -1,21 +1,29 @@
 // PayRockGames
 
 #include "BaseProjectileSpell.h"
-
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
-#include "PayRock/PRGameplayTags.h"
 #include "PayRock/Actor/BaseProjectile.h"
 #include "PayRock/Character/CombatInterface.h"
 
 
+void UBaseProjectileSpell::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
+	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
+	const FGameplayEventData* TriggerEventData)
+{
+	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+
+	bSpawned = false;
+}
+
 void UBaseProjectileSpell::SpawnProjectile(const FGameplayTag& SocketTag)
 {
-	if (!GetAvatarActorFromActorInfo() || !GetAvatarActorFromActorInfo()->HasAuthority()) return;
-
+	if (!GetAvatarActorFromActorInfo() || bSpawned) return;
+	
 	FTransform SpawnTransform;
-	SpawnTransform.SetLocation(
-		ICombatInterface::Execute_GetCombatSocketLocation(GetAvatarActorFromActorInfo(), SocketTag));
+	const FVector SocketLocation =
+		ICombatInterface::Execute_GetCombatSocketLocation(GetAvatarActorFromActorInfo(), SocketTag);
+	SpawnTransform.SetLocation(SocketLocation);
 	SpawnTransform.SetRotation(GetAvatarActorFromActorInfo()->GetActorForwardVector().ToOrientationQuat());
 
 	ABaseProjectile* Projectile = GetWorld()->SpawnActorDeferred<ABaseProjectile>(
@@ -24,16 +32,9 @@ void UBaseProjectileSpell::SpawnProjectile(const FGameplayTag& SocketTag)
 		GetOwningActorFromActorInfo(),
 		Cast<APawn>(GetAvatarActorFromActorInfo()),
 		ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
-
-	// Damage Gameplay Effect
-	const UAbilitySystemComponent* SourceASC =
-		UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetAvatarActorFromActorInfo());
-	const FGameplayEffectSpecHandle EffectSpecHandle =
-		SourceASC->MakeOutgoingSpec(DamageEffectClass, GetAbilityLevel(), SourceASC->MakeEffectContext()); 
-	FPRGameplayTags GameplayTags = FPRGameplayTags::Get();
-	float Magnitude = 50.f; // TODO: Calculation based on attributes
-	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(EffectSpecHandle, GameplayTags.Damage, Magnitude);
-	Projectile->DamageEffectSpecHandle = EffectSpecHandle;
 	
+	Projectile->SourceAbility = this;
+
+	bSpawned = true;
 	Projectile->FinishSpawning(SpawnTransform);
 }

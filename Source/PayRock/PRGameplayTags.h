@@ -58,6 +58,9 @@ public:
 	FGameplayTag Player_Block_InputHeld;
 	FGameplayTag Player_Block_InputReleased;
 
+	FGameplayTag Damage_Physical;
+	FGameplayTag Damage_Magic;
+	
 	FGameplayTag Damage;
 
 	FGameplayTag Ability_Attack;

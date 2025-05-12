@@ -30,5 +30,5 @@ EBTNodeResult::Type UBTTask_Chase::ExecuteTask(UBehaviorTreeComponent& OwnerComp
 	}
         
 	AICon->MoveToActor(Target, 100.f); 
-	return EBTNodeResult::Succeeded;
+	return EBTNodeResult::Succeeded; 
 }

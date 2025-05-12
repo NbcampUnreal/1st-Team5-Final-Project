@@ -52,4 +52,8 @@ protected:
 
     UPROPERTY(BlueprintReadWrite, Category = "Anim|Movement")
     bool bJustJumped;
+
+    // 이동 방향 기반 골반 회전 오프셋
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+    float PelvisYawOffset = 0.f;
 };
