@@ -2,14 +2,10 @@
 
 
 #include "BaseProjectile.h"
-
-#include "AbilitySystemBlueprintLibrary.h"
-#include "AbilitySystemComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
-#include "PayRock/AbilitySystem/PRAttributeSet.h"
 #include "PayRock/AbilitySystem/Abilities/BaseDamageGameplayAbility.h"
 
 ABaseProjectile::ABaseProjectile()
@@ -54,9 +50,13 @@ void ABaseProjectile::Destroyed()
 void ABaseProjectile::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
                                       UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	if (bHit) return;
+	
 	UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation(), FRotator());
 	UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ImpactEffect, GetActorLocation(), FRotator());
-
+	
+	bHit = true;
+	
 	if (HasAuthority())
 	{
 		if (UBaseDamageGameplayAbility* DamageAbility = Cast<UBaseDamageGameplayAbility>(SourceAbility))
@@ -64,9 +64,5 @@ void ABaseProjectile::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, 
 			DamageAbility->CauseDamage(OtherActor);
 		}
 		Destroy();
-	}
-	else
-	{
-		bHit = true;
 	}
 }
