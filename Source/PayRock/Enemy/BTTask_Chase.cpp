@@ -22,5 +22,5 @@ EBTNodeResult::Type UBTTask_Chase::ExecuteTask(UBehaviorTreeComponent& OwnerComp
 	if (!Target) return EBTNodeResult::Failed;
 
 	AICon->MoveToActor(Target, 100.f); 
-	return EBTNodeResult::Succeeded;
+	return EBTNodeResult::Succeeded; 
 }
