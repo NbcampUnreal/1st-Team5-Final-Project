@@ -25,11 +25,6 @@ void ABaseItem::Tick(float DeltaTime)
 
 }
 
-void ABaseItem::UsingEffect()
-{
-	
-}
-
 FString ABaseItem::GetName() const
 {
 	return ItemName;
@@ -37,7 +32,7 @@ FString ABaseItem::GetName() const
 
 TSubclassOf<UGameplayAbility> ABaseItem::GetAbilities() const
 {
-	return AbilityClass;
+	return ActiveAbilityClass;
 }
 
 float ABaseItem::GetAbilityLevel() const

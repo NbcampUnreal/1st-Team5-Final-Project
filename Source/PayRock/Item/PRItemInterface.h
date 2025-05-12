@@ -4,9 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
+#include "PayRock/AbilitySystem/Abilities/BaseGameplayAbility.h"
 #include "PRItemInterface.generated.h"
-
-class UGameplayAbility;
 
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI, Blueprintable)
@@ -23,7 +22,6 @@ class PAYROCK_API IPRItemInterface
 	GENERATED_BODY()
 
 public:
-	virtual void UsingEffect() = 0;
 
 	virtual FString GetName() const = 0;
 	

@@ -16,8 +16,11 @@ public:
 	// Sets default values for this actor's properties
 
 protected:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Item")
-	TSubclassOf<UGameplayAbility> AbilityClass;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "GAS")
+	TSubclassOf<UGameplayAbility> ActiveAbilityClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "GAS")
+	TSubclassOf<UGameplayAbility> PassiveAbilityClass;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Item")
 	float AbilityLevel;
@@ -27,6 +30,7 @@ protected:
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Item")
 	int32 ItemPrice;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -35,8 +39,6 @@ public:
 	ABaseItem();
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-	
-	virtual void UsingEffect() override;
 	
 	virtual FString GetName() const override;
 
