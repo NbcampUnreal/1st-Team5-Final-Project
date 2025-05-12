@@ -49,8 +49,10 @@ class PAYROCK_API UPRAttributeSet : public UAttributeSet
 public:
 	UPRAttributeSet();
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
+	// virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
+
+	void HandleIncomingDamage(const FEffectProperties& Props);
 
 	/* Primary Attributes */
 	UFUNCTION()
@@ -201,4 +203,11 @@ public:
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_Mana, Category = "VitalAttributes")
 	FGameplayAttributeData Mana;
 	ATTRIBUTE_ACCESSORS(UPRAttributeSet, Mana);
+
+	/*
+	 * Meta Attributes
+	 */
+	UPROPERTY(BlueprintReadOnly, Category = "MetaAttributes")
+	FGameplayAttributeData IncomingDamage;
+	ATTRIBUTE_ACCESSORS(UPRAttributeSet, IncomingDamage);
 };
