@@ -5,6 +5,8 @@
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "NavigationSystem.h"
+#include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 UBTTask_Chase::UBTTask_Chase()
 {
@@ -20,7 +22,13 @@ EBTNodeResult::Type UBTTask_Chase::ExecuteTask(UBehaviorTreeComponent& OwnerComp
 
 	AActor* Target = Cast<AActor>(BB->GetValueAsObject("TargetActor"));
 	if (!Target) return EBTNodeResult::Failed;
-
+	
+	ACharacter* Character = Cast<ACharacter>(AICon->GetPawn());
+	if (Character && Character->GetCharacterMovement())
+	{
+		Character->GetCharacterMovement()->MaxWalkSpeed = 600.0f;
+	}
+        
 	AICon->MoveToActor(Target, 100.f); 
 	return EBTNodeResult::Succeeded; 
 }
