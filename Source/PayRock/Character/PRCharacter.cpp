@@ -564,7 +564,7 @@ void APRCharacter::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
 
-    // 속도 보간 처리
+    // 속도 보간
     float CurrentSpeed = GetCharacterMovement()->MaxWalkSpeed;
     float NewSpeed = FMath::FInterpTo(CurrentSpeed, CurrentTargetSpeed, DeltaSeconds, CurrentInterpRate);
     GetCharacterMovement()->MaxWalkSpeed = NewSpeed;
@@ -572,18 +572,36 @@ void APRCharacter::Tick(float DeltaSeconds)
     const FVector Velocity = GetVelocity();
     const FRotator ActorRot = GetActorRotation();
 
-    MoveDirection = CalculateDirectionCustom(Velocity, ActorRot);
+    // MoveDirection 계산
+    if (IsLocallyControlled())
+    {
+        MoveDirection = CalculateDirectionCustom(Velocity, ActorRot);
+    }
+    else if (HasAuthority())
+    {
+        float NewDir = CalculateDirectionCustom(Velocity, ActorRot);
+        if (!FMath::IsNearlyEqual(MoveDirection, NewDir, 0.1f))
+        {
+            MoveDirection = NewDir;
+        }
+    }
+
+    // 공중 여부 등은 항상 자신 기준으로
     bIsInAir = GetCharacterMovement()->IsFalling();
     bIsCrouching = GetCharacterMovement()->IsCrouching();
 
-    // 점프 중 방향 유지 회전 (공중 회전도 부드럽게 유지)
-    if (bIsInAir && Velocity.Size2D() > 10.f)
+    // 공중 회전: 로컬 컨트롤러 기준으로만 회전 적용 (중복 회전 방지)
+    if (IsLocallyControlled())
     {
-        FRotator TargetRotation = Velocity.ToOrientationRotator();
-        FRotator NewRotation = FMath::RInterpTo(GetActorRotation(), TargetRotation, DeltaSeconds, 5.0f);
-        SetActorRotation(NewRotation);
+        if (bIsInAir && Velocity.Size2D() > 10.f)
+        {
+            FRotator TargetRotation = Velocity.ToOrientationRotator();
+            FRotator NewRotation = FMath::RInterpTo(GetActorRotation(), TargetRotation, DeltaSeconds, 5.0f);
+            SetActorRotation(NewRotation);
+        }
     }
 }
+
 
 float APRCharacter::CalculateDirectionCustom(const FVector& Velocity, const FRotator& BaseRotation)
 {
