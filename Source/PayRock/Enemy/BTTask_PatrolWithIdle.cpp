@@ -4,6 +4,7 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "DrawDebugHelpers.h"
 #include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 UBTTask_PatrolWithIdle::UBTTask_PatrolWithIdle()
 {
@@ -32,6 +33,11 @@ EBTNodeResult::Type UBTTask_PatrolWithIdle::ExecuteTask(UBehaviorTreeComponent& 
     UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(GetWorld());
     if (NavSys && NavSys->GetRandomReachablePointInRadius(StartPosition, PatrolRadius, RandomLocation))
     {
+        ACharacter* Character = Cast<ACharacter>(Pawn);
+        if (Character && Character->GetCharacterMovement())
+        {
+            Character->GetCharacterMovement()->MaxWalkSpeed = PatrolMoveSpeed; 
+        }
         AICon->MoveToLocation(RandomLocation.Location, 50.f, true);
         return EBTNodeResult::InProgress;
     }
@@ -51,6 +57,12 @@ void UBTTask_PatrolWithIdle::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* 
 
     if (BB->GetValueAsBool("bPlayerDetected"))
     {
+        ACharacter* Character = Cast<ACharacter>(AICon->GetPawn());
+        if (Character && Character->GetCharacterMovement())
+        {
+            Character->GetCharacterMovement()->MaxWalkSpeed = 600.0f;
+        }
+        
         GetWorld()->GetTimerManager().ClearTimer(IdleTimerHandle);
 
         if (bWaitingForIdle || !bReachedDestination)

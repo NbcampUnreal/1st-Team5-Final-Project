@@ -24,6 +24,11 @@ EBTNodeResult::Type UBTTask_Attack::ExecuteTask(UBehaviorTreeComponent& OwnerCom
 
 	if (ASC->TryActivateAbilityByClass(AttackAbility))
 	{
+		if (UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent())
+		{
+			BB->SetValueAsBool("bInAttackRange", false);
+		}
+		
 		return EBTNodeResult::Succeeded;
 	}
 
