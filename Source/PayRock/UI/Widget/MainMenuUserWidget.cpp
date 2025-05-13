@@ -5,11 +5,12 @@
 #include "MainMenuUserWidget.h"
 #include "Components/Button.h"
 #include "Kismet/GameplayStatics.h"
+#include "PayRock/UI/Widget/OptionsMenuWidget.h" // UOptionsMenuWidget 헤더
 
 void UMainMenuUserWidget::HandleStartGameClicked()
 {
     // 메인 레벨 이름을 정확하게 설정하세요 (예: "MainLevel")
-    UGameplayStatics::OpenLevel(this, FName("MainLevel"));
+    UGameplayStatics::OpenLevel(this, FName("Lobby"));
 }
 
 void UMainMenuUserWidget::HandleQuitGameClicked()
@@ -21,12 +22,30 @@ void UMainMenuUserWidget::HandleQuitGameClicked()
 void UMainMenuUserWidget::HandleOptionsClicked()
 {
     // 옵션 UI 또는 설정 창 열기 로직 (추후 구현)
+    if (OptionsMenuWidgetClass) // TSubclassOf<UOptionsMenuWidget>
+    {
+        UOptionsMenuWidget* OptionsWidget = CreateWidget<UOptionsMenuWidget>(GetWorld(), OptionsMenuWidgetClass);
+        if (OptionsWidget)
+        {
+            OptionsWidget->AddToViewport();
+            APlayerController* PC = GetWorld()->GetFirstPlayerController();
+            if (PC)
+            {
+                PC->SetInputMode(FInputModeUIOnly());
+                PC->bShowMouseCursor = true;
+            }
 
+            // 자신 숨기거나 비활성화할 수도 있음
+            this->SetVisibility(ESlateVisibility::Hidden);
+        }
+    }
 }
 
 void UMainMenuUserWidget::NativeOnInitialized()
 {
     Super::NativeOnInitialized();
+
+
 
     if (StartGameButton)
     {

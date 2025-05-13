@@ -8,7 +8,7 @@
 #include "MainMenuUserWidget.generated.h"
 
 class UButton;
-
+class UOptionsMenuWidget;
 /**
  * 
  */
@@ -33,6 +33,11 @@ protected:
     /** 크레딧 버튼 - 필요 시 사용 */
     UPROPERTY(meta = (BindWidgetOptional))
     UButton* CreditButton;
+
+
+    //UPROPERTY(EditAnywhere, Category = "UI")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
+    TSubclassOf<UOptionsMenuWidget> OptionsMenuWidgetClass;
 
 private:
     UFUNCTION()
