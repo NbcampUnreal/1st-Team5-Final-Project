@@ -28,7 +28,7 @@ public:
 	
 
 	UFUNCTION()
-	void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
+	virtual void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
 protected:
 	UPROPERTY(EditAnywhere, Category = "AI")
 	TObjectPtr<UBehaviorTree> DefaultBehaviorTree;

@@ -2,7 +2,6 @@
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
-#include "GenericTeamAgentInterface.h"
 #include "EnemyCharacter.h"
 #include "PayRock/Character/PRCharacter.h"
 

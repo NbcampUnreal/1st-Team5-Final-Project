@@ -6,6 +6,7 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Components/PointLightComponent.h"
 #include "PayRock/Character/BaseCharacter.h"
+#include "PayRock/Character/PRCharacter.h"
 
 AOneEyedMonsterController::AOneEyedMonsterController()
 {
@@ -36,47 +37,57 @@ void AOneEyedMonsterController::CheckLightBasedDetection()
 	float LightLevel = 0.f;
 	const FVector TargetLocation = Target->GetActorLocation();
 	
+	TArray<AActor*> PointLights;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APointLight::StaticClass(), PointLights);
+
+	for (AActor* Light : PointLights)
 	{
-		TArray<AActor*> PointLights;
-		UGameplayStatics::GetAllActorsOfClass(GetWorld(), APointLight::StaticClass(), PointLights);
+		APointLight* PointLight = Cast<APointLight>(Light);
+		if (!PointLight) continue;
 
-		for (AActor* Light : PointLights)
-		{
-			APointLight* PointLight = Cast<APointLight>(Light);
-			if (!PointLight) continue;
+		UPointLightComponent* LightComp = Cast<UPointLightComponent>(PointLight->GetLightComponent());
+		if (!LightComp || !LightComp->IsVisible()) continue;
 
-			UPointLightComponent* LightComp = Cast<UPointLightComponent>(Cast<APointLight>(Light)->GetLightComponent());
-			if (!LightComp || !LightComp->IsVisible()) continue;
-			
-			float Distance = FVector::Dist(Light->GetActorLocation(), TargetLocation);
-			float Falloff = FMath::Clamp(1.f - (Distance / LightComp->AttenuationRadius), 0.f, 1.f);
+		float Distance = FVector::Dist(Light->GetActorLocation(), TargetLocation);
+		float Falloff = FMath::Clamp(1.f - (Distance / LightComp->AttenuationRadius), 0.f, 1.f);
 
-			LightLevel += LightComp->Intensity * Falloff;
-		}
+		LightLevel += LightComp->Intensity * Falloff;
 	}
 	
+	if (ABaseCharacter* PlayerCharacter = Cast<ABaseCharacter>(Target))
 	{
-		ABaseCharacter* PlayerCharacter = Cast<ABaseCharacter>(Target);
-		if (PlayerCharacter)
+		TArray<UPointLightComponent*> TorchLights;
+		PlayerCharacter->GetComponents<UPointLightComponent>(TorchLights);
+
+		for (UPointLightComponent* Torch : TorchLights)
 		{
-			TArray<UPointLightComponent*> TorchLights;
-			PlayerCharacter->GetComponents<UPointLightComponent>(TorchLights);
+			if (!Torch || !Torch->IsVisible()) continue;
 
-			for (UPointLightComponent* Torch : TorchLights)
-			{
-				if (!Torch || !Torch->IsVisible()) continue;
+			float Distance = FVector::Dist(Torch->GetComponentLocation(), TargetLocation);
+			float Falloff = FMath::Clamp(1.f - (Distance / Torch->AttenuationRadius), 0.f, 1.f);
 
-				float Distance = FVector::Dist(Torch->GetComponentLocation(), TargetLocation);
-				float Falloff = FMath::Clamp(1.f - (Distance / Torch->AttenuationRadius), 0.f, 1.f);
-
-				LightLevel += Torch->Intensity * Falloff;
-			}
+			LightLevel += Torch->Intensity * Falloff;
 		}
 	}
 	
 	bool bVisibleInLight = LightLevel >= LightDetectionThreshold;
-	BB->SetValueAsBool(TEXT("bPlayerDetect"), bVisibleInLight);
-	
+	BB->SetValueAsBool(TEXT("bPlayerDetectedByLight"), bVisibleInLight);
+
 	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Cyan,
-		FString::Printf(TEXT("[OneEye] LightLevel = %.1f → Detect: %s"), LightLevel, bVisibleInLight ? TEXT("True") : TEXT("False")));
+		FString::Printf(TEXT("[OneEye] LightLevel = %.1f → Detect(Light): %s"), LightLevel, bVisibleInLight ? TEXT("True") : TEXT("False")));
+}
+
+
+void AOneEyedMonsterController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
+{
+	if (!Actor) return;
+
+	if (!Actor->IsA(APRCharacter::StaticClass())) return;
+
+	UBlackboardComponent* BB = GetBlackboardComponent();
+	if (!BB) return;
+
+	
+	BB->SetValueAsObject(TEXT("TargetActor"), Actor);
+	BB->SetValueAsBool(TEXT("bPlayerDetectedBySight"), Stimulus.WasSuccessfullySensed());
 }

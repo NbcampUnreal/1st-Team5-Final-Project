@@ -15,7 +15,8 @@ public:
 	AEnemyCharacter();
 
 	UAnimMontage* GetAttackMontage() const {return AttackMontage;}
-
+	UAnimMontage* GetDetectMontage() const {return DetectMontage;}
+	
 protected:
 	virtual void BeginPlay() override;
 	virtual void InitAbilityActorInfo() override;
@@ -23,4 +24,7 @@ protected:
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Combat")
 	UAnimMontage* AttackMontage;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Combat")
+	UAnimMontage* DetectMontage;
 };
