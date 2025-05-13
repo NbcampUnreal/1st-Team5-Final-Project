@@ -51,7 +51,7 @@ APRCharacter::APRCharacter()
     CrouchSpeed = 300.0f;
     SprintSpeed = NormalSpeed * SprintSpeedMultiplier;
     CurrentTargetSpeed = 600.0f;
-    BackwardSpeedMultiplier = 0.5f;
+    BackwardSpeedMultiplier = 0.7f;
     GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
 
     MouseSensitivity = 1.0f;
@@ -343,7 +343,11 @@ void APRCharacter::Move(const FInputActionValue& Value)
     FVector MoveDir = Forward * MoveInput.Y + Right * MoveInput.X;
     MoveDir.Normalize();
 
-    float SpeedMultiplier = (MoveInput.Y < 0.f) ? BackwardSpeedMultiplier : 1.0f;
+    float SpeedMultiplier = 1.0f;
+    if (!GetCharacterMovement()->IsCrouching() && MoveInput.Y < 0.f)
+    {
+        SpeedMultiplier = BackwardSpeedMultiplier;
+    }
 
     AddMovementInput(MoveDir, SpeedMultiplier);
 }
