@@ -20,6 +20,9 @@ public:
 	void AddCharacterPassiveAbilities(const TArray<TSubclassOf<UGameplayAbility>>& StartupPassiveAbilities);
 	UFUNCTION(BlueprintCallable)
 	FGameplayAbilitySpecHandle AddAbility(TSubclassOf<UGameplayAbility> AbilityClass, bool bIsPassive = false);
+	UFUNCTION(BlueprintCallable)
+	void RemoveAbility(const FGameplayAbilitySpecHandle& AbilitySpecHandle);
+
 
 	void AbilityInputTagPressed(const FGameplayTag& InputTag);
 	void AbilityInputTagHeld(const FGameplayTag& InputTag);
