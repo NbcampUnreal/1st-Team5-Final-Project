@@ -2,10 +2,13 @@
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
+#include "GenericTeamAgentInterface.h"
 #include "EnemyCharacter.h"
+#include "PayRock/Character/PRCharacter.h"
 
 AEnemyController::AEnemyController()
 {
+	
 	BlackboardComponent = CreateDefaultSubobject<UBlackboardComponent>(TEXT("BlackboardComponent"));
 	BehaviorTreeComponent = CreateDefaultSubobject<UBehaviorTreeComponent>(TEXT("BehaviorTreeComponent"));
 	AIPerceptionComponent = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerceptionComponent"));
@@ -18,6 +21,7 @@ AEnemyController::AEnemyController()
 	SightConfig->DetectionByAffiliation.bDetectFriendlies = true;
 	SightConfig->DetectionByAffiliation.bDetectNeutrals = true;
 
+	
 	AIPerceptionComponent->ConfigureSense(*SightConfig);
 	AIPerceptionComponent->SetDominantSense(SightConfig->GetSenseImplementation());
 	
@@ -25,6 +29,7 @@ AEnemyController::AEnemyController()
 	AIPerceptionComponent->ConfigureSense(*DamageConfig);
 
 	SetPerceptionComponent(*AIPerceptionComponent);
+	
 }
 
 void AEnemyController::BeginPlay()
@@ -78,6 +83,12 @@ void AEnemyController::OnUnPossess()
 
 void AEnemyController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
+	if (!Actor) return;
+	
+	if (!Actor->IsA(APRCharacter::StaticClass()))
+	{
+		return;
+	}
 	if (Actor)
 	{
 		GetBlackboardComponent()->SetValueAsObject(TEXT("TargetActor"), Actor);

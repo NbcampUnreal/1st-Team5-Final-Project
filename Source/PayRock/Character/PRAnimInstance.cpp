@@ -38,4 +38,10 @@ void UPRAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
     // 점프 관련
     bJustJumped = OwnerCharacter->bJustJumped;
+
+    // 점프 중에는 마지막 방향 유지
+    const float RawDirection = (bIsInAir && bJustJumped)
+        ? OwnerCharacter->GetLastJumpDirection()
+        : OwnerCharacter->MoveDirection;
 }
+
