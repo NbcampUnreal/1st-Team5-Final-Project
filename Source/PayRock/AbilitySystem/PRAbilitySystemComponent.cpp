@@ -40,6 +40,11 @@ FGameplayAbilitySpecHandle UPRAbilitySystemComponent::AddAbility(
 	return FGameplayAbilitySpecHandle();
 }
 
+void UPRAbilitySystemComponent::RemoveAbility(const FGameplayAbilitySpecHandle& AbilitySpecHandle)
+{
+	ClearAbility(AbilitySpecHandle);
+}
+
 void UPRAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& InputTag)
 {
 	if (!InputTag.IsValid()) return;
