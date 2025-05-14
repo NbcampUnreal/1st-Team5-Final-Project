@@ -73,8 +73,18 @@ void AJasnSanTiger::EndTelegraph()
 	}
 }
 
+UAnimMontage* AJasnSanTiger::GetChargingMontage()
+{
+	return ChargeMontage;
+}
+
+UAnimMontage* AJasnSanTiger::GetRushAttackMontage()
+{
+	return RushAttackMontage;
+}
+
 void AJasnSanTiger::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	UpdateTelegraph(DeltaTime);
+	//UpdateTelegraph(DeltaTime);
 }

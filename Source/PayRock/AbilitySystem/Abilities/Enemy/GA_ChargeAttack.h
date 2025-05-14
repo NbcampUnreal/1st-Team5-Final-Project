@@ -40,7 +40,7 @@ protected:
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Charge")
-	float TelegraphDuration = 2.0f;
+	float TelegraphDuration = 3.0f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Charge")
 	float ChargeSpeed = 3000.f;

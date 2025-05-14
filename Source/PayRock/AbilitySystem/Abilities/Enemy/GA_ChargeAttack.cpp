@@ -30,12 +30,11 @@ void UGA_ChargeAttack::ActivateAbility(
 		if (UBlackboardComponent* BB = AICon->GetBlackboardComponent())
 		{
 			BB->SetValueAsBool("bIsAttacking", true);
+			Tiger->PlayAnimMontage(Tiger->GetChargingMontage());
 			AICon->StopMovement();
 		}
 	}
 	
-	Tiger->BeginTelegraph();
-
 	Tiger->GetWorldTimerManager().SetTimer(
 		TelegraphTimerHandle,
 		this,
@@ -49,9 +48,8 @@ void UGA_ChargeAttack::OnChargeStart()
 {
 	if (!Tiger) return;
 
-	Tiger->EndTelegraph();
 	
-	
+	Tiger->PlayAnimMontage(Tiger->GetRushAttackMontage());
 	const FVector Forward = Tiger->GetActorForwardVector();
 	Tiger->LaunchCharacter(Forward * ChargeSpeed, true, true);
 

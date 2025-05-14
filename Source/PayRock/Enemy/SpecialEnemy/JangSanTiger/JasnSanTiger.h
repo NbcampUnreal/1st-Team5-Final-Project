@@ -22,6 +22,18 @@ public:
 	void UpdateTelegraph(float DeltaTime);
 	void EndTelegraph();
 
+
+	UAnimMontage* GetChargingMontage();
+	UAnimMontage* GetRushAttackMontage();
+
+	UPROPERTY(EditDefaultsOnly,Category="JangSanTigerAnim")
+	UAnimMontage* ChargeMontage;
+	
+	UPROPERTY(EditDefaultsOnly,Category="JangSanTigerAnim")
+	UAnimMontage* RushAttackMontage;
+
+	
+	
 	UPROPERTY(VisibleAnywhere, Category = "Telegraph")
 	UDecalComponent* TelegraphDecal;
 
