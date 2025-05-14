@@ -15,6 +15,10 @@ public:
 	AEnemyCharacter();
 
 	UAnimMontage* GetAttackMontage() const {return AttackMontage;}
+
+	UFUNCTION()
+	void ToggleWeaponCollision(bool bEnable);
+	
 	UAnimMontage* GetDetectMontage() const {return DetectMontage;}
 	
 protected:

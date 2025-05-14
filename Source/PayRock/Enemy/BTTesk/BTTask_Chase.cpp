@@ -20,6 +20,10 @@ EBTNodeResult::Type UBTTask_Chase::ExecuteTask(UBehaviorTreeComponent& OwnerComp
 	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
 	if (!AICon || !Pawn || !BB) return EBTNodeResult::Failed;
 
+	if (BB->GetValueAsBool("bIsAttacking"))
+	{
+		return EBTNodeResult::Failed;
+	}
 	AActor* Target = Cast<AActor>(BB->GetValueAsObject("TargetActor"));
 	if (!Target) return EBTNodeResult::Failed;
 	

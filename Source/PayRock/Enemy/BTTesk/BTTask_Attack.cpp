@@ -18,7 +18,11 @@ EBTNodeResult::Type UBTTask_Attack::ExecuteTask(UBehaviorTreeComponent& OwnerCom
 	AAIController* AICon = OwnerComp.GetAIOwner();
 	AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(AICon ? AICon->GetPawn() : nullptr);
 	if (!Enemy || !AttackAbility) return EBTNodeResult::Failed;
-
+	
+	if (AICon)
+	{
+		AICon->StopMovement();
+	}
 	UAbilitySystemComponent* ASC = Enemy->GetAbilitySystemComponent();
 	if (!ASC) return EBTNodeResult::Failed;
 
@@ -27,6 +31,7 @@ EBTNodeResult::Type UBTTask_Attack::ExecuteTask(UBehaviorTreeComponent& OwnerCom
 		if (UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent())
 		{
 			BB->SetValueAsBool("bInAttackRange", false);
+
 		}
 		
 		return EBTNodeResult::Succeeded;

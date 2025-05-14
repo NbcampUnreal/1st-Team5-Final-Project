@@ -4,6 +4,7 @@
 #include "BTTask_PauseAnimation.h"
 
 #include "AIController.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "PayRock/Enemy/SpecialEnemy/SamuraiStatue/SamuraiStatueCharacter.h"
 
 
@@ -19,6 +20,11 @@ EBTNodeResult::Type UBTTask_PauseAnimation::ExecuteTask(UBehaviorTreeComponent& 
 	if (!Statue) return EBTNodeResult::Failed;
 
 	Statue->PauseAnimation();
+	if (UCharacterMovementComponent* MoveComp = Statue->GetCharacterMovement())
+    	{
+    		MoveComp->StopMovementImmediately();
+    		MoveComp->DisableMovement();
+    	}
 	return EBTNodeResult::Succeeded;
 	
 }

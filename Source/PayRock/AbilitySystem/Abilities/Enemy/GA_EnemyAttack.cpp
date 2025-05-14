@@ -4,6 +4,8 @@
 #include "AbilitySystemComponent.h"
 #include "GameFramework/Character.h"
 #include "AbilitySystemBlueprintLibrary.h"
+#include "AIController.h"
+#include "BehaviorTree/BlackboardComponent.h"
 #include "PayRock/Enemy/EnemyCharacter.h"
 
 UGA_EnemyAttack::UGA_EnemyAttack()
@@ -40,6 +42,13 @@ void UGA_EnemyAttack::ActivateAbility(
 		if (Enemy->GetAttackMontage())
 		{
 			Enemy->PlayAnimMontage(Enemy->GetAttackMontage());
+		}
+		if (AAIController* AICon = Cast<AAIController>(Enemy->GetController()))
+		{
+			if (UBlackboardComponent* BB = AICon->GetBlackboardComponent())
+			{
+				BB->SetValueAsBool("bIsAttacking", true);
+			}
 		}
 	}
 
