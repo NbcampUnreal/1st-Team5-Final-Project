@@ -60,8 +60,8 @@ public:
 
 	FGameplayTag Damage_Physical;
 	FGameplayTag Damage_Magic;
-	
-	FGameplayTag Damage;
+
+	FGameplayTag Effects_HitReact;
 
 	FGameplayTag Ability_Attack;
 	FGameplayTag Cooldown_Attack;

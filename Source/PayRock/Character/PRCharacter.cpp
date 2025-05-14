@@ -151,6 +151,7 @@ void APRCharacter::InitAbilityActorInfo()
         }
     }
     InitializeDefaultAttributes();
+    BindToTagChange();
 }
 
 void APRCharacter::SetupStimuliSource()

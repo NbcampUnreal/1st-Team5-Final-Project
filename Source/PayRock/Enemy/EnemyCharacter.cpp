@@ -21,6 +21,7 @@ void AEnemyCharacter::BeginPlay()
 	
 	InitAbilityActorInfo();
 	InitializeDefaultAttributes();
+	BindToTagChange();
 	AddCharacterAbilities();
 }
 
