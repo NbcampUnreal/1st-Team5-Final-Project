@@ -5,6 +5,7 @@
 #include "GameplayEffectExtension.h"
 #include "GameFramework/Character.h"
 #include "Net/UnrealNetwork.h"
+#include "PayRock/PRGameplayTags.h"
 #include "PayRock/Character/CombatInterface.h"
 
 UPRAttributeSet::UPRAttributeSet()
@@ -147,14 +148,16 @@ void UPRAttributeSet::HandleIncomingDamage(const FEffectProperties& Props, const
 			*GetOwningAbilitySystemComponent()->GetAvatarActor()->GetName(),
 			LocalIncomingDamage, HealthCurrent, HealthBase);
 
-		const bool bShouldDie = NewHealth <= 0.f;
 		if (NewHealth <= 0.f)
 		{
-			// Handle death
+			// Handle ddeath
 		}
 		else
 		{
-			// Handle knockback, status effects, etc.
+			// Activate Hit React
+			FGameplayTagContainer TagContainer;
+			TagContainer.AddTag(FPRGameplayTags::Get().Effects_HitReact);
+			Props.TargetASC->TryActivateAbilitiesByTag(TagContainer);
 		}
 	}
 }
