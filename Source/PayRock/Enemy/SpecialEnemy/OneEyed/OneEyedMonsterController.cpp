@@ -4,9 +4,12 @@
 #include "Engine/PointLight.h"
 #include "Components/LightComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "Components/DirectionalLightComponent.h"
 #include "Components/PointLightComponent.h"
+#include "Components/SpotLightComponent.h"
 #include "PayRock/Character/BaseCharacter.h"
 #include "PayRock/Character/PRCharacter.h"
+#include "PayRock/Enemy/EnemyCharacter.h"
 
 AOneEyedMonsterController::AOneEyedMonsterController()
 {
@@ -34,48 +37,55 @@ void AOneEyedMonsterController::CheckLightBasedDetection()
 	AActor* Target = Cast<AActor>(BB->GetValueAsObject(TEXT("TargetActor")));
 	if (!Target) return;
 
-	float LightLevel = 0.f;
 	const FVector TargetLocation = Target->GetActorLocation();
+	float LightLevel = 0.f;
 	
-	TArray<AActor*> PointLights;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APointLight::StaticClass(), PointLights);
+	TArray<AActor*> AllActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AActor::StaticClass(), AllActors);
 
-	for (AActor* Light : PointLights)
+	for (AActor* Actor : AllActors)
 	{
-		APointLight* PointLight = Cast<APointLight>(Light);
-		if (!PointLight) continue;
+		if (!Actor) continue;
 
-		UPointLightComponent* LightComp = Cast<UPointLightComponent>(PointLight->GetLightComponent());
-		if (!LightComp || !LightComp->IsVisible()) continue;
+		TArray<ULightComponent*> LightComponents;
+		Actor->GetComponents<ULightComponent>(LightComponents);
 
-		float Distance = FVector::Dist(Light->GetActorLocation(), TargetLocation);
-		float Falloff = FMath::Clamp(1.f - (Distance / LightComp->AttenuationRadius), 0.f, 1.f);
-
-		LightLevel += LightComp->Intensity * Falloff;
-	}
-	
-	if (ABaseCharacter* PlayerCharacter = Cast<ABaseCharacter>(Target))
-	{
-		TArray<UPointLightComponent*> TorchLights;
-		PlayerCharacter->GetComponents<UPointLightComponent>(TorchLights);
-
-		for (UPointLightComponent* Torch : TorchLights)
+		for (ULightComponent* Light : LightComponents)
 		{
-			if (!Torch || !Torch->IsVisible()) continue;
+			if (!Light || !Light->IsVisible()) continue;
 
-			float Distance = FVector::Dist(Torch->GetComponentLocation(), TargetLocation);
-			float Falloff = FMath::Clamp(1.f - (Distance / Torch->AttenuationRadius), 0.f, 1.f);
+			if (auto* Spot = Cast<USpotLightComponent>(Light))
+			{
+				FVector LightDir = Spot->GetForwardVector();
+				FVector ToTarget = (TargetLocation - Spot->GetComponentLocation()).GetSafeNormal();
+				float Angle = FMath::RadiansToDegrees(acosf(FVector::DotProduct(LightDir, ToTarget)));
 
-			LightLevel += Torch->Intensity * Falloff;
+				if (Angle > Spot->OuterConeAngle) continue;
+
+				float Distance = FVector::Dist(Spot->GetComponentLocation(), TargetLocation);
+				float Falloff = FMath::Clamp(1.f - (Distance / Spot->AttenuationRadius), 0.f, 1.f);
+				LightLevel += Spot->Intensity * Falloff;
+			}
+			else if (auto* Point = Cast<UPointLightComponent>(Light))
+			{
+				float Distance = FVector::Dist(Point->GetComponentLocation(), TargetLocation);
+				float Falloff = FMath::Clamp(1.f - (Distance / Point->AttenuationRadius), 0.f, 1.f);
+				LightLevel += Point->Intensity * Falloff;
+			}
+			else if (auto* Dir = Cast<UDirectionalLightComponent>(Light))
+			{
+				LightLevel += Dir->Intensity; 
+			}
 		}
 	}
-	
+
 	bool bVisibleInLight = LightLevel >= LightDetectionThreshold;
 	BB->SetValueAsBool(TEXT("bPlayerDetectedByLight"), bVisibleInLight);
 
 	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Cyan,
 		FString::Printf(TEXT("[OneEye] LightLevel = %.1f → Detect(Light): %s"), LightLevel, bVisibleInLight ? TEXT("True") : TEXT("False")));
 }
+
 
 
 void AOneEyedMonsterController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
@@ -86,7 +96,12 @@ void AOneEyedMonsterController::OnTargetPerceptionUpdated(AActor* Actor, FAIStim
 
 	UBlackboardComponent* BB = GetBlackboardComponent();
 	if (!BB) return;
-
+	AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(GetPawn());
+	
+	if (Enemy)
+	{
+		Enemy->SetBattleState(true);
+	}
 	
 	BB->SetValueAsObject(TEXT("TargetActor"), Actor);
 	BB->SetValueAsBool(TEXT("bPlayerDetectedBySight"), Stimulus.WasSuccessfullySensed());

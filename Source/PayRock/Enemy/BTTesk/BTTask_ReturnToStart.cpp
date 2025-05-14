@@ -6,6 +6,7 @@
 #include "AIController.h"
 #include "GameFramework/Character.h"
 #include "Navigation/PathFollowingComponent.h"
+#include "PayRock/Enemy/EnemyCharacter.h"
 
 UBTTask_ReturnToStart::UBTTask_ReturnToStart()
 {
@@ -28,6 +29,13 @@ EBTNodeResult::Type UBTTask_ReturnToStart::ExecuteTask(UBehaviorTreeComponent& O
 	MoveRequest.SetGoalLocation(StartPos);
 	MoveRequest.SetAcceptanceRadius(5.0f);
 
+	AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(AICon->GetPawn());
+	if (Enemy)
+	{
+		
+		Enemy->SetBattleState(false);
+	}
+	
 	FNavPathSharedPtr NavPath;
 	FPathFollowingRequestResult Result = AICon->MoveTo(MoveRequest, &NavPath);
 

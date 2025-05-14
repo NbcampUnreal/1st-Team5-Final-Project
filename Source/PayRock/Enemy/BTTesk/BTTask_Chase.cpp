@@ -26,9 +26,9 @@ EBTNodeResult::Type UBTTask_Chase::ExecuteTask(UBehaviorTreeComponent& OwnerComp
 	ACharacter* Character = Cast<ACharacter>(AICon->GetPawn());
 	if (Character && Character->GetCharacterMovement())
 	{
-		Character->GetCharacterMovement()->MaxWalkSpeed = 600.0f;
+		Character->GetCharacterMovement()->MaxWalkSpeed = Speed;
 	}
         
-	AICon->MoveToActor(Target, 100.f); 
+	AICon->MoveToActor(Target, 50.f); 
 	return EBTNodeResult::Succeeded; 
 }

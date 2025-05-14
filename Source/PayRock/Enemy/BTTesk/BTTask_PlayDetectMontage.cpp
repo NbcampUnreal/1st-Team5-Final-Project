@@ -19,9 +19,9 @@ EBTNodeResult::Type UBTTask_PlayDetectMontage::ExecuteTask(UBehaviorTreeComponen
     if (!CachedController) return EBTNodeResult::Failed;
 
     CachedCharacter = Cast<AEnemyCharacter>(CachedController->GetPawn());
-    if (!CachedCharacter || !CachedCharacter->GetDetectMontage()) return EBTNodeResult::Failed;
+    if (!CachedCharacter || !CachedCharacter->GetRandomDetectMontage()) return EBTNodeResult::Failed;
 
-    DetectMontage = CachedCharacter->GetDetectMontage();
+    DetectMontage = CachedCharacter->GetRandomDetectMontage();
     UAnimInstance* AnimInstance = CachedCharacter->GetMesh()->GetAnimInstance();
     if (!AnimInstance) return EBTNodeResult::Failed;
 

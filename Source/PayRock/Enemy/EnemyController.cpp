@@ -88,6 +88,11 @@ void AEnemyController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stim
 	{
 		return;
 	}
+	AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(GetPawn());
+	if (Enemy)
+	{
+		Enemy->SetBattleState(true);
+	}
 	if (Actor)
 	{
 		GetBlackboardComponent()->SetValueAsObject(TEXT("TargetActor"), Actor);

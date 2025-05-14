@@ -40,3 +40,19 @@ void AEnemyCharacter::AddCharacterAbilities()
 		AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(StartupAbility, 1, INDEX_NONE, this));
 	}
 }
+
+UAnimMontage* AEnemyCharacter::GetRandomAttackMontage() const
+{
+	if (AttackMontages.Num() == 0) return nullptr;
+
+	int32 Index = FMath::RandRange(0, AttackMontages.Num() - 1);
+	return AttackMontages[Index];
+}
+
+UAnimMontage* AEnemyCharacter::GetRandomDetectMontage() const
+{
+	if (DetectMontages.Num() == 0) return nullptr;
+
+	int32 Index = FMath::RandRange(0, DetectMontages.Num() - 1);
+	return DetectMontages[Index];
+}
