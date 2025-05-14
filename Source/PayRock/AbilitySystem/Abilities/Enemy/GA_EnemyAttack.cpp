@@ -2,6 +2,8 @@
 #include "AbilitySystemComponent.h"
 #include "GameFramework/Character.h"
 #include "AbilitySystemBlueprintLibrary.h"
+#include "AIController.h"
+#include "BehaviorTree/BlackboardComponent.h"
 #include "PayRock/Enemy/EnemyCharacter.h"
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
@@ -52,6 +54,13 @@ void UGA_EnemyAttack::ActivateAbility(
 		if (UBlackboardComponent* BB = AICon->GetBlackboardComponent())
 		{
 			BB->SetValueAsBool(FName("bAttacking"), true);
+		}
+		if (AAIController* AICon = Cast<AAIController>(Enemy->GetController()))
+		{
+			if (UBlackboardComponent* BB = AICon->GetBlackboardComponent())
+			{
+				BB->SetValueAsBool("bIsAttacking", true);
+			}
 		}
 	}
 	

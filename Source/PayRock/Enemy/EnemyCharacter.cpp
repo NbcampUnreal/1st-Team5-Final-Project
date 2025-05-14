@@ -1,6 +1,7 @@
 // PayRockGames
 
 #include "EnemyCharacter.h"
+#include "GenericTeamAgentInterface.h"
 #include "PayRock/AbilitySystem/PRAbilitySystemComponent.h"
 #include "PayRock/AbilitySystem/PRAttributeSet.h"
 
@@ -13,6 +14,14 @@ AEnemyCharacter::AEnemyCharacter()
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Minimal);
 
 	AttributeSet = CreateDefaultSubobject<UPRAttributeSet>("AttributeSet");
+}
+
+void AEnemyCharacter::ToggleWeaponCollision(bool bEnable)
+{
+	if (Weapon)
+	{
+		Weapon->SetCollisionEnabled(bEnable ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
+	}
 }
 
 void AEnemyCharacter::BeginPlay()

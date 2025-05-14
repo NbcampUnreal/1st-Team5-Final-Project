@@ -7,6 +7,7 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
+#include "PayRock/Character/PRCharacter.h"
 
 UBTS_CheckPlayerLooking::UBTS_CheckPlayerLooking()
 {
@@ -26,7 +27,7 @@ void UBTS_CheckPlayerLooking::TickNode(UBehaviorTreeComponent& OwnerComp, uint8*
 	if (!BB) return;
 
 	TArray<AActor*> PlayerActors;
-	UGameplayStatics::GetAllActorsOfClass(SelfPawn->GetWorld(), ACharacter::StaticClass(), PlayerActors);
+	UGameplayStatics::GetAllActorsOfClass(SelfPawn->GetWorld(), APRCharacter::StaticClass(), PlayerActors);
 
 	for (AActor* PlayerActor : PlayerActors)
 	{

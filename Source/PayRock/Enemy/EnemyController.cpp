@@ -3,6 +3,7 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
 #include "EnemyCharacter.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "PayRock/Character/PRCharacter.h"
 
 AEnemyController::AEnemyController()
@@ -19,7 +20,6 @@ AEnemyController::AEnemyController()
 	SightConfig->DetectionByAffiliation.bDetectEnemies = true;
 	SightConfig->DetectionByAffiliation.bDetectFriendlies = true;
 	SightConfig->DetectionByAffiliation.bDetectNeutrals = true;
-
 	
 	AIPerceptionComponent->ConfigureSense(*SightConfig);
 	AIPerceptionComponent->SetDominantSense(SightConfig->GetSenseImplementation());
@@ -83,8 +83,8 @@ void AEnemyController::OnUnPossess()
 void AEnemyController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
 	if (!Actor) return;
-	
-	if (!Actor->IsA(APRCharacter::StaticClass()))
+
+	if (Actor->IsA(APRCharacter::StaticClass())==false)
 	{
 		return;
 	}
@@ -95,7 +95,22 @@ void AEnemyController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stim
 	}
 	if (Actor)
 	{
-		GetBlackboardComponent()->SetValueAsObject(TEXT("TargetActor"), Actor);
-		GetBlackboardComponent()->SetValueAsBool(TEXT("bPlayerDetect"), Stimulus.WasSuccessfullySensed());
+		if (Stimulus.WasSuccessfullySensed())
+		{
+			GetBlackboardComponent()->SetValueAsObject(TEXT("TargetActor"), Actor);
+			GetBlackboardComponent()->SetValueAsBool(TEXT("bPlayerDetect"), true);
+
+			GetWorld()->GetTimerManager().ClearTimer(ForgetPlayerTimerHandle);
+		}
+		else
+		{
+			GetWorld()->GetTimerManager().SetTimer(ForgetPlayerTimerHandle, this, &AEnemyController::ClearDetectedPlayer, 2.0f, false);
+		}
 	}
+}
+
+void AEnemyController::ClearDetectedPlayer()
+{
+	GetBlackboardComponent()->SetValueAsObject(TEXT("TargetActor"), nullptr);
+	GetBlackboardComponent()->SetValueAsBool(TEXT("bPlayerDetect"), false);
 }

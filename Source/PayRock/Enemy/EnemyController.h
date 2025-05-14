@@ -56,4 +56,9 @@ private:
 	UPROPERTY(EditAnywhere, Category = "AI|Perception")
 	float PeripheralVisionAngle = 90.f;
 
+	
+	FTimerHandle ForgetPlayerTimerHandle;
+	
+	void ClearDetectedPlayer();
+
 };
