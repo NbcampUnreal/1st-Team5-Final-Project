@@ -140,6 +140,10 @@ private:
 	void SetSpeed(float NewSpeedMultiplier);
 
 protected:
+	// Equipped Ability Spec Handles
+	UPROPERTY(BlueprintReadWrite)
+	TArray<FGameplayAbilitySpecHandle> WeaponAbilityHandles;
+	
 	//AI 감지 관련 함수
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
 	UAIPerceptionStimuliSourceComponent* StimuliSourceComponent;
