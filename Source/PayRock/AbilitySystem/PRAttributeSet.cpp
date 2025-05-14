@@ -125,9 +125,10 @@ void UPRAttributeSet::HandleIncomingDamage(const FEffectProperties& Props, const
 {
 	const float LocalIncomingDamage = GetIncomingDamage();
 	SetIncomingDamage(0.f);
+	const float CalculatedDamage = GetCalculatedDamage(LocalIncomingDamage, Props);
 	if (LocalIncomingDamage > 0.f)
 	{
-		float NewHealth = FMath::Clamp(GetHealth() - LocalIncomingDamage, 0.f, GetMaxHealth());
+		float NewHealth = FMath::Clamp(GetHealth() - CalculatedDamage, 0.f, GetMaxHealth());
 
 		FOnAttributeChangeData AttributeChangeData;
 		AttributeChangeData.Attribute = GetHealthAttribute();
@@ -160,6 +161,30 @@ void UPRAttributeSet::HandleIncomingDamage(const FEffectProperties& Props, const
 			Props.TargetASC->TryActivateAbilitiesByTag(TagContainer);
 		}
 	}
+}
+
+float UPRAttributeSet::GetCalculatedDamage(float LocalIncomingDamage, const FEffectProperties& Props)
+{
+	// Block Chance --> 10% damage
+	if (FMath::RandRange(0, 100) < GetBlockChance())
+	{
+		return LocalIncomingDamage * 0.1f;
+	}
+	
+	const UPRAttributeSet* AttackerAttributeSet =
+		Cast<UPRAttributeSet>(Props.SourceASC->GetAttributeSet(UPRAttributeSet::StaticClass()));
+	
+	// Critical Hit Multiplier
+	const bool bIsCritical = FMath::RandRange(0, 100) < AttackerAttributeSet->GetCriticalChance();
+	float CriticalMultiplier = bIsCritical ? (AttackerAttributeSet->GetCriticalDamage() / 100.f) : 1.f;
+
+	// Net Armor = Defender Armor - Attacker Armor Penetration
+	float NetArmor = FMath::Max(0.f, GetArmor() - AttackerAttributeSet->GetArmorPenetration());
+
+	// Armor Reduction percentage
+	float ArmorReduction = NetArmor / (NetArmor + 100.f);
+
+	return LocalIncomingDamage * (1.f - ArmorReduction) * CriticalMultiplier;
 }
 
 /* Primary Attributes */
