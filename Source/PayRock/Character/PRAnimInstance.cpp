@@ -14,18 +14,16 @@ void UPRAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
     Super::NativeUpdateAnimation(DeltaSeconds);
 
-    if (!OwnerCharacter)
+    if (!IsValid(OwnerCharacter))
     {
         OwnerCharacter = Cast<APRCharacter>(TryGetPawnOwner());
     }
-
     if (!OwnerCharacter) return;
 
     FVector Velocity = OwnerCharacter->GetVelocity();
 
     // 이동 관련
     Speed = Velocity.Size2D();
-    MoveDirection = OwnerCharacter->MoveDirection;
     ZVelocity = Velocity.Z;
     bIsSprinting = OwnerCharacter->bIsSprinting;
     bIsCrouching = OwnerCharacter->bIsCrouching;
@@ -35,13 +33,16 @@ void UPRAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
     // 전투 관련
     bIsAttacking = OwnerCharacter->bIsAttacking;
     bIsGuarding = OwnerCharacter->bIsGuarding;
+    bIsAiming = OwnerCharacter->bIsAiming;
 
-    // 점프 관련
+    // 점프 방향 계산
     bJustJumped = OwnerCharacter->bJustJumped;
-
-    // 점프 중에는 마지막 방향 유지
-    const float RawDirection = (bIsInAir && bJustJumped)
+    MoveDirection = (bIsInAir && bJustJumped)
         ? OwnerCharacter->GetLastJumpDirection()
         : OwnerCharacter->MoveDirection;
+
+    // 무기 타입
+    WeaponType = OwnerCharacter->GetCurrentWeaponType();
 }
+
 
