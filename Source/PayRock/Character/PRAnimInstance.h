@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
+#include "PayRock/Item/PRItemEnum.h"
 #include "PRAnimInstance.generated.h"
 
 class APRCharacter;
@@ -53,7 +54,13 @@ protected:
     UPROPERTY(BlueprintReadWrite, Category = "Anim|Movement")
     bool bJustJumped;
 
+    UPROPERTY(BlueprintReadWrite, Category = "Anim|Combat")
+    bool bIsAiming;
+
     // 이동 방향 기반 골반 회전 오프셋
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
     float PelvisYawOffset = 0.f;
+
+    UPROPERTY(BlueprintReadOnly, Category = "Weapon")
+    EWeaponType WeaponType;
 };
