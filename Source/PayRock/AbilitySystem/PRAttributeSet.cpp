@@ -168,6 +168,7 @@ float UPRAttributeSet::GetCalculatedDamage(float LocalIncomingDamage, const FEff
 	// Block Chance --> 10% damage
 	if (FMath::RandRange(0, 100) < GetBlockChance())
 	{
+		UE_LOG(LogTemp, Warning, TEXT("Blocked!"));
 		return LocalIncomingDamage * 0.1f;
 	}
 	
@@ -176,6 +177,7 @@ float UPRAttributeSet::GetCalculatedDamage(float LocalIncomingDamage, const FEff
 	
 	// Critical Hit Multiplier
 	const bool bIsCritical = FMath::RandRange(0, 100) < AttackerAttributeSet->GetCriticalChance();
+	if (bIsCritical) UE_LOG(LogTemp, Warning, TEXT("Critical Hit!"));
 	float CriticalMultiplier = bIsCritical ? (AttackerAttributeSet->GetCriticalDamage() / 100.f) : 1.f;
 
 	// Net Armor = Defender Armor - Attacker Armor Penetration
