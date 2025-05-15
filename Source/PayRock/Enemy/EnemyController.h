@@ -28,7 +28,7 @@ public:
 	
 
 	UFUNCTION()
-	void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
+	virtual void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
 protected:
 	UPROPERTY(EditAnywhere, Category = "AI")
 	TObjectPtr<UBehaviorTree> DefaultBehaviorTree;
@@ -55,5 +55,10 @@ private:
 	float LoseSightRadius = 1800.f;
 	UPROPERTY(EditAnywhere, Category = "AI|Perception")
 	float PeripheralVisionAngle = 90.f;
+
+	
+	FTimerHandle ForgetPlayerTimerHandle;
+	
+	void ClearDetectedPlayer();
 
 };
