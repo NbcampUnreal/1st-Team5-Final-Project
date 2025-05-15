@@ -9,6 +9,7 @@
 #include "EnhancedInputComponent.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Engine/UserDefinedEnum.h"
 #include "PayRock/PRGameplayTags.h"
 #include "PayRock/AbilitySystem/PRAbilitySystemComponent.h"
 #include "PayRock/Input/PRInputComponent.h"
@@ -42,16 +43,22 @@ APRCharacter::APRCharacter()
     GetMesh()->SetUsingAbsoluteRotation(false);
     GetMesh()->SetRelativeRotation(FRotator(0.f, -90.f, 0.f)); // SkeletalMesh
 
+    DefaultArmLength = 300.f;
+    AimingArmLength = 150.f;
+    CameraInterpSpeed = 10.f;
+
     RightHandCollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("RightHandCollision"));
     LeftHandCollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("LefttHandCollision"));
     
     
-    NormalSpeed = 600.0f;
-    SprintSpeedMultiplier = 1.5f;
-    CrouchSpeed = 300.0f;
+    NormalSpeed = 350.0f;
+    SprintSpeedMultiplier = 2.0f;
+    CrouchSpeed = 200.0f;
     SprintSpeed = NormalSpeed * SprintSpeedMultiplier;
-    CurrentTargetSpeed = 600.0f;
-    BackwardSpeedMultiplier = 0.7f;
+    CurrentTargetSpeed = NormalSpeed;
+    ReplicatedMaxWalkSpeed = NormalSpeed;
+    BackwardSpeedMultiplier = 1.0f;
+    AimingSpeedMultiplier = 0.75f;
     GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
 
     MouseSensitivity = 1.0f;
@@ -68,6 +75,12 @@ APRCharacter::APRCharacter()
 void APRCharacter::BeginPlay()
 {
     Super::BeginPlay();
+
+    if (SpringArmComp)
+    {
+        DefaultArmLength = SpringArmComp->TargetArmLength;
+        DefaultSocketOffset = SpringArmComp->SocketOffset;
+    }
 
     RightHandCollisionComp->AttachToComponent(
         GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, RightHandSocketName);
@@ -138,6 +151,7 @@ void APRCharacter::InitAbilityActorInfo()
         }
     }
     InitializeDefaultAttributes();
+    BindToTagChange();
 }
 
 void APRCharacter::SetupStimuliSource()
@@ -156,18 +170,6 @@ void APRCharacter::SetupStimuliSource()
     }
 
     StimuliSourceComponent->RegisterWithPerceptionSystem();
-}
-
-void APRCharacter::SetSpeed(float NewSpeedMultiplier)
-{
-    float SpeedMultiplier = FMath::Clamp(NewSpeedMultiplier, 0.1f, 1.0f);
-
-    GetCharacterMovement()->MaxWalkSpeed = NormalSpeed * SpeedMultiplier;
-    SprintSpeed = NormalSpeed * SprintSpeedMultiplier * SpeedMultiplier;
-    GetCharacterMovement()->MaxWalkSpeedCrouched = CrouchSpeed * SpeedMultiplier;
-
-    UE_LOG(LogTemp, Warning, TEXT("Speed Updated -> Walk: %f | Sprint: %f"),
-        GetCharacterMovement()->MaxWalkSpeed, SprintSpeed);
 }
 
 void APRCharacter::SetSpeedMode(bool bSprintState)
@@ -199,6 +201,7 @@ void APRCharacter::ResetToWalkSpeed()
     if (HasAuthority())
     {
         ReplicatedMaxWalkSpeed = NormalSpeed;
+        CurrentTargetSpeed = NormalSpeed;
         OnRep_MaxWalkSpeed();
     }
 }
@@ -206,16 +209,19 @@ void APRCharacter::ResetToWalkSpeed()
 void APRCharacter::OnRep_MaxWalkSpeed()
 {
     CurrentTargetSpeed = ReplicatedMaxWalkSpeed;
-    CurrentInterpRate = (ReplicatedMaxWalkSpeed > NormalSpeed) ? SpeedInterpRateSprint : SpeedInterpRateWalk;
 
-    UE_LOG(LogTemp, Log, TEXT("OnRep_MaxWalkSpeed: target set to %f"), CurrentTargetSpeed);
+    CurrentInterpRate =
+        (ReplicatedMaxWalkSpeed > NormalSpeed)
+        ? SpeedInterpRateSprint
+        : SpeedInterpRateWalk;
+
+    UE_LOG(LogTemp, Log, TEXT("OnRep_MaxWalkSpeed: MaxWalkSpeed = %f"), CurrentTargetSpeed);
 }
 
 void APRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
     Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-    // Enhanced InputComponent�� ĳ����
     if (UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(PlayerInputComponent))
     {
         if (APRPlayerController* PlayerController = Cast<APRPlayerController>(GetController()))
@@ -289,6 +295,22 @@ void APRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
                 );
             }
 
+            if (PlayerController->AimAction)
+            {
+                EnhancedInput->BindAction(
+                    PlayerController->AimAction,
+                    ETriggerEvent::Ongoing,
+                    this,
+                    &APRCharacter::StartAim
+                );
+                EnhancedInput->BindAction(
+                    PlayerController->AimAction,
+                    ETriggerEvent::Completed,
+                    this,
+                    &APRCharacter::StopAim
+                );
+            }
+
             if (PlayerController->AttackAction)
             {
                 // ����
@@ -352,6 +374,22 @@ void APRCharacter::Move(const FInputActionValue& Value)
     AddMovementInput(MoveDir, SpeedMultiplier);
 }
 
+void APRCharacter::StartAim(const FInputActionValue& Value)
+{
+    if (!HasAuthority())
+        ServerSetAiming(true);
+    bIsAiming = true;
+    OnRep_IsAiming();
+}
+
+void APRCharacter::StopAim(const FInputActionValue& Value)
+{
+    if (!HasAuthority())
+        ServerSetAiming(false);
+    bIsAiming = false;
+    OnRep_IsAiming();
+}
+
 void APRCharacter::StartJump(const FInputActionValue& value)
 {
     if (GetCharacterMovement()->IsCrouching()) return;
@@ -387,14 +425,16 @@ void APRCharacter::Look(const FInputActionValue& value)
 
 void APRCharacter::StartSprint(const FInputActionValue& value)
 {
-    SetSpeedMode(true); // 이걸로 대체
+    if (bIsAiming) return;
+
+    SetSpeedMode(true);
 
     if (!HasAuthority())
     {
         ServerStartSprint();
     }
 
-    bIsSprinting = true; // 클라에서도 상태 유지
+    bIsSprinting = true;
 }
 
 void APRCharacter::ServerStartSprint_Implementation()
@@ -533,6 +573,7 @@ void APRCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
     DOREPLIFETIME(APRCharacter, bIsAttacking);
     DOREPLIFETIME(APRCharacter, bIsGuarding);
     DOREPLIFETIME(APRCharacter, bJustJumped);
+    DOREPLIFETIME(APRCharacter, bIsAiming);
     DOREPLIFETIME(APRCharacter, ReplicatedMaxWalkSpeed);
 }
 
@@ -562,23 +603,74 @@ void APRCharacter::OnRep_Guarding()
 
 void APRCharacter::OnRep_JustJumped()
 {
-    // 애니메이션 BP에서 bJustJumped를 바탕으로 트리거 잡을 수 있음
-    UE_LOG(LogTemp, Log, TEXT("OnRep_JustJumped called. bJustJumped = %s"), bJustJumped ? TEXT("true") : TEXT("false"));
+}
+
+void APRCharacter::OnRep_IsAiming()
+{
+    if (bIsAiming)
+    {
+        GetCharacterMovement()->bOrientRotationToMovement = false;
+        bUseControllerRotationYaw = true;
+    }
+    else
+    {
+        GetCharacterMovement()->bOrientRotationToMovement = true;
+        bUseControllerRotationYaw = false;
+    }
 }
 
 void APRCharacter::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
 
-    // 속도 보간
-    float CurrentSpeed = GetCharacterMovement()->MaxWalkSpeed;
-    float NewSpeed = FMath::FInterpTo(CurrentSpeed, CurrentTargetSpeed, DeltaSeconds, CurrentInterpRate);
+    // 카메라 보간
+    const float TargetArm = bIsAiming ? AimingArmLength : DefaultArmLength;
+    const FVector TargetOffset = bIsAiming ? AimingSocketOffset : DefaultSocketOffset;
+    SpringArmComp->TargetArmLength = FMath::FInterpTo(SpringArmComp->TargetArmLength, TargetArm, DeltaSeconds, CameraInterpSpeed);
+    SpringArmComp->SocketOffset = FMath::VInterpTo(SpringArmComp->SocketOffset, TargetOffset, DeltaSeconds, CameraInterpSpeed);
+
+    // 이동 속도 보간
+    const float DesiredTargetSpeed = bIsAiming ? NormalSpeed * BackwardSpeedMultiplier : CurrentTargetSpeed;
+    float NewSpeed = FMath::FInterpTo(GetCharacterMovement()->MaxWalkSpeed, DesiredTargetSpeed, DeltaSeconds, CurrentInterpRate);
     GetCharacterMovement()->MaxWalkSpeed = NewSpeed;
 
+    if (FMath::Abs(NewSpeed - DesiredTargetSpeed) < 0.5f)
+    {
+        GetCharacterMovement()->MaxWalkSpeed = DesiredTargetSpeed;
+    }
+    /*UE_LOG(LogTemp, Log, TEXT("CurrentTargetSpeed: %f, MaxWalkSpeed: %f"), CurrentTargetSpeed, GetCharacterMovement()->MaxWalkSpeed);*/
+
+    // 점프 중일 땐 회전 막기 (에임 포함)
+    if (bIsInAir)
+    {
+        if (bIsAiming)
+        {
+            // 에임 상태지만 점프 중이면 회전 금지
+            bUseControllerRotationYaw = false;
+        }
+        GetCharacterMovement()->RotationRate = FRotator::ZeroRotator;
+    }
+    else
+    {
+        // 지상일 땐 에임 상태에 따라 회전 모드 설정
+        if (bIsAiming)
+        {
+            bUseControllerRotationYaw = true;
+            GetCharacterMovement()->bOrientRotationToMovement = false;
+        }
+        else
+        {
+            bUseControllerRotationYaw = false;
+            GetCharacterMovement()->bOrientRotationToMovement = true;
+        }
+
+        GetCharacterMovement()->RotationRate = FRotator(0.f, 400.f, 0.f);
+    }
+
+    // 방향 계산
     const FVector Velocity = GetVelocity();
     const FRotator ActorRot = GetActorRotation();
 
-    // MoveDirection 계산
     if (IsLocallyControlled())
     {
         MoveDirection = CalculateDirectionCustom(Velocity, ActorRot);
@@ -592,21 +684,10 @@ void APRCharacter::Tick(float DeltaSeconds)
         }
     }
 
-    // 공중 여부 등은 항상 자신 기준으로
     bIsInAir = GetCharacterMovement()->IsFalling();
     bIsCrouching = GetCharacterMovement()->IsCrouching();
-
-    // 공중 회전: 로컬 컨트롤러 기준으로만 회전 적용 (중복 회전 방지)
-    if (IsLocallyControlled())
-    {
-        if (bIsInAir && Velocity.Size2D() > 10.f)
-        {
-            FRotator TargetRotation = Velocity.ToOrientationRotator();
-            FRotator NewRotation = FMath::RInterpTo(GetActorRotation(), TargetRotation, DeltaSeconds, 5.0f);
-            SetActorRotation(NewRotation);
-        }
-    }
 }
+
 
 
 float APRCharacter::CalculateDirectionCustom(const FVector& Velocity, const FRotator& BaseRotation)
@@ -646,10 +727,22 @@ void APRCharacter::SetJustJumped(bool bNewValue)
     }
 }
 
+void APRCharacter::SetWeaponType(EWeaponType NewType)
+{
+    CurrentWeaponType = NewType;
+    // 애니메이션 블루프린트에도 알릴 수 있도록 필요하면 이벤트 호출
+}
+
 void APRCharacter::ResetJustJumped()
 {
     bJustJumped = false;
     OnRep_JustJumped();
+}
+
+void APRCharacter::ServerSetAiming_Implementation(bool bNewAiming)
+{
+    bIsAiming = bNewAiming;
+    OnRep_IsAiming();
 }
 
 void APRCharacter::AbilityInputTagPressed(FGameplayTag InputTag)
