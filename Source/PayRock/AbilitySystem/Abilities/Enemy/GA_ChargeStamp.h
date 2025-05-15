@@ -41,6 +41,8 @@ protected:
 	
 
 	void StartChargeVisual(AActor* Avatar);
+	UFUNCTION(BlueprintCallable)
 	void JumpToTarget(ACharacter* Avatar);
+	UFUNCTION(BlueprintCallable)
 	void ApplyStampDamage(ACharacter* Avatar);
 };

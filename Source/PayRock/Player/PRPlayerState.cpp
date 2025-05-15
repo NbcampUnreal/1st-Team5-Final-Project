@@ -24,6 +24,7 @@ void APRPlayerState::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>&
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(APRPlayerState, Level);
+	DOREPLIFETIME(APRPlayerState, bIsDead);
 }
 
 UAbilitySystemComponent* APRPlayerState::GetAbilitySystemComponent() const
