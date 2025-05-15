@@ -32,6 +32,11 @@ UAbilitySystemComponent* APRPlayerState::GetAbilitySystemComponent() const
 	return AbilitySystemComponent;
 }
 
+void APRPlayerState::SetIsDead(bool bDead)
+{
+	bIsDead = bDead;
+}
+
 void APRPlayerState::OnRep_Level(int32 OldLevel)
 {
 	

@@ -695,9 +695,8 @@ void APRCharacter::Tick(float DeltaSeconds)
 
 void APRCharacter::Die()
 {
-    Super::Die();
+    GetPlayerState<APRPlayerState>()->SetIsDead(true);
 }
-
 
 float APRCharacter::CalculateDirectionCustom(const FVector& Velocity, const FRotator& BaseRotation)
 {
