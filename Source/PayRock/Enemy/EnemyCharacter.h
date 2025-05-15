@@ -13,6 +13,7 @@ class PAYROCK_API AEnemyCharacter : public ABaseCharacter
 
 public:
 	AEnemyCharacter();
+	void ToggleWeaponCollision(bool bEnable);
 
 
 	UFUNCTION(BlueprintCallable, Category = "Combat")
