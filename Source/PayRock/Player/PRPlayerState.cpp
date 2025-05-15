@@ -1,8 +1,6 @@
 // PayRockGames
 
 #include "PRPlayerState.h"
-
-#include "Net/UnrealNetwork.h"
 #include "PayRock/AbilitySystem/PRAbilitySystemComponent.h"
 #include "PayRock/AbilitySystem/PRAttributeSet.h"
 
@@ -19,20 +17,7 @@ APRPlayerState::APRPlayerState()
 	AttributeSet = CreateDefaultSubobject<UPRAttributeSet>("AttributeSet");
 }
 
-void APRPlayerState::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(APRPlayerState, Level);
-	DOREPLIFETIME(APRPlayerState, bIsDead);
-}
-
 UAbilitySystemComponent* APRPlayerState::GetAbilitySystemComponent() const
 {
 	return AbilitySystemComponent;
-}
-
-void APRPlayerState::OnRep_Level(int32 OldLevel)
-{
-	
 }
