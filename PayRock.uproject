@@ -9,12 +9,7 @@
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
 			"AdditionalDependencies": [
-				"UMG",
-				"AIModule",
-				"GameplayAbilities",
-				"Engine",
-				"AdvancedSessions",
-				"EnhancedInput"
+				"UMG"
 			]
 		}
 	],

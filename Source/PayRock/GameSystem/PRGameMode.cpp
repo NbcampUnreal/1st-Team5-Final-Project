@@ -1,5 +1,0 @@
-// PayRockGames
-
-
-#include "PRGameMode.h"
-

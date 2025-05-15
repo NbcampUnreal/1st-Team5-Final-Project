@@ -1,4 +1,0 @@
-// PayRockGames
-
-
-#include "EIdleAnimType.h"
