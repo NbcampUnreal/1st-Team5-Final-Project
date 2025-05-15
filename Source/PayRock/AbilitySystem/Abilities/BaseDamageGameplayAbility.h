@@ -15,7 +15,7 @@ public:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	
 	UFUNCTION(BlueprintCallable)
-	void CauseDamage(AActor* TargetActor);
+	void CauseDamage(AActor* TargetActor /*, const FHitResult& HitResult*/);
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
@@ -32,4 +32,7 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly)
 	int32 MontageIndex;
+
+	UPROPERTY(BlueprintReadOnly)
+	FHitResult HitResult;
 };
