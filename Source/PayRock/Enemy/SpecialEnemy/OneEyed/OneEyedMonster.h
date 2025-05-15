@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Components/SpotLightComponent.h"
 #include "PayRock/Enemy/EnemyCharacter.h"
 #include "OneEyedMonster.generated.h"
 
@@ -13,8 +14,27 @@ class PAYROCK_API AOneEyedMonster : public AEnemyCharacter
 
 public:
 	AOneEyedMonster();
-
+	UFUNCTION(BlueprintCallable)
+	void ToggleTorchLight();
 protected:
 	virtual void BeginPlay() override;
+	void ScheduleNextBlink();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Torch")
+	USpotLightComponent* TorchLight;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Torch")
+	UStaticMeshComponent* TorchBeamVisual;
+
+	FTimerHandle BlinkTimerHandle;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Blink")
+	float BlinkMin = 0.2f ;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Blink")
+	float BlinkMax = 1.0f ;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Torch|Color")
+	FLinearColor NormalLightColor = FLinearColor(1.f, 0.9f, 0.6f);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Torch|Color")
+	FLinearColor AlertLightColor = FLinearColor::Red;
 };
