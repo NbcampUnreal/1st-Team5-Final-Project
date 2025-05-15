@@ -4,11 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
+#include "PayRock/AbilitySystem/Abilities/BaseDamageGameplayAbility.h"
 #include "GA_EnemyAttack.generated.h"
 
 
 UCLASS()
-class PAYROCK_API UGA_EnemyAttack : public UGameplayAbility
+class PAYROCK_API UGA_EnemyAttack : public UBaseDamageGameplayAbility
 {
 	GENERATED_BODY()
 

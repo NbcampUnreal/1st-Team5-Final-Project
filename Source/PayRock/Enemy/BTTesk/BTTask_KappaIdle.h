@@ -13,24 +13,26 @@ UCLASS()
 class PAYROCK_API UBTTask_KappaIdle : public UBTTask_BlackboardBase
 {
 	GENERATED_BODY()
+	
 public:
 	UBTTask_KappaIdle();
 
 protected:
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 	virtual void TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
+	virtual uint16 GetInstanceMemorySize() const override;
 
-	UPROPERTY(EditAnywhere, Category = "Kappa|Idle")
-	float MaxDistanceFromPlayer = 800.0f;
-
-	UPROPERTY(EditAnywhere, Category = "Kappa|Idle")
-	float WaitDuration = 3.0f;
-
-private:
+protected:
 	FVector StartPosition;
-	FTimerHandle WaitTimerHandle;
+	float ElapsedTime = 0.f;
 	bool bShouldReturn = false;
 
-	UBehaviorTreeComponent* CachedOwnerComp;
-};
+	UPROPERTY(EditAnywhere, Category = "Idle")
+	float WaitDuration = 3.0f;
 
+	UPROPERTY(EditAnywhere, Category = "Idle")
+	float MaxDistanceFromPlayer = 500.0f;
+	
+
+	UBehaviorTreeComponent* CachedOwnerComp = nullptr;
+};

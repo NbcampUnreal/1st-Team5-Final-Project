@@ -48,11 +48,11 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
 	TObjectPtr<USkeletalMeshComponent> Weapon;
 	UPROPERTY(EditAnywhere, Category = "Combat")
-	FName RightHandSocketName;
+	FName RightHandSocketName = FName("RightHandSocket");
 	UPROPERTY(EditAnywhere, Category = "Combat")
-	FName LeftHandSocketName;
+	FName LeftHandSocketName = FName("LeftHandSocket");
 	UPROPERTY(EditAnywhere, Category = "Combat")
-	FName WeaponSocketName;
+	FName WeaponSocketName = FName("WeaponSocket");
 	
 	UPROPERTY()
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;

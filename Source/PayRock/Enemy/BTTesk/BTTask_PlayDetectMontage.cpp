@@ -6,64 +6,71 @@
 
 UBTTask_PlayDetectMontage::UBTTask_PlayDetectMontage()
 {
-    NodeName = "Play Detect Montage";
-    bNotifyTaskFinished = true;
+	NodeName = "Play Detect Montage";
+	bNotifyTaskFinished = true;
 }
 
 EBTNodeResult::Type UBTTask_PlayDetectMontage::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-    Super::ExecuteTask(OwnerComp, NodeMemory);
+	Super::ExecuteTask(OwnerComp, NodeMemory);
 
-    CachedOwnerComp = &OwnerComp;
-    CachedController = OwnerComp.GetAIOwner();
-    if (!CachedController) return EBTNodeResult::Failed;
+	CachedOwnerComp = &OwnerComp;
+	CachedController = OwnerComp.GetAIOwner();
+	if (!CachedController) return EBTNodeResult::Failed;
 
-    CachedCharacter = Cast<AEnemyCharacter>(CachedController->GetPawn());
-    if (!CachedCharacter || !CachedCharacter->GetRandomDetectMontage()) return EBTNodeResult::Failed;
+	CachedCharacter = Cast<AEnemyCharacter>(CachedController->GetPawn());
+	if (!CachedCharacter) return EBTNodeResult::Failed;
 
-    DetectMontage = CachedCharacter->GetRandomDetectMontage();
-    UAnimInstance* AnimInstance = CachedCharacter->GetMesh()->GetAnimInstance();
-    if (!AnimInstance) return EBTNodeResult::Failed;
+	DetectMontage = CachedCharacter->GetRandomDetectMontage();
+	if (!DetectMontage) return EBTNodeResult::Failed;
 
-    UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
-    if (!BB) return EBTNodeResult::Failed;
-   
-    float PlayResult = AnimInstance->Montage_Play(DetectMontage);
-    
-    BB->SetValueAsBool(FName("bDetect"), true);
-    if (PlayResult == 0.f)
-    {
-        return EBTNodeResult::Failed;
-    }
-    
-    MontageEndedDelegate.BindUObject(this, &UBTTask_PlayDetectMontage::OnMontageEnded);
-    AnimInstance->Montage_SetEndDelegate(MontageEndedDelegate, DetectMontage);
+	UAnimInstance* AnimInstance = CachedCharacter->GetMesh()->GetAnimInstance();
+	if (!AnimInstance) return EBTNodeResult::Failed;
+	
+	const float PlayResult = AnimInstance->Montage_Play(DetectMontage);
+	if (PlayResult <= 0.f || !AnimInstance->Montage_IsPlaying(DetectMontage))
+	{
+		return EBTNodeResult::Failed;
+	}
 
-    return EBTNodeResult::InProgress;
+	FOnMontageEnded MontageDelegate;
+	MontageDelegate.BindUObject(this, &UBTTask_PlayDetectMontage::OnMontageEnded);
+	AnimInstance->Montage_SetEndDelegate(MontageDelegate, DetectMontage);
+	
+	if (UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent())
+	{
+		BB->SetValueAsBool(FName("bDetect"), true);
+	}
+
+	return EBTNodeResult::InProgress;
 }
 
 void UBTTask_PlayDetectMontage::OnMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
-    if (!CachedOwnerComp) return;
-
-    EBTNodeResult::Type Result = bInterrupted ? EBTNodeResult::Failed : EBTNodeResult::Succeeded;
-    FinishLatentTask(*CachedOwnerComp, Result);
+	if (!CachedOwnerComp || !CachedCharacter || Montage != DetectMontage) return;
+	
+	FinishLatentTask(*CachedOwnerComp, bInterrupted ? EBTNodeResult::Failed : EBTNodeResult::Succeeded);
 }
 
 void UBTTask_PlayDetectMontage::OnTaskFinished(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, EBTNodeResult::Type TaskResult)
 {
-    Super::OnTaskFinished(OwnerComp, NodeMemory, TaskResult);
+	Super::OnTaskFinished(OwnerComp, NodeMemory, TaskResult);
 
-    if (CachedCharacter && DetectMontage)
-    {
-        UAnimInstance* AnimInstance = CachedCharacter->GetMesh()->GetAnimInstance();
-        if (AnimInstance && AnimInstance->Montage_IsPlaying(DetectMontage))
-        {
-            AnimInstance->Montage_Stop(0.2f, DetectMontage);
-        }
-    }
+	if (CachedCharacter && DetectMontage)
+	{
+		UAnimInstance* AnimInstance = CachedCharacter->GetMesh()->GetAnimInstance();
+		if (AnimInstance && AnimInstance->Montage_IsPlaying(DetectMontage))
+		{
+			AnimInstance->Montage_Stop(0.2f, DetectMontage);
 
-    CachedOwnerComp = nullptr;
-    CachedController = nullptr;
-    CachedCharacter = nullptr;
+			FOnMontageEnded EmptyDelegate;
+			AnimInstance->Montage_SetEndDelegate(EmptyDelegate, DetectMontage);
+			
+		}
+	}
+
+	CachedOwnerComp = nullptr;
+	CachedController = nullptr;
+	CachedCharacter = nullptr;
+	DetectMontage = nullptr;
 }
