@@ -154,6 +154,16 @@ void FPRGameplayTags::InitializeNativeGameplayTags()
        );
 
     /*
+    *   Character Status
+    */
+    GameplayTags.Status_Life_Alive = UGameplayTagsManager::Get().AddNativeGameplayTag(
+       FName("Status.Life.Alive")
+       );
+    GameplayTags.Status_Life_Dead = UGameplayTagsManager::Get().AddNativeGameplayTag(
+       FName("Status.Life.Dead")
+       );
+    
+    /*
      * Effects
      */
     GameplayTags.Effects_HitReact = UGameplayTagsManager::Get().AddNativeGameplayTag(

@@ -21,17 +21,18 @@ public:
 	ABaseCharacter();
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	UAttributeSet* GetAttributeSet() const { return AttributeSet; }
+	USkeletalMeshComponent* GetWeapon() const { return Weapon.Get(); }
 
 	/* GA - Hit React */
 	void OnHitReactTagChanged(const FGameplayTag ChangedTag, int32 TagCount);
 	UFUNCTION(BlueprintCallable)
-	const UAnimMontage* GetHitReactMontage() { return HitReactMontage; }
-
-	UFUNCTION(BlueprintCallable)
-	virtual void Die();
-
+	const UAnimMontage* GetHitReactMontage();
 	UPROPERTY(BlueprintReadOnly, Category = "Combat")
 	bool bHitReact = false;
+
+	/* Death */
+	UFUNCTION(BlueprintCallable)
+	virtual void Die();
 
 protected:
 	virtual void BeginPlay() override;
@@ -71,5 +72,5 @@ protected:
 
 private:
 	UPROPERTY(EditAnywhere, Category = "Combat")
-	TObjectPtr<UAnimMontage> HitReactMontage;
+	TArray<UAnimMontage*> HitReactMontages;
 };

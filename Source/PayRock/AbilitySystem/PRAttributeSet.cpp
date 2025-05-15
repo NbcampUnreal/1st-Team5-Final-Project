@@ -151,7 +151,10 @@ void UPRAttributeSet::HandleIncomingDamage(const FEffectProperties& Props, const
 
 		if (NewHealth <= 0.f)
 		{
-			// Handle ddeath
+			// Handle death
+			FGameplayTagContainer TagContainer;
+			TagContainer.AddTag(FPRGameplayTags::Get().Status_Life_Dead);
+			Props.TargetASC->TryActivateAbilitiesByTag(TagContainer);
 		}
 		else
 		{
