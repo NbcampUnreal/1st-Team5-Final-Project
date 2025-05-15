@@ -22,6 +22,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "State")
 	bool GetBattleState() const { return bIsBattle; }
 	void SetBattleState(bool Bat){ bIsBattle = Bat; };
+
+	void ToggleWeaponCollision(bool bEnable);
 	
 protected:
 	virtual void BeginPlay() override;
