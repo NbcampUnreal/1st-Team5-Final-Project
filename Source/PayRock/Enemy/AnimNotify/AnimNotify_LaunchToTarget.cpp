@@ -21,8 +21,10 @@ void UAnimNotify_LaunchToTarget::Notify(USkeletalMeshComponent* MeshComp, UAnimS
 	if (!Target) return;
 	
 	FVector LaunchDir = (Target->GetActorLocation() - Enemy->GetActorLocation()).GetSafeNormal();
+	FRotator LookAtRot = (Target->GetActorLocation() - Enemy->GetActorLocation()).Rotation();
 	FVector LaunchVelocity = LaunchDir * HorizontalSpeed;
 	LaunchVelocity.Z = VerticalBoost;
-
+	
+	Enemy->SetActorRotation(LookAtRot);
 	Enemy->LaunchCharacter(LaunchVelocity, true, true);
 }
