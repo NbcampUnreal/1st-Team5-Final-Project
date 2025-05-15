@@ -14,7 +14,7 @@ ABaseCharacter::ABaseCharacter()
 	GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 
 	Weapon = CreateDefaultSubobject<USkeletalMeshComponent>("Weapon");
-	Weapon->SetupAttachment(GetMesh(), FName("RightHandSocket"));
+	Weapon->SetupAttachment(GetMesh(), WeaponSocketName);
 	Weapon->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 

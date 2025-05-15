@@ -45,7 +45,7 @@ protected:
 	void BindToTagChange();
 
 protected:
-	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "Combat")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
 	TObjectPtr<USkeletalMeshComponent> Weapon;
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	FName RightHandSocketName;
