@@ -22,6 +22,17 @@ public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	UAttributeSet* GetAttributeSet() const { return AttributeSet; }
 
+	/* GA - Hit React */
+	void OnHitReactTagChanged(const FGameplayTag ChangedTag, int32 TagCount);
+	UFUNCTION(BlueprintCallable)
+	const UAnimMontage* GetHitReactMontage() { return HitReactMontage; }
+
+	UFUNCTION(BlueprintCallable)
+	virtual void Die();
+
+	UPROPERTY(BlueprintReadOnly, Category = "Combat")
+	bool bHitReact = false;
+
 protected:
 	virtual void BeginPlay() override;
 	virtual FVector GetCombatSocketLocation_Implementation(const FGameplayTag& SocketTag) override;
@@ -30,6 +41,7 @@ protected:
 	virtual void AddCharacterAbilities();
 	void ApplyEffectToSelf(const TSubclassOf<UGameplayEffect>& EffectClass, const float& EffectLevel) const;
 	void InitializeDefaultAttributes() const;
+	void BindToTagChange();
 
 protected:
 	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "Combat")
@@ -56,4 +68,8 @@ protected:
 	TSubclassOf<UGameplayEffect> InitSecondaryAttributeEffect;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
 	TSubclassOf<UGameplayEffect> InitVitalAttributeEffect;
+
+private:
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	TObjectPtr<UAnimMontage> HitReactMontage;
 };

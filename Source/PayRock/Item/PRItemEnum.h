@@ -9,6 +9,7 @@
 UENUM(BlueprintType)
 enum class EWeaponType : uint8
 {
+	Unarmed     UMETA(DisplayName = "Unarmed"),
 	Hyeobdo      UMETA(DisplayName = "Hyeobdo"),
 	Hwando       UMETA(DisplayName = "Hwando"),
 	Gonbang     UMETA(DisplayName = "Gonbang")

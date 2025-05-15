@@ -34,10 +34,14 @@ FGameplayAbilitySpecHandle UPRAbilitySystemComponent::AddAbility(
 	if (const UBaseGameplayAbility* BaseAbility = Cast<UBaseGameplayAbility>(AbilitySpec.Ability))
 	{
 		AbilitySpec.GetDynamicSpecSourceTags().AddTag(BaseAbility->StartupInputTag);
-		//AbilitySpec.GetDynamicSpecSourceTags().AddTag(FPRGameplayTags::Get().Abilities_Status_Equipped);
-		return bIsPassive ? GiveAbilityAndActivateOnce(AbilitySpec) : GiveAbility(AbilitySpec);
 	}
-	return FGameplayAbilitySpecHandle();
+	//AbilitySpec.GetDynamicSpecSourceTags().AddTag(FPRGameplayTags::Get().Abilities_Status_Equipped);
+	return bIsPassive ? GiveAbilityAndActivateOnce(AbilitySpec) : GiveAbility(AbilitySpec);
+}
+
+void UPRAbilitySystemComponent::RemoveAbility(const FGameplayAbilitySpecHandle& AbilitySpecHandle)
+{
+	ClearAbility(AbilitySpecHandle);
 }
 
 void UPRAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& InputTag)
