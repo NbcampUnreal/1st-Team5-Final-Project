@@ -3,6 +3,7 @@
 
 #include "PRGameState.h"
 #include "PRGameMode.h"
+#include "PayRock/Player/PRPlayerState.h"
 #include "UObject/UObjectGlobals.h"
 #include "Net/UnrealNetwork.h"
 #include "GameFramework/PlayerState.h"
@@ -60,6 +61,27 @@ void APRGameState::Notify_PlayerConnection_Implementation()
 	}
 }
 
+int32 APRGameState::GetAlivePlayerCount() const
+{
+	int32 AliveCount = 0;
+	for (APlayerState* PS : PlayerArray)
+	{
+		const APRPlayerState* Player = Cast<APRPlayerState>(PS);
+		if (!Player) continue;
+
+		//
+	}
+	return 0;
+}
+
+void APRGameState::CheckAlivePlayers()
+{
+}
+
+void APRGameState::MatchEnd()
+{
+}
+
 void APRGameState::TickMatchCountdown()
 {
 	if (!HasAuthority()) return;
@@ -88,22 +110,11 @@ void APRGameState::StartMatch()
 		if (!Controller) continue;
 
 		APawn* Pawn = Controller->GetPawn();
-		if (!Pawn)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("No Pawn found for %s"), *PS->GetPlayerName());
-			continue;
-		}
+		if (!Pawn) continue;
 
 		AActor* StartSpot = GM->ChooseMatchStartSpot();
-		if (!StartSpot)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("No StartSpot available."));
-			continue;
-		}
-
-		// 로그로 위치 출력
-		UE_LOG(LogTemp, Warning, TEXT("Teleporting %s to %s"), *PS->GetPlayerName(), *StartSpot->GetActorLocation().ToString());
-
+		if (!StartSpot) continue;
+		
 		// 순간이동
 		Pawn->SetActorLocationAndRotation(
 			StartSpot->GetActorLocation(),
@@ -113,6 +124,21 @@ void APRGameState::StartMatch()
 			ETeleportType::TeleportPhysics
 		);
 	}
+	GetWorld()->GetTimerManager().SetTimer(
+		MatchTimerHandle,
+		this,
+		&APRGameState::MatchEnd,
+		MatchDurationSeconds,
+		false
+	);
+	GetWorld()->GetTimerManager().SetTimer(
+		AliveCheckTimerHandle,
+		this,
+		&APRGameState::CheckAlivePlayers,
+		2.f,
+		true
+	);
+	UE_LOG(LogTemp, Warning, TEXT("Match timer started. Duration: %d seconds"), MatchDurationSeconds);
 }
 
 void APRGameState::ForceStartMatch()

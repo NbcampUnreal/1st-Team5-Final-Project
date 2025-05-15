@@ -7,9 +7,16 @@
 #include "PRIGameState.h"
 #include "PRGameState.generated.h"
 
-/**
- * 
- */
+UENUM(BlueprintType)
+enum class EMatchFlowState : uint8
+{
+	WaitingToStart,
+	MatchInProgress,
+	ExtractionEnabled,
+	MatchEnded
+};
+
+
 UCLASS()
 class PAYROCK_API APRGameState : public AGameState, public IPRIGameState
 {
@@ -17,6 +24,7 @@ class PAYROCK_API APRGameState : public AGameState, public IPRIGameState
 public:
 
 protected:
+	///////////////매치 시작 전 ////////////////////////////////////////////
 	UPROPERTY(BlueprintReadWrite, Replicated, EditAnywhere, Category = "MatchFlow|Players")
 	int32 MinimumRequirePlayers;
 
@@ -31,16 +39,40 @@ protected:
 	
 	FTimerHandle MatchStartTimerHandle;
 	FTimerHandle ForceStartTimerHandle;
+	/////////////////////////////////////////////////////////////////////
+	
+	
+	///////////////매치 시작 후 ////////////////////////////////////////////
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "MatchFlow|Timing")
+	int32 MatchDurationSeconds = 180;				// 매치 진행 시간 (디버깅때는 3분)
 
+	FTimerHandle MatchTimerHandle;
+
+	FTimerHandle AliveCheckTimerHandle;
+	/////////////////////////////////////////////////////////////////////
 
 public:
 	APRGameState();
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-	
+
+
+	///////////////매치 시작 전 ////////////////////////////////////////////
 	virtual void Notify_PlayerConnection_Implementation() override;
+	/////////////////////////////////////////////////////////////////////
+	
+	
+	///////////////매치 시작 후 ////////////////////////////////////////////
+	int32 GetAlivePlayerCount() const;
+
+	void CheckAlivePlayers();
+	
+	void MatchEnd();
+	/////////////////////////////////////////////////////////////////////
+	
 protected:
 
+	///////////////매치 시작 전 ////////////////////////////////////////////
 	void TickMatchCountdown(); // 카운트 다운
 
 	void StartMatch(); // 카운트 다운 후 매치 스타트
@@ -49,4 +81,5 @@ protected:
 	
 	UFUNCTION()
 	void OnRep_MatchStart_CountDown();
+	/////////////////////////////////////////////////////////////////////
 };
