@@ -22,6 +22,8 @@ public:
 
 	FORCEINLINE int32 GetCharacterLevel() const { return Level; };
 
+	FORCEINLINE bool GetIsDead() const { return bIsDead; };
+
 private:
 	UFUNCTION()
 	void OnRep_Level(int32 OldLevel);
@@ -35,4 +37,6 @@ protected:
 private:
 	UPROPERTY(VisibleAnywhere, ReplicatedUsing = OnRep_Level)
 	int32 Level = 1;
+	UPROPERTY(VisibleAnywhere, Replicated)
+	bool bIsDead = false;
 };

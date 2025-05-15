@@ -38,6 +38,10 @@ void ABaseCharacter::OnHitReactTagChanged(const FGameplayTag ChangedTag, int32 T
 	bHitReact = TagCount > 0;
 }
 
+void ABaseCharacter::Die()
+{
+}
+
 void ABaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
