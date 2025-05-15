@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "BaseCharacter.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
+#include "PayRock/Item/PRItemEnum.h"
 #include "PRCharacter.generated.h"
 
 class USphereComponent;
@@ -34,9 +35,23 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	UCameraComponent* CameraComp;
 
-	// 이동 속도 값 (Replicated)
+	// Aiming 카메라 전용 설정
+	float DefaultArmLength;
+	float AimingArmLength;
+
+	FVector DefaultSocketOffset = FVector::ZeroVector;
+	FVector AimingSocketOffset = FVector(0.f, 50.f, 30.f); // 오른쪽 위에서 보는 느낌
+
+	float CameraInterpSpeed;
+
 	UPROPERTY(ReplicatedUsing = OnRep_MaxWalkSpeed)
-	float ReplicatedMaxWalkSpeed = 600.f;
+	float ReplicatedMaxWalkSpeed;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Movement")
+	float CurrentTargetSpeed;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Movement|Interp")
+	float CurrentInterpRate;
 
 	// Fist Collision Component
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CollisionComponent")
@@ -55,13 +70,13 @@ public:
 	float CrouchSpeed;
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 	float BackwardSpeedMultiplier;
-	UPROPERTY(EditDefaultsOnly, Category = "Movement")
-	float CurrentTargetSpeed; // 목표 속도
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+	float AimingSpeedMultiplier;
 	UPROPERTY(EditDefaultsOnly, Category = "Movement|Interp")
 	float SpeedInterpRateSprint = 6.f;
 	UPROPERTY(EditDefaultsOnly, Category = "Movement|Interp")
 	float SpeedInterpRateWalk = 3.f;
-	float CurrentInterpRate = 5.f;
+
 
 
 	// Mouse Sensitivity
@@ -104,6 +119,9 @@ public:
 	UPROPERTY(ReplicatedUsing = OnRep_JustJumped, VisibleAnywhere, BlueprintReadOnly, Category = "Anim|Movement")
 	bool bJustJumped = false;
 
+	UPROPERTY(ReplicatedUsing = OnRep_IsAiming, VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
+	bool bIsAiming = false;
+
 	UFUNCTION(BlueprintCallable, Category = "Anim|Movement")
 	float GetLastJumpDirection() const { return LastJumpDirection; }
 
@@ -126,9 +144,28 @@ public:
 	UFUNCTION(Server, Reliable)
 	void ServerStopSprint();
 
+	UFUNCTION(Server, Reliable)
+	void ServerSetAiming(bool bNewAiming);
+
 	// 마지막 점프 시점의 이동 방향
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Anim|Movement")
 	float LastJumpDirection = 0.f;
+
+	UFUNCTION()
+	void OnRep_IsAiming();
+
+	// 현재 무기 판별(실험용)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Test")
+	EWeaponType CurrentWeaponType;
+
+	// 기존
+	//UPROPERTY(Replicated, BlueprintReadOnly, Category = "Weapon")
+	//EWeaponType CurrentWeaponType;
+
+	void SetWeaponType(EWeaponType NewType);
+
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	EWeaponType GetCurrentWeaponType() const { return CurrentWeaponType; }
 
 protected:
 	virtual void BeginPlay() override;
@@ -137,9 +174,12 @@ protected:
 private:
 	virtual void InitAbilityActorInfo() override;
 	void SetupStimuliSource();
-	void SetSpeed(float NewSpeedMultiplier);
 
 protected:
+	// Equipped Ability Spec Handles
+	UPROPERTY(BlueprintReadWrite)
+	TArray<FGameplayAbilitySpecHandle> WeaponAbilityHandles;
+	
 	//AI 감지 관련 함수
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
 	UAIPerceptionStimuliSourceComponent* StimuliSourceComponent;
@@ -179,6 +219,8 @@ protected:
 	void StartGuard(const FInputActionValue& value);
 	UFUNCTION()
 	void StopGuard(const FInputActionValue& value);
+	void StartAim(const FInputActionValue& Value);
+	void StopAim(const FInputActionValue& Value);
 	UFUNCTION()
 	void Interact(const FInputActionValue& value);
 

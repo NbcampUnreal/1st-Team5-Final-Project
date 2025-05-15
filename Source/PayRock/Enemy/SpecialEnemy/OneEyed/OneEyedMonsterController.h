@@ -19,6 +19,7 @@ protected:
 	virtual void BeginPlay() override;
 	
 	void CheckLightBasedDetection();
+	virtual void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus) override;
 
 	UPROPERTY(EditAnywhere, Category = "Light Detection")
 	float LightDetectionThreshold = 400.0f;

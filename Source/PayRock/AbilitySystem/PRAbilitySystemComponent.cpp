@@ -12,13 +12,7 @@ void UPRAbilitySystemComponent::AddCharacterAbilities(const TArray<TSubclassOf<U
 {
 	for (const TSubclassOf<UGameplayAbility> AbilityClass : StartupAbilities)
 	{
-		FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(AbilityClass, 1);
-		if (const UBaseGameplayAbility* BaseAbility = Cast<UBaseGameplayAbility>(AbilitySpec.Ability))
-		{
-			AbilitySpec.GetDynamicSpecSourceTags().AddTag(BaseAbility->StartupInputTag);
-			//AbilitySpec.GetDynamicSpecSourceTags().AddTag(FPRGameplayTags::Get().Abilities_Status_Equipped);
-			GiveAbility(AbilitySpec);
-		}
+		AddAbility(AbilityClass, false);
 	}
 	bStartupAbilitiesGiven = true;
 	AbilitiesGivenDelegate.Broadcast();
@@ -29,10 +23,25 @@ void UPRAbilitySystemComponent::AddCharacterPassiveAbilities(
 {
 	for (const TSubclassOf<UGameplayAbility> AbilityClass : StartupPassiveAbilities)
 	{
-		FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(AbilityClass, 1);
-		//AbilitySpec.GetDynamicSpecSourceTags().AddTag(FPRGameplayTags::Get().Abilities_Status_Equipped);
-		GiveAbilityAndActivateOnce(AbilitySpec);
+		AddAbility(AbilityClass, true);
 	} 
+}
+
+FGameplayAbilitySpecHandle UPRAbilitySystemComponent::AddAbility(
+	TSubclassOf<UGameplayAbility> AbilityClass, bool bIsPassive)
+{
+	FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(AbilityClass, 1);
+	if (const UBaseGameplayAbility* BaseAbility = Cast<UBaseGameplayAbility>(AbilitySpec.Ability))
+	{
+		AbilitySpec.GetDynamicSpecSourceTags().AddTag(BaseAbility->StartupInputTag);
+	}
+	//AbilitySpec.GetDynamicSpecSourceTags().AddTag(FPRGameplayTags::Get().Abilities_Status_Equipped);
+	return bIsPassive ? GiveAbilityAndActivateOnce(AbilitySpec) : GiveAbility(AbilitySpec);
+}
+
+void UPRAbilitySystemComponent::RemoveAbility(const FGameplayAbilitySpecHandle& AbilitySpecHandle)
+{
+	ClearAbility(AbilitySpecHandle);
 }
 
 void UPRAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& InputTag)

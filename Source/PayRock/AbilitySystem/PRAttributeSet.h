@@ -52,8 +52,6 @@ public:
 	// virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
 
-	void HandleIncomingDamage(const FEffectProperties& Props, const FGameplayEffectModCallbackData& Data);
-
 	/* Primary Attributes */
 	UFUNCTION()
 	void OnRep_Strength(const FGameplayAttributeData& OldStrength) const;
@@ -114,6 +112,8 @@ public:
 
 private:
 	void SetEffectProperties(const FGameplayEffectModCallbackData& Data, FEffectProperties& Props);
+	void HandleIncomingDamage(const FEffectProperties& Props, const FGameplayEffectModCallbackData& Data);
+	float GetCalculatedDamage(float IncomingDamage, const FEffectProperties& Props);
 
 public:
 	/*
