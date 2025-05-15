@@ -14,7 +14,7 @@ ABaseCharacter::ABaseCharacter()
 	GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 
 	Weapon = CreateDefaultSubobject<USkeletalMeshComponent>("Weapon");
-	Weapon->SetupAttachment(GetMesh(), FName("RightHandSocket"));
+	Weapon->SetupAttachment(GetMesh(), WeaponSocketName);
 	Weapon->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
@@ -36,6 +36,20 @@ void ABaseCharacter::BindToTagChange()
 void ABaseCharacter::OnHitReactTagChanged(const FGameplayTag ChangedTag, int32 TagCount)
 {
 	bHitReact = TagCount > 0;
+}
+
+const UAnimMontage* ABaseCharacter::GetHitReactMontage()
+{
+	if (HitReactMontages.IsEmpty())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("HitReactMontages TArray is empty. Please assign montages in BP."))
+	}
+
+	return HitReactMontages[FMath::RandRange(0, HitReactMontages.Num() - 1)];
+}
+
+void ABaseCharacter::Die()
+{
 }
 
 void ABaseCharacter::BeginPlay()

@@ -4,6 +4,7 @@
 #include "TimerManager.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AIController.h"
+#include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "PayRock/Character/PRCharacter.h"
 #include "PayRock/Enemy/SpecialEnemy/GeneralSky/GeneralSkyCharacter.h"
@@ -35,11 +36,11 @@ void UGA_ChargeStamp::ActivateAbility(
 
 	StartChargeVisual(Avatar);
 
-	FTimerHandle Timer;
+	/*FTimerHandle Timer;
 	Avatar->GetWorldTimerManager().SetTimer(Timer, FTimerDelegate::CreateLambda([this, Avatar]()
 	{
 		JumpToTarget(Avatar);
-	}), ChargeTime, false);
+	}), ChargeTime, false);*/
 }
 
 void UGA_ChargeStamp::StartChargeVisual(AActor* Avatar)
@@ -54,8 +55,8 @@ void UGA_ChargeStamp::StartChargeVisual(AActor* Avatar)
 				AICon->StopMovement();
 			}
 		}
-		Enemy->StartChargingVisual(ChargeTime);
-		Enemy->PlayAnimMontage(Enemy->GetChargingMontage());
+		Enemy->NetMulticast_StartChargingVisual(ChargeTime);
+		// Enemy->PlayAnimMontage(Enemy->GetChargingMontage());
 	}
 }
 
@@ -67,17 +68,17 @@ void UGA_ChargeStamp::JumpToTarget(ACharacter* Avatar)
 	FVector LaunchVel = FVector(0, 0, UpwardPower);
 	Avatar->LaunchCharacter(LaunchVel, true, true);
 
-	if (AGeneralSkyCharacter* Enemy = Cast<AGeneralSkyCharacter>(Avatar))
+	/*if (AGeneralSkyCharacter* Enemy = Cast<AGeneralSkyCharacter>(Avatar))
 	{
 		Enemy->PlayAnimMontage(Enemy->GetStampMontage());
-	}
+	}*/
 	
-	FTimerHandle DamageTimer;
+	/*FTimerHandle DamageTimer;
 	Avatar->GetWorldTimerManager().SetTimer(DamageTimer, FTimerDelegate::CreateLambda([this, Avatar]()
 	{
 		ApplyStampDamage(Avatar);
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
-	}), 0.6f, false);
+	}), 0.6f, false);*/
 }
 
 void UGA_ChargeStamp::ApplyStampDamage(ACharacter* Avatar)

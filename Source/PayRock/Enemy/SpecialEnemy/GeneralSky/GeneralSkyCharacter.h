@@ -9,6 +9,7 @@
 /**
  * 
  */
+
 UCLASS()
 class PAYROCK_API AGeneralSkyCharacter : public AEnemyCharacter
 {
@@ -16,31 +17,39 @@ class PAYROCK_API AGeneralSkyCharacter : public AEnemyCharacter
 
 public:
 	AGeneralSkyCharacter();
-
 	virtual void BeginPlay() override;
-	void StartChargingVisual(float Duration);
+	virtual void Tick(float DeltaSeconds) override;
 
-	void TickChargeProgress();
+	UFUNCTION(NetMulticast, Reliable)
+	void NetMulticast_StartChargingVisual(float Duration);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void NetMulticast_PlayChargeAnim();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void NetMulticast_PlayStampAnim();
 
 	UAnimMontage* GetChargingMontage();
 	UAnimMontage* GetStampMontage();
-	
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Material")
+
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material")
 	UMaterialInstanceDynamic* BodyMat;
 
-	
-	UPROPERTY(EditDefaultsOnly,Category="GeneralSkyCharacterAnimation")
+	UPROPERTY(EditDefaultsOnly, Category = "GeneralSkyCharacterAnimation")
 	UAnimMontage* ChargeMontage;
-	
-	UPROPERTY(EditDefaultsOnly,Category="GeneralSkyCharacterAnimation")
+
+	UPROPERTY(EditDefaultsOnly, Category = "GeneralSkyCharacterAnimation")
 	UAnimMontage* StampMontage;
 
-	
-	FTimerHandle RedTimer;
-
 private:
+	UPROPERTY(Replicated)
+	bool bIsCharging = false;
+
 	float ChargeVisualTotalTime = 0.f;
 	float ChargeVisualStart = -200.f;
 	float ChargeVisualEnd = 600.f;
 	float ChargeVisualDuration = 2.f;
+
+	void UpdateChargeProgressVisual();
 };

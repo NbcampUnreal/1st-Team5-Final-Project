@@ -51,7 +51,7 @@ void UPRAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 	DOREPLIFETIME_CONDITION_NOTIFY(UPRAttributeSet, Mana, COND_None, REPNOTIFY_Always);
 }
 
-/*
+
 void UPRAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
 {
 	Super::PreAttributeChange(Attribute, NewValue);
@@ -65,7 +65,7 @@ void UPRAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, fl
 		NewValue = FMath::Clamp(NewValue, 0.f, GetMaxMana());
 	}
 }
-*/
+
 
 void UPRAttributeSet::SetEffectProperties(const FGameplayEffectModCallbackData& Data, FEffectProperties& Props)
 {
@@ -110,6 +110,13 @@ void UPRAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
 	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
 	{
 		SetHealth(FMath::Clamp(GetHealth(), 0.f, GetMaxHealth()));
+
+		const float HealthCurrent = GetHealth();
+		const float HealthBase = GetOwningAbilitySystemComponent()->GetNumericAttributeBase(GetHealthAttribute());
+		UE_LOG(LogTemp, Warning, TEXT(
+			"after --> AvatarActor: %s / Amount: %f / Health(Current): %f / GetHealth(Base): %f"),
+			*GetOwningAbilitySystemComponent()->GetAvatarActor()->GetName(),
+			Data.EvaluatedData.Magnitude, HealthCurrent, HealthBase);
 	}
 	if (Data.EvaluatedData.Attribute == GetManaAttribute())
 	{
@@ -136,9 +143,9 @@ void UPRAttributeSet::HandleIncomingDamage(const FEffectProperties& Props, const
 		AttributeChangeData.OldValue = GetHealth();
 		AttributeChangeData.NewValue = NewHealth;
 		
-		//SetHealth(NewHealth);
-		GetHealthAttribute().SetNumericValueChecked(NewHealth, this);
-		
+		SetHealth(NewHealth);
+		//GetHealthAttribute().SetNumericValueChecked(NewHealth, this);
+		 
 		GetOwningAbilitySystemComponent()->GetGameplayAttributeValueChangeDelegate(
 			GetHealthAttribute()).Broadcast(AttributeChangeData);
 
@@ -151,7 +158,10 @@ void UPRAttributeSet::HandleIncomingDamage(const FEffectProperties& Props, const
 
 		if (NewHealth <= 0.f)
 		{
-			// Handle ddeath
+			// Handle death
+			FGameplayTagContainer TagContainer;
+			TagContainer.AddTag(FPRGameplayTags::Get().Status_Life_Dead);
+			Props.TargetASC->TryActivateAbilitiesByTag(TagContainer);
 		}
 		else
 		{

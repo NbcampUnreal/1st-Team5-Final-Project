@@ -20,7 +20,11 @@ EBTNodeResult::Type UBTTask_Chase::ExecuteTask(UBehaviorTreeComponent& OwnerComp
 	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
 	if (!AICon || !Pawn || !BB) return EBTNodeResult::Failed;
 
-	if (BB->GetValueAsBool("bIsAttacking"))
+	if (BB->GetValueAsBool("bAttacking"))
+	{
+		return EBTNodeResult::Failed;
+	}
+	if (BB->GetValueAsBool("bIsBusy"))
 	{
 		return EBTNodeResult::Failed;
 	}
@@ -33,6 +37,6 @@ EBTNodeResult::Type UBTTask_Chase::ExecuteTask(UBehaviorTreeComponent& OwnerComp
 		Character->GetCharacterMovement()->MaxWalkSpeed = Speed;
 	}
         
-	AICon->MoveToActor(Target, 50.f); 
+	AICon->MoveToActor(Target, TargetRadius); 
 	return EBTNodeResult::Succeeded; 
 }

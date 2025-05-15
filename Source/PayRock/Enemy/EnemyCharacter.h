@@ -13,7 +13,8 @@ class PAYROCK_API AEnemyCharacter : public ABaseCharacter
 
 public:
 	AEnemyCharacter();
-	
+	void ToggleWeaponCollision(bool bEnable);
+
 	UFUNCTION(BlueprintCallable, Category = "Combat")
 	UAnimMontage* GetRandomAttackMontage() const;
 	UFUNCTION(BlueprintCallable, Category = "Combat")
@@ -23,7 +24,6 @@ public:
 	bool GetBattleState() const { return bIsBattle; }
 	void SetBattleState(bool Bat){ bIsBattle = Bat; };
 
-	void ToggleWeaponCollision(bool bEnable);
 	
 protected:
 	virtual void BeginPlay() override;

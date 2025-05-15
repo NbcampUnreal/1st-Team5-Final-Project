@@ -1,0 +1,72 @@
+// PayRockGames
+
+
+#include "BaseWeaponAbility.h"
+#include "Components/ShapeComponent.h"
+#include "PayRock/Character/BaseCharacter.h"
+
+void UBaseWeaponAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
+                                         const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
+                                         const FGameplayEventData* TriggerEventData)
+{
+	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+
+	bHit = false;
+	if (!CollisionComponents.IsEmpty()) return;
+	if (ABaseCharacter* AvatarCharacter = Cast<ABaseCharacter>(GetAvatarActorFromActorInfo()))
+	{
+		if (USkeletalMeshComponent* Weapon = AvatarCharacter->GetWeapon())
+		{
+			GetCollisionComponents(Weapon, CollisionSocketName);
+			BindCallbackToCollision();
+		}
+	}
+}
+
+void UBaseWeaponAbility::ToggleCollision(bool bShouldEnable)
+{
+	for (const auto& CollisionComp : CollisionComponents)
+	{
+		CollisionComp->SetCollisionEnabled(bShouldEnable ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
+	}
+}
+
+void UBaseWeaponAbility::GetCollisionComponents(USkeletalMeshComponent* WeaponMesh, const FName& SocketName)
+{
+	const TArray<USceneComponent*>& Children = WeaponMesh->GetAttachChildren(); 
+	
+	for (USceneComponent* AttachedComp : Children)
+	{
+		if (UShapeComponent* ShapeComp = Cast<UShapeComponent>(AttachedComp))
+		{
+			if (ShapeComp->GetAttachSocketName() == SocketName)
+			{
+				CollisionComponents.Add(ShapeComp);
+			}
+		}
+	}
+}
+
+void UBaseWeaponAbility::BindCallbackToCollision()
+{
+	for (const auto& CollisionComp : CollisionComponents)
+	{
+		if (!CollisionComp->OnComponentBeginOverlap.IsBound())
+		{
+			CollisionComp->OnComponentBeginOverlap.AddDynamic(this, &UBaseWeaponAbility::OnOverlap);
+		}
+	}
+}
+
+void UBaseWeaponAbility::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor == GetAvatarActorFromActorInfo() || bHit) return;
+	
+	if (GetAvatarActorFromActorInfo()->HasAuthority())
+	{
+		bHit = true;
+		CauseDamage(OtherActor);
+	}
+}
+
