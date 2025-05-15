@@ -28,6 +28,8 @@ EBTNodeResult::Type UBTTask_Chase::ExecuteTask(UBehaviorTreeComponent& OwnerComp
 	{
 		return EBTNodeResult::Failed;
 	}
+
+	
 	AActor* Target = Cast<AActor>(BB->GetValueAsObject("TargetActor"));
 	if (!Target) return EBTNodeResult::Failed;
 	

@@ -30,7 +30,6 @@ EBTNodeResult::Type UBTTask_PlayDetectMontage::ExecuteTask(UBehaviorTreeComponen
    
     float PlayResult = AnimInstance->Montage_Play(DetectMontage);
     
-    BB->SetValueAsBool(FName("bIsBusy"), true);
     BB->SetValueAsBool(FName("bDetect"), true);
     if (PlayResult == 0.f)
     {
