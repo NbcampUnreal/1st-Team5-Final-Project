@@ -51,19 +51,11 @@ void UGA_EnemyAttack::ActivateAbility(
 	
 	if (AAIController* AICon = Cast<AAIController>(Enemy->GetController()))
 	{
-<<<<<<< Updated upstream
-		
-			if (UBlackboardComponent* BB = AICon->GetBlackboardComponent())
-			{
-				BB->SetValueAsBool("bIsAttacking", true);
-			}
-=======
 		if (UBlackboardComponent* BB = AICon->GetBlackboardComponent())
 		{
 			BB->SetValueAsBool(FName("bAttacking"), true);
 			BB->SetValueAsBool("bIsAttacking", true);
 		}
->>>>>>> Stashed changes
 	}
 	
 	if (UAnimMontage* Montage = Enemy->GetRandomAttackMontage())
