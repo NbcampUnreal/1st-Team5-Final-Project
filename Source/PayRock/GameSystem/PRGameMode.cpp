@@ -41,6 +41,22 @@ void APRGameMode::Logout(AController* Exiting)
 	}
 }
 
+void APRGameMode::EndThisMatch()
+{
+	UE_LOG(LogTemp, Warning, TEXT("GameMode: Match is ending..."));
+
+	// 로비로 돌려보내기
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		APlayerController* PC = It->Get();
+		if (PC)
+		{
+			PC->ClientTravel("/Game/GameSystem/TempMainMenu", TRAVEL_Absolute);
+		}
+	}
+}
+
+
 AActor* APRGameMode::ChooseMatchStartSpot()
 {
 	if (!MatchStartClass)

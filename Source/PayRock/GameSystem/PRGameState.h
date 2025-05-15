@@ -44,11 +44,22 @@ protected:
 	
 	///////////////매치 시작 후 ////////////////////////////////////////////
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "MatchFlow|Timing")
-	int32 MatchDurationSeconds = 180;				// 매치 진행 시간 (디버깅때는 3분)
+	int32 MatchDurationSeconds;				// 매치 진행 시간 (디버깅때는 2분)
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "MatchFlow|Timing")
+	int32 ExtractionActivationTime ;
+
+	UPROPERTY(ReplicatedUsing = OnRep_RemainingMatchTime, BlueprintReadOnly, Category = "MatchFlow|Timing")
+	int32 RemainingMatchTime;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MatchFlow|Extraction")
+	TSubclassOf<AActor> ExtractionZoneClass;
+	
 	FTimerHandle MatchTimerHandle;
 
 	FTimerHandle AliveCheckTimerHandle;
+
+	FTimerHandle ExtractionActivationTimerHandle;
 	/////////////////////////////////////////////////////////////////////
 
 public:
@@ -58,17 +69,19 @@ public:
 
 
 	///////////////매치 시작 전 ////////////////////////////////////////////
+	
 	virtual void Notify_PlayerConnection_Implementation() override;
-	/////////////////////////////////////////////////////////////////////
+	
+	//////////////////////////////////////////////////////////////////////
 	
 	
 	///////////////매치 시작 후 ////////////////////////////////////////////
-	int32 GetAlivePlayerCount() const;
+	int32 GetAlivePlayerCount() const; // 살아있는 플레이어 카운트
 
-	void CheckAlivePlayers();
+	void CheckAlivePlayers(); // 플레이어가 모두 사망했는지 체크
 	
-	void MatchEnd();
-	/////////////////////////////////////////////////////////////////////
+	void MatchEnd() const; // 매치 끝
+	//////////////////////////////////////////////////////////////////////
 	
 protected:
 
@@ -81,5 +94,13 @@ protected:
 	
 	UFUNCTION()
 	void OnRep_MatchStart_CountDown();
+	//////////////////////////////////////////////////////////////////////
+
+	///////////////매치 시작 후 ////////////////////////////////////////////
+	void EnableExtractionZones(); // 탈출구 Open
+
+	void TickMatchTimer();
+	UFUNCTION()
+	void OnRep_RemainingMatchTime();
 	/////////////////////////////////////////////////////////////////////
 };
