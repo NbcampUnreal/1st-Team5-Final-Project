@@ -51,7 +51,7 @@ void UPRAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 	DOREPLIFETIME_CONDITION_NOTIFY(UPRAttributeSet, Mana, COND_None, REPNOTIFY_Always);
 }
 
-/*
+
 void UPRAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
 {
 	Super::PreAttributeChange(Attribute, NewValue);
@@ -65,7 +65,7 @@ void UPRAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, fl
 		NewValue = FMath::Clamp(NewValue, 0.f, GetMaxMana());
 	}
 }
-*/
+
 
 void UPRAttributeSet::SetEffectProperties(const FGameplayEffectModCallbackData& Data, FEffectProperties& Props)
 {
@@ -109,22 +109,14 @@ void UPRAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
 
 	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
 	{
-		UE_LOG(LogTemp, Warning, TEXT(
-			"TICK DEBUG -- GetHealth() : %1f / Base: %.1f / GetMaxHealth() : %.1f"),
-			GetHealth(), GetOwningAbilitySystemComponent()->GetNumericAttributeBase(GetHealthAttribute()), GetMaxHealth());
-
-		float Current = GetHealth();
-		float Amount = Data.EvaluatedData.Magnitude;
-		float NewHealth = FMath::Clamp(Current + Amount, 0.f, GetMaxHealth());
-		SetHealth(NewHealth);
+		SetHealth(FMath::Clamp(GetHealth(), 0.f, GetMaxHealth()));
 
 		const float HealthCurrent = GetHealth();
 		const float HealthBase = GetOwningAbilitySystemComponent()->GetNumericAttributeBase(GetHealthAttribute());
 		UE_LOG(LogTemp, Warning, TEXT(
 			"after --> AvatarActor: %s / Amount: %f / Health(Current): %f / GetHealth(Base): %f"),
 			*GetOwningAbilitySystemComponent()->GetAvatarActor()->GetName(),
-			Amount, HealthCurrent, HealthBase);
-		UE_LOG(LogTemp, Warning, TEXT(">>> GetHealth()/GetMaxHealth() : %.1f / %.1f"), GetHealth(), GetMaxHealth()); //test
+			Data.EvaluatedData.Magnitude, HealthCurrent, HealthBase);
 	}
 	if (Data.EvaluatedData.Attribute == GetManaAttribute())
 	{
@@ -151,9 +143,9 @@ void UPRAttributeSet::HandleIncomingDamage(const FEffectProperties& Props, const
 		AttributeChangeData.OldValue = GetHealth();
 		AttributeChangeData.NewValue = NewHealth;
 		
-		//SetHealth(NewHealth);
-		GetHealthAttribute().SetNumericValueChecked(NewHealth, this);
-		
+		SetHealth(NewHealth);
+		//GetHealthAttribute().SetNumericValueChecked(NewHealth, this);
+		 
 		GetOwningAbilitySystemComponent()->GetGameplayAttributeValueChangeDelegate(
 			GetHealthAttribute()).Broadcast(AttributeChangeData);
 
