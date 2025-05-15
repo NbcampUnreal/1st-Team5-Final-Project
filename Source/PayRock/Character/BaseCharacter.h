@@ -27,6 +27,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	const UAnimMontage* GetHitReactMontage() { return HitReactMontage; }
 
+	UFUNCTION(BlueprintCallable)
+	virtual void Die();
+
 	UPROPERTY(BlueprintReadOnly, Category = "Combat")
 	bool bHitReact = false;
 

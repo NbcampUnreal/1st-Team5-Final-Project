@@ -27,6 +27,8 @@ public:
 
 	virtual void Tick(float DeltaSeconds) override;
 
+	virtual void Die() override;
+
 	// SpringArm Component
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	USpringArmComponent* SpringArmComp;

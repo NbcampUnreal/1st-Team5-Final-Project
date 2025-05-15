@@ -688,6 +688,10 @@ void APRCharacter::Tick(float DeltaSeconds)
     bIsCrouching = GetCharacterMovement()->IsCrouching();
 }
 
+void APRCharacter::Die()
+{
+    Super::Die();
+}
 
 
 float APRCharacter::CalculateDirectionCustom(const FVector& Velocity, const FRotator& BaseRotation)
