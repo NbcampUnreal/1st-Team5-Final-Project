@@ -31,6 +31,7 @@ void UBTS_Reset::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, 
 	}
 
 	BB->SetValueAsBool(FName("bDetect"), false);
+	BB->SetValueAsBool(FName("bIsBusy"), false);
 	BB->SetValueAsBool(FName("bPlayerDetected"), false);
 	BB->SetValueAsBool(FName("bInAttackRange"), false);
 }

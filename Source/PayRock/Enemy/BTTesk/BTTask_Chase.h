@@ -19,4 +19,6 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	float Speed = 600.0f;
+	UPROPERTY(EditAnywhere)
+	float TargetRadius = 100.0f;
 };

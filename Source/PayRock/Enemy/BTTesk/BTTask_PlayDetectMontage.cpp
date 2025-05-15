@@ -27,8 +27,10 @@ EBTNodeResult::Type UBTTask_PlayDetectMontage::ExecuteTask(UBehaviorTreeComponen
 
     UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
     if (!BB) return EBTNodeResult::Failed;
-    
+   
     float PlayResult = AnimInstance->Montage_Play(DetectMontage);
+    
+    BB->SetValueAsBool(FName("bIsBusy"), true);
     BB->SetValueAsBool(FName("bDetect"), true);
     if (PlayResult == 0.f)
     {
