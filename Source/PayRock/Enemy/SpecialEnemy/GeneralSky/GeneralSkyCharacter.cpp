@@ -3,58 +3,73 @@
 
 #include "GeneralSkyCharacter.h"
 
+#include "Net/UnrealNetwork.h"
 #include "PayRock/Enemy/EnemyController.h"
 
 AGeneralSkyCharacter::AGeneralSkyCharacter()
 {
-	AIControllerClass = AEnemyController::StaticClass();
-	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+	PrimaryActorTick.bCanEverTick = true;
+	bReplicates = true;
 }
 
 void AGeneralSkyCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	BodyMat = GetMesh()->CreateAndSetMaterialInstanceDynamic(0); 
+	BodyMat = GetMesh()->CreateAndSetMaterialInstanceDynamic(0);
 }
 
-void AGeneralSkyCharacter::StartChargingVisual(float Duration)
+void AGeneralSkyCharacter::Tick(float DeltaSeconds)
 {
-	
+	Super::Tick(DeltaSeconds);
+
+	if (bIsCharging)
+	{
+		ChargeVisualTotalTime += DeltaSeconds;
+		UpdateChargeProgressVisual();
+	}
+}
+
+void AGeneralSkyCharacter::UpdateChargeProgressVisual()
+{
+	if (!BodyMat) return;
+
+	float Alpha = FMath::Clamp(ChargeVisualTotalTime / ChargeVisualDuration, 0.f, 1.f);
+	float Interpolated = FMath::Lerp(ChargeVisualStart, ChargeVisualEnd, Alpha);
+	BodyMat->SetScalarParameterValue(TEXT("ChargeProgress"), Interpolated);
+
+	if (Alpha >= 1.f)
+	{
+		bIsCharging = false;
+		BodyMat->SetScalarParameterValue(TEXT("ChargeProgress"), ChargeVisualStart);
+	}
+}
+
+void AGeneralSkyCharacter::NetMulticast_StartChargingVisual_Implementation(float Duration)
+{
 	if (!BodyMat)
 	{
 		BodyMat = GetMesh()->CreateAndSetMaterialInstanceDynamic(0);
 	}
-	if (!BodyMat) return;
-
-	ChargeVisualStart = -200.f;
-	ChargeVisualEnd = 600.f;
 	ChargeVisualDuration = Duration;
 	ChargeVisualTotalTime = 0.f;
-
+	bIsCharging = true;
 	BodyMat->SetScalarParameterValue(TEXT("ChargeProgress"), ChargeVisualStart);
-
-	const float Step = 0.05f;
-
-	GetWorldTimerManager().SetTimer(RedTimer, this, &AGeneralSkyCharacter::TickChargeProgress, Step, true);
 }
 
-void AGeneralSkyCharacter::TickChargeProgress()
+void AGeneralSkyCharacter::NetMulticast_PlayChargeAnim_Implementation()
 {
-	ChargeVisualTotalTime += 0.05f;
-
-	float Alpha = FMath::Clamp(ChargeVisualTotalTime / ChargeVisualDuration, 0.f, 1.f);
-	float Interpolated = FMath::Lerp(ChargeVisualStart, ChargeVisualEnd, Alpha);
-
-	if (BodyMat)
+	if (ChargeMontage)
 	{
-		BodyMat->SetScalarParameterValue(TEXT("ChargeProgress"), Interpolated);
+		PlayAnimMontage(ChargeMontage);
 	}
+}
 
-	if (Alpha >= 1.f)
+void AGeneralSkyCharacter::NetMulticast_PlayStampAnim_Implementation()
+{
+	if (StampMontage)
 	{
-		GetWorldTimerManager().ClearTimer(RedTimer);
-		BodyMat->SetScalarParameterValue(TEXT("ChargeProgress"), ChargeVisualStart); // 리셋
+		PlayAnimMontage(StampMontage);
 	}
 }
 
@@ -66,4 +81,10 @@ UAnimMontage* AGeneralSkyCharacter::GetChargingMontage()
 UAnimMontage* AGeneralSkyCharacter::GetStampMontage()
 {
 	return StampMontage;
+}
+
+void AGeneralSkyCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AGeneralSkyCharacter, bIsCharging);
 }

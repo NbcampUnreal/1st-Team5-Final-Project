@@ -23,6 +23,8 @@ public:
 		const FGameplayAbilityActivationInfo ActivationInfo,
 		const FGameplayEventData* TriggerEventData) override;
 
+	
+	
 protected:
 
 	UPROPERTY(EditDefaultsOnly)
@@ -36,7 +38,11 @@ protected:
 
 	FVector TargetLocation;
 
+	
+
 	void StartChargeVisual(AActor* Avatar);
+	UFUNCTION(BlueprintCallable)
 	void JumpToTarget(ACharacter* Avatar);
+	UFUNCTION(BlueprintCallable)
 	void ApplyStampDamage(ACharacter* Avatar);
 };

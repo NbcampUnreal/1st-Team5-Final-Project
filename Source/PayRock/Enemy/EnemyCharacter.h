@@ -24,7 +24,6 @@ public:
 	bool GetBattleState() const { return bIsBattle; }
 	void SetBattleState(bool Value){ bIsBattle = Value; };
 
-	void ToggleWeaponCollision(bool bEnable);
 	
 protected:
 	virtual void BeginPlay() override;
