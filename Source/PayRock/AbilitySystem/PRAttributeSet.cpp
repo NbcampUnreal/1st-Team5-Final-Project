@@ -108,7 +108,22 @@ void UPRAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
 
 	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
 	{
-		SetHealth(FMath::Clamp(GetHealth(), 0.f, GetMaxHealth()));
+		UE_LOG(LogTemp, Warning, TEXT(
+			"TICK DEBUG -- GetHealth() : %1f / Base: %.1f / GetMaxHealth() : %.1f"),
+			GetHealth(), GetOwningAbilitySystemComponent()->GetNumericAttributeBase(GetHealthAttribute()), GetMaxHealth());
+
+		float Current = GetHealth();
+		float Amount = Data.EvaluatedData.Magnitude;
+		float NewHealth = FMath::Clamp(Current + Amount, 0.f, GetMaxHealth());
+		SetHealth(NewHealth);
+
+		const float HealthCurrent = GetHealth();
+		const float HealthBase = GetOwningAbilitySystemComponent()->GetNumericAttributeBase(GetHealthAttribute());
+		UE_LOG(LogTemp, Warning, TEXT(
+			"after --> AvatarActor: %s / Amount: %f / Health(Current): %f / GetHealth(Base): %f"),
+			*GetOwningAbilitySystemComponent()->GetAvatarActor()->GetName(),
+			Amount, HealthCurrent, HealthBase);
+		UE_LOG(LogTemp, Warning, TEXT(">>> GetHealth()/GetMaxHealth() : %.1f / %.1f"), GetHealth(), GetMaxHealth()); //test
 	}
 	if (Data.EvaluatedData.Attribute == GetManaAttribute())
 	{

@@ -63,6 +63,8 @@ public:
 	float SpeedInterpRateWalk = 3.f;
 	float CurrentInterpRate = 5.f;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Abilities")
+	TSubclassOf<UGameplayAbility> GA_UseHealItemClass;
 
 	// Mouse Sensitivity
 	UPROPERTY(EditAnywhere, Category = "Input")
