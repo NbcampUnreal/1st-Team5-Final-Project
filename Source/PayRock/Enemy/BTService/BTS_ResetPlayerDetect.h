@@ -4,19 +4,20 @@
 
 #include "CoreMinimal.h"
 #include "BehaviorTree/Services/BTService_BlackboardBase.h"
-#include "BTS_KappaPlayerDetect.generated.h"
+#include "BTS_ResetPlayerDetect.generated.h"
 
 
 UCLASS()
-class PAYROCK_API UBTS_KappaPlayerDetect : public UBTService_BlackboardBase
+class PAYROCK_API UBTS_ResetPlayerDetect : public UBTService_BlackboardBase
 {
 	GENERATED_BODY()
+	
 public:
-	UBTS_KappaPlayerDetect();
+	UBTS_ResetPlayerDetect();
 
 protected:
 	virtual void TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
 
-	UPROPERTY(EditAnywhere, Category = "Kappa|Detection")
-	float DetectionRadius = 400.f;
+	UPROPERTY(EditAnywhere, Category = "AI")
+	float ResetDistance = 1600.0f; 
 };

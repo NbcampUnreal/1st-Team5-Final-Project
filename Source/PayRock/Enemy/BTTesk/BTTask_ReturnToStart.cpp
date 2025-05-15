@@ -1,12 +1,9 @@
-// PayRockGames
-
-
 #include "BTTask_ReturnToStart.h"
-#include "BehaviorTree/BlackboardComponent.h"
 #include "AIController.h"
-#include "GameFramework/Character.h"
+#include "BehaviorTree/BlackboardComponent.h"
 #include "Navigation/PathFollowingComponent.h"
 #include "PayRock/Enemy/EnemyCharacter.h"
+
 
 UBTTask_ReturnToStart::UBTTask_ReturnToStart()
 {
@@ -24,18 +21,23 @@ EBTNodeResult::Type UBTTask_ReturnToStart::ExecuteTask(UBehaviorTreeComponent& O
 	FVector StartPos = BB->GetValueAsVector(TEXT("StartPosition"));
 	APawn* Controlled = AICon->GetPawn();
 	if (!Controlled) return EBTNodeResult::Failed;
+
+	AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(Controlled);
+	if (Enemy)
+	{
+		Enemy->SetBattleState(false);
+	}
+	
+	BB->ClearValue(FName("TargetActor"));
+	BB->SetValueAsBool(FName("bPlayerDetect"), false);
+	BB->SetValueAsBool(FName("bInAttackRange"), false);
+	BB->SetValueAsBool(FName("bIsBusy"), true);
+	BB->SetValueAsBool(FName("bDetect"), false);
 	
 	FAIMoveRequest MoveRequest;
 	MoveRequest.SetGoalLocation(StartPos);
 	MoveRequest.SetAcceptanceRadius(5.0f);
 
-	AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(AICon->GetPawn());
-	if (Enemy)
-	{
-		Enemy->SetBattleState(false);
-		BB->SetValueAsBool(FName("bIsBusy"), true);
-	}
-	
 	FNavPathSharedPtr NavPath;
 	FPathFollowingRequestResult Result = AICon->MoveTo(MoveRequest, &NavPath);
 

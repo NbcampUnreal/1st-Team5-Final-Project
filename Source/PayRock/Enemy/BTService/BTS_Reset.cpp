@@ -14,24 +14,36 @@ void UBTS_Reset::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, 
 {
 	Super::TickNode(OwnerComp, NodeMemory, DeltaSeconds);
 
-	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
-	if (!BB) return;
-	
-	if (BB->GetValueAsObject(FName("TargetActor")))
+	AAIController* AICon = OwnerComp.GetAIOwner();
+	if (!AICon)
 	{
 		return;
 	}
 
-	APawn* AIPawn = OwnerComp.GetAIOwner()->GetPawn();
-	if (!AIPawn) return;
-	
-	if (BB->GetValueAsVector(FName("StartPosition")).IsNearlyZero())
+	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
+	if (!BB)
 	{
-		BB->SetValueAsVector(FName("StartPosition"), AIPawn->GetActorLocation());
+		return;
 	}
 
-	BB->SetValueAsBool(FName("bDetect"), false);
-	BB->SetValueAsBool(FName("bIsBusy"), false);
-	BB->SetValueAsBool(FName("bPlayerDetected"), false);
-	BB->SetValueAsBool(FName("bInAttackRange"), false);
+	APawn* AIPawn = AICon->GetPawn();
+	if (!AIPawn)
+	{
+		return;
+	}
+
+	if (BB->GetValueAsVector("StartPosition").IsNearlyZero())
+	{
+		BB->SetValueAsVector("StartPosition", AIPawn->GetActorLocation());
+	}
+	
+	AActor* Target = Cast<AActor>(BB->GetValueAsObject("TargetActor"));
+	if (!IsValid(Target))
+	{
+		BB->ClearValue("TargetActor");
+		BB->SetValueAsBool("bDetect", false);
+		BB->SetValueAsBool("bIsBusy", false);
+		BB->SetValueAsBool("bPlayerDetected", false);
+		BB->SetValueAsBool("bInAttackRange", false);
+	}
 }
