@@ -697,7 +697,6 @@ void APRCharacter::Die(/*const FHitResult& HitResult*/)
         GetPlayerState<APRPlayerState>()->SetIsDead(true);
         MulticastRagdoll();
     }
-    OnDeathDelegate.Broadcast();
     // Ragdoll
     // MulticastRagdoll();
 }

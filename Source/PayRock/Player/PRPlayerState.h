@@ -9,6 +9,9 @@
 
 class UAttributeSet;
 
+DECLARE_MULTICAST_DELEGATE(FOnDeathDelegate);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnLevelChangeDelegate, int32);
+
 UCLASS()
 class PAYROCK_API APRPlayerState : public APlayerState, public IAbilitySystemInterface
 {
@@ -25,9 +28,14 @@ public:
 	FORCEINLINE bool GetIsDead() const { return bIsDead; };
 	void SetIsDead(bool bDead);
 
+	FOnDeathDelegate OnDeathDelegate;
+	FOnLevelChangeDelegate OnLevelChangeDelegate;
+
 private:
 	UFUNCTION()
 	void OnRep_Level(int32 OldLevel);
+	UFUNCTION()
+	void OnRep_bIsDead(bool Old_bIsDead);
 
 protected:
 	UPROPERTY()
@@ -38,6 +46,6 @@ protected:
 private:
 	UPROPERTY(VisibleAnywhere, ReplicatedUsing = OnRep_Level)
 	int32 Level = 1;
-	UPROPERTY(VisibleAnywhere, Replicated)
+	UPROPERTY(VisibleAnywhere, ReplicatedUsing = OnRep_bIsDead)
 	bool bIsDead = false;
 };

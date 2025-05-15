@@ -39,5 +39,16 @@ void APRPlayerState::SetIsDead(bool bDead)
 
 void APRPlayerState::OnRep_Level(int32 OldLevel)
 {
-	
+	if (Level != OldLevel)
+	{
+		OnLevelChangeDelegate.Broadcast(Level);
+	}
+}
+
+void APRPlayerState::OnRep_bIsDead(bool Old_bIsDead)
+{
+	if (bIsDead && !Old_bIsDead)
+	{
+		OnDeathDelegate.Broadcast();
+	}
 }
