@@ -38,6 +38,20 @@ void ABaseCharacter::OnHitReactTagChanged(const FGameplayTag ChangedTag, int32 T
 	bHitReact = TagCount > 0;
 }
 
+const UAnimMontage* ABaseCharacter::GetHitReactMontage()
+{
+	if (HitReactMontages.IsEmpty())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("HitReactMontages TArray is empty. Please assign montages in BP."))
+	}
+
+	return HitReactMontages[FMath::RandRange(0, HitReactMontages.Num() - 1)];
+}
+
+void ABaseCharacter::Die()
+{
+}
+
 void ABaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();

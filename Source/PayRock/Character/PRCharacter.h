@@ -27,6 +27,8 @@ public:
 
 	virtual void Tick(float DeltaSeconds) override;
 
+	virtual void Die() override;
+
 	// SpringArm Component
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	USpringArmComponent* SpringArmComp;
@@ -78,6 +80,8 @@ public:
 	float SpeedInterpRateWalk = 3.f;
 
 
+	UPROPERTY(EditDefaultsOnly, Category = "Abilities")
+	TSubclassOf<UGameplayAbility> GA_UseHealItemClass;
 
 	// Mouse Sensitivity
 	UPROPERTY(EditAnywhere, Category = "Input")

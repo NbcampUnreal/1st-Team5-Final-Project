@@ -101,6 +101,11 @@ void APRCharacter::BeginPlay()
     LeftHandCollisionComp->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Overlap);
     LeftHandCollisionComp->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
     LeftHandCollisionComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+    if (AbilitySystemComponent && HasAuthority())
+    {
+        AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(GA_UseHealItemClass, 1, INDEX_NONE));
+    }
 }
 
 void APRCharacter::PossessedBy(AController* NewController)
@@ -688,7 +693,10 @@ void APRCharacter::Tick(float DeltaSeconds)
     bIsCrouching = GetCharacterMovement()->IsCrouching();
 }
 
-
+void APRCharacter::Die()
+{
+    GetPlayerState<APRPlayerState>()->SetIsDead(true);
+}
 
 float APRCharacter::CalculateDirectionCustom(const FVector& Velocity, const FRotator& BaseRotation)
 {
