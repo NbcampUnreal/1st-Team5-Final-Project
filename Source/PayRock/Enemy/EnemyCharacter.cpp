@@ -1,6 +1,7 @@
 // PayRockGames
 
 #include "EnemyCharacter.h"
+#include "GenericTeamAgentInterface.h"
 #include "PayRock/AbilitySystem/PRAbilitySystemComponent.h"
 #include "PayRock/AbilitySystem/PRAttributeSet.h"
 
@@ -15,15 +16,53 @@ AEnemyCharacter::AEnemyCharacter()
 	AttributeSet = CreateDefaultSubobject<UPRAttributeSet>("AttributeSet");
 }
 
+void AEnemyCharacter::ToggleWeaponCollision(bool bEnable)
+{
+	if (Weapon)
+	{
+		Weapon->SetCollisionEnabled(bEnable ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
+	}
+}
+
 void AEnemyCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
 	InitAbilityActorInfo();
+	InitializeDefaultAttributes();
+	BindToTagChange();
+	AddCharacterAbilities();
 }
 
 void AEnemyCharacter::InitAbilityActorInfo()
 {
 	AbilitySystemComponent->InitAbilityActorInfo(this, this);
 	Cast<UPRAbilitySystemComponent>(AbilitySystemComponent)->OnAbilityActorInfoInitialized();
+}
+
+void AEnemyCharacter::AddCharacterAbilities()
+{
+	if (!HasAuthority() || !AbilitySystemComponent)
+		return;
+
+	for (TSubclassOf<UGameplayAbility>& StartupAbility : DefaultAbilities)
+	{
+		AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(StartupAbility, 1, INDEX_NONE, this));
+	}
+}
+
+UAnimMontage* AEnemyCharacter::GetRandomAttackMontage() const
+{
+	if (AttackMontages.Num() == 0) return nullptr;
+
+	int32 Index = FMath::RandRange(0, AttackMontages.Num() - 1);
+	return AttackMontages[Index];
+}
+
+UAnimMontage* AEnemyCharacter::GetRandomDetectMontage() const
+{
+	if (DetectMontages.Num() == 0) return nullptr;
+
+	int32 Index = FMath::RandRange(0, DetectMontages.Num() - 1);
+	return DetectMontages[Index];
 }

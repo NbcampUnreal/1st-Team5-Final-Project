@@ -7,6 +7,7 @@
 #include "PRAbilitySystemComponent.generated.h"
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FEffectAssetTagsDelegate, const FGameplayTagContainer /*AssetTags*/)
+DECLARE_MULTICAST_DELEGATE(FAbilitiesGivenDelegate);
 
 UCLASS()
 class PAYROCK_API UPRAbilitySystemComponent : public UAbilitySystemComponent
@@ -15,12 +16,26 @@ class PAYROCK_API UPRAbilitySystemComponent : public UAbilitySystemComponent
 
 public:
 	void OnAbilityActorInfoInitialized();
+	void AddCharacterAbilities(const TArray<TSubclassOf<UGameplayAbility>>& StartupAbilities);
+	void AddCharacterPassiveAbilities(const TArray<TSubclassOf<UGameplayAbility>>& StartupPassiveAbilities);
+	UFUNCTION(BlueprintCallable)
+	FGameplayAbilitySpecHandle AddAbility(TSubclassOf<UGameplayAbility> AbilityClass, bool bIsPassive = false);
+	UFUNCTION(BlueprintCallable)
+	void RemoveAbility(const FGameplayAbilitySpecHandle& AbilitySpecHandle);
 
-	FEffectAssetTagsDelegate EffectAssetTagsDelegate;
-	
+
+	void AbilityInputTagPressed(const FGameplayTag& InputTag);
+	void AbilityInputTagHeld(const FGameplayTag& InputTag);
+	void AbilityInputTagReleased(const FGameplayTag& InputTag);
+
 protected:
-	
-	void OnEffectApplied(UAbilitySystemComponent* AbilitySystemComponent, const FGameplayEffectSpec& EffectSpec,
+	UFUNCTION(Client, Reliable)
+	void ClientOnEffectApplied(UAbilitySystemComponent* AbilitySystemComponent, const FGameplayEffectSpec& EffectSpec,
 		FActiveGameplayEffectHandle ActiveEffectHandle);
-	
+
+public:
+	FEffectAssetTagsDelegate EffectAssetTagsDelegate;
+	FAbilitiesGivenDelegate AbilitiesGivenDelegate;
+
+	bool bStartupAbilitiesGiven = false;
 };
