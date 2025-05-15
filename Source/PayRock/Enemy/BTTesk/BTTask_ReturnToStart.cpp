@@ -32,8 +32,8 @@ EBTNodeResult::Type UBTTask_ReturnToStart::ExecuteTask(UBehaviorTreeComponent& O
 	AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(AICon->GetPawn());
 	if (Enemy)
 	{
-		
 		Enemy->SetBattleState(false);
+		BB->SetValueAsBool(FName("bIsBusy"), true);
 	}
 	
 	FNavPathSharedPtr NavPath;
