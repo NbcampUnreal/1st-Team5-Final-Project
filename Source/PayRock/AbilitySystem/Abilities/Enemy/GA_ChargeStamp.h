@@ -23,6 +23,8 @@ public:
 		const FGameplayAbilityActivationInfo ActivationInfo,
 		const FGameplayEventData* TriggerEventData) override;
 
+	
+	
 protected:
 
 	UPROPERTY(EditDefaultsOnly)
@@ -35,6 +37,8 @@ protected:
 	float DamageRadius = 250.f;
 
 	FVector TargetLocation;
+
+	
 
 	void StartChargeVisual(AActor* Avatar);
 	void JumpToTarget(ACharacter* Avatar);

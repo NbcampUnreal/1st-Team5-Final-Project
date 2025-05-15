@@ -54,8 +54,8 @@ void UGA_ChargeStamp::StartChargeVisual(AActor* Avatar)
 				AICon->StopMovement();
 			}
 		}
-		Enemy->StartChargingVisual(ChargeTime);
-		Enemy->PlayAnimMontage(Enemy->GetChargingMontage());
+		Enemy->NetMulticast_StartChargingVisual(ChargeTime);
+		Enemy->NetMulticast_PlayChargeAnim();
 	}
 }
 
@@ -69,7 +69,7 @@ void UGA_ChargeStamp::JumpToTarget(ACharacter* Avatar)
 
 	if (AGeneralSkyCharacter* Enemy = Cast<AGeneralSkyCharacter>(Avatar))
 	{
-		Enemy->PlayAnimMontage(Enemy->GetStampMontage());
+		Enemy->NetMulticast_PlayStampAnim();
 	}
 	
 	FTimerHandle DamageTimer;
