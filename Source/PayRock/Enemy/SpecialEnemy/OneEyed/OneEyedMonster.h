@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Components/SphereComponent.h"
 #include "Components/SpotLightComponent.h"
 #include "PayRock/Enemy/EnemyCharacter.h"
 #include "OneEyedMonster.generated.h"
@@ -24,6 +25,10 @@ protected:
 	USpotLightComponent* TorchLight;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Torch")
 	UStaticMeshComponent* TorchBeamVisual;
+	UPROPERTY(VisibleAnywhere, Category = "Combat")
+	TObjectPtr<USphereComponent> WeaponCollision;
+	UPROPERTY(EditDefaultsOnly, Category = "Combat")
+	FName CollisionSocketName = FName("CollisionSocket");
 
 	FTimerHandle BlinkTimerHandle;
 

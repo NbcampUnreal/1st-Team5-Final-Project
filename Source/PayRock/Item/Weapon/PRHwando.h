@@ -26,7 +26,7 @@ public:
 
 	virtual TSubclassOf<UGameplayAbility> GetAbilities() const override;
 	
-	virtual float GetAbilityLevel() const override;
+	virtual int32 GetAbilityLevel() const override;
 	
 	virtual int32 GetItemPrice() const override;
 protected:

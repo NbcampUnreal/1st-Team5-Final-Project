@@ -20,4 +20,6 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "GAS")
 	TSubclassOf<class UGameplayAbility> AttackAbility;
+	UPROPERTY(EditAnywhere, Category = "GAS")
+	TSubclassOf<class UGameplayAbility> WeaponCollisionAbility;
 };
