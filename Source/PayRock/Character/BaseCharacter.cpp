@@ -19,6 +19,11 @@ ABaseCharacter::ABaseCharacter()
 	Weapon->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
+void ABaseCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+}
+
 UAbilitySystemComponent* ABaseCharacter::GetAbilitySystemComponent() const
 {
 	return AbilitySystemComponent;
@@ -78,9 +83,11 @@ UAnimMontage* ABaseCharacter::GetDeathMontage()
 	return DeathMontages[FMath::RandRange(0, DeathMontages.Num() - 1)];
 }
 
-void ABaseCharacter::BeginPlay()
+void ABaseCharacter::ForceDeath()
 {
-	Super::BeginPlay();
+	FGameplayTagContainer TagContainer;
+	TagContainer.AddTag(FPRGameplayTags::Get().Status_Life_Dead);
+	GetAbilitySystemComponent()->TryActivateAbilitiesByTag(TagContainer);
 }
 
 FVector ABaseCharacter::GetCombatSocketLocation_Implementation(const FGameplayTag& SocketTag)
