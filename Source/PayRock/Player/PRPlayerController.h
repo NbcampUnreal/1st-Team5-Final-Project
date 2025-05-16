@@ -50,6 +50,16 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> AimAction;
 
+	UPROPERTY(EditAnywhere, Category = "Input|Spector")
+	TObjectPtr<UInputMappingContext> SpectorIMC;
+	
+	UPROPERTY(EditAnywhere, Category = "Input|Spectate")
+	TObjectPtr<UInputAction> SpectateNextAction;
+
+	UPROPERTY(EditAnywhere, Category = "Input|Spectate")
+	TObjectPtr<UInputAction> SpectatePrevAction;
+	
+	
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UUserWidget> DeathOptionsWidgetClass;
 	
@@ -61,11 +71,13 @@ public:
 	void SpectateNext();
 	void SpectatePrevious();
 
+	FString GetNetModeAsString() const; // 디버깅용 함수
 	FShowLeaveOptionsDelegate ShowLeaveOptionsDelegate;
 	
 protected:
 	virtual void BeginPlay() override;
 
+	void BindingSpector();
 private:
 	void SetSpectateTarget(AActor* NewTarget);
 
