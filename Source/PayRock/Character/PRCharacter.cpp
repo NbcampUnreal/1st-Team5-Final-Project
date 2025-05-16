@@ -701,6 +701,14 @@ void APRCharacter::Die(/*const FHitResult& HitResult*/)
     // MulticastRagdoll();
 }
 
+void APRCharacter::Extract()
+{
+    if (HasAuthority())
+    {
+        GetPlayerState<APRPlayerState>()->SetIsExtracted(true);
+    }
+}
+
 void APRCharacter::MulticastRagdoll_Implementation()
 {
     if (APlayerController* PC = Cast<APlayerController>(GetController()))

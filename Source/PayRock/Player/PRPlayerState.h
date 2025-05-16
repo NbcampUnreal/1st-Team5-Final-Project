@@ -11,6 +11,7 @@ class UAttributeSet;
 
 DECLARE_MULTICAST_DELEGATE(FOnDeathDelegate);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnLevelChangeDelegate, int32);
+DECLARE_MULTICAST_DELEGATE(FOnExtractionDelegate);
 
 UCLASS()
 class PAYROCK_API APRPlayerState : public APlayerState, public IAbilitySystemInterface
@@ -23,19 +24,28 @@ public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	UAttributeSet* GetAttributeSet() const { return AttributeSet; }
 
-	FORCEINLINE int32 GetCharacterLevel() const { return Level; };
-
-	FORCEINLINE bool GetIsDead() const { return bIsDead; };
+	UFUNCTION(BlueprintCallable)
+	int32 GetCharacterLevel() const { return Level; };
+	UFUNCTION(BlueprintCallable)
+	bool GetIsDead() const { return bIsDead; };
+	UFUNCTION(BlueprintCallable)
 	void SetIsDead(bool bDead);
+	UFUNCTION(BlueprintCallable)
+	bool GetIsExtracted() const { return bIsExtracted; }
+	UFUNCTION(BlueprintCallable)
+	void SetIsExtracted(bool bExtracted);
 
 	FOnDeathDelegate OnDeathDelegate;
 	FOnLevelChangeDelegate OnLevelChangeDelegate;
+	FOnExtractionDelegate OnExtractionDelegate;
 
 private:
 	UFUNCTION()
 	void OnRep_Level(int32 OldLevel);
 	UFUNCTION()
 	void OnRep_bIsDead(bool Old_bIsDead);
+	UFUNCTION()
+	void OnRep_bIsExtracted();
 
 protected:
 	UPROPERTY()
@@ -44,8 +54,10 @@ protected:
 	TObjectPtr<UAttributeSet> AttributeSet;
 
 private:
-	UPROPERTY(VisibleAnywhere, ReplicatedUsing = OnRep_Level)
+	UPROPERTY(ReplicatedUsing = OnRep_Level)
 	int32 Level = 1;
-	UPROPERTY(VisibleAnywhere, ReplicatedUsing = OnRep_bIsDead)
+	UPROPERTY(ReplicatedUsing = OnRep_bIsDead)
 	bool bIsDead = false;
+	UPROPERTY(ReplicatedUsing = OnRep_bIsExtracted)
+	bool bIsExtracted = false;
 };

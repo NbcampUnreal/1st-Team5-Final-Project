@@ -16,10 +16,10 @@ FString AHealPotion::GetName() const
 
 TSubclassOf<UGameplayAbility> AHealPotion::GetAbilities() const
 {
-    return Super::GetAbilities(); //ga¸®ÅÏ
+    return Super::GetAbilities(); //gaï¿½ï¿½ï¿½ï¿½
 }
 
-float AHealPotion::GetAbilityLevel() const
+int32 AHealPotion::GetAbilityLevel() const
 {
     return Super::GetAbilityLevel();
 }

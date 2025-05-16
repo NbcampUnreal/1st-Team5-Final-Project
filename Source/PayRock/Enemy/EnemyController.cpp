@@ -104,10 +104,11 @@ void AEnemyController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stim
 	const FVector AIPos = Enemy->GetActorLocation();
 	const FVector StimulusPos = Stimulus.StimulusLocation;
 
+	/*
 	switch (Stimulus.Type)
 	{
 	case UAISense::GetSenseID<UAISense_Hearing>():
-		{
+		
 			UE_LOG(LogTemp, Log, TEXT(" AI heard sound: %s | Strength: %.2f"), *Actor->GetName(), Stimulus.Strength);
 
 			if (Stimulus.Strength >= LoudnessThreshold)
@@ -128,32 +129,33 @@ void AEnemyController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stim
 				UE_LOG(LogTemp, Log, TEXT("AI looks toward weak sound at %s"), *StimulusPos.ToString());
 			}
 			break;
-		}
+		
 
 	case UAISense::GetSenseID<UAISense_Sight>():
+		break;
 	case UAISense::GetSenseID<UAISense_Damage>():
+		break;
 	default:
+		if (Stimulus.WasSuccessfullySensed())
 		{
-			if (Stimulus.WasSuccessfullySensed())
-			{
-				BlackboardComponent->SetValueAsObject(TEXT("TargetActor"), Actor);
-				BlackboardComponent->SetValueAsBool(TEXT("bPlayerDetect"), true);
+			BlackboardComponent->SetValueAsObject(TEXT("TargetActor"), Actor);
+			BlackboardComponent->SetValueAsBool(TEXT("bPlayerDetect"), true);
 
-				if (GetWorld())
-				{
-					GetWorld()->GetTimerManager().ClearTimer(ForgetPlayerTimerHandle);
-				}
-			}
-			else
+			if (GetWorld())
 			{
-				if (GetWorld())
-				{
-					GetWorld()->GetTimerManager().SetTimer(ForgetPlayerTimerHandle, this, &AEnemyController::ClearDetectedPlayer, 2.0f, false);
-				}
+				GetWorld()->GetTimerManager().ClearTimer(ForgetPlayerTimerHandle);
 			}
-			break;
 		}
+		else
+		{
+			if (GetWorld())
+			{
+				GetWorld()->GetTimerManager().SetTimer(ForgetPlayerTimerHandle, this, &AEnemyController::ClearDetectedPlayer, 2.0f, false);
+			}
+		}
+		break;
 	}
+	*/
 }
 
 

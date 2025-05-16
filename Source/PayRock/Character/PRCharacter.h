@@ -29,6 +29,9 @@ public:
 
 	virtual void Die(/*const FHitResult& HitResult*/) override;
 
+	UFUNCTION(BlueprintCallable)
+	void Extract();
+
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastRagdoll();
 
