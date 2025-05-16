@@ -116,7 +116,6 @@ void AEnemyController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stim
 		{
 			BlackboardComponent->SetValueAsObject(TEXT("TargetActor"), Actor);
 			BlackboardComponent->SetValueAsBool(TEXT("bPlayerDetect"), true);
-			GetWorld()->GetTimerManager().ClearTimer(ForgetPlayerTimerHandle);
 		}
 		else if (Stimulus.Strength >= MinLoudnessToReact)
 		{
@@ -131,11 +130,6 @@ void AEnemyController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stim
 		{
 			BlackboardComponent->SetValueAsObject(TEXT("TargetActor"), Actor);
 			BlackboardComponent->SetValueAsBool(TEXT("bPlayerDetect"), true);
-			GetWorld()->GetTimerManager().ClearTimer(ForgetPlayerTimerHandle);
-		}
-		else
-		{
-			GetWorld()->GetTimerManager().SetTimer(ForgetPlayerTimerHandle, this, &AEnemyController::ClearDetectedPlayer, 4.0f, false);
 		}
 	}
 }

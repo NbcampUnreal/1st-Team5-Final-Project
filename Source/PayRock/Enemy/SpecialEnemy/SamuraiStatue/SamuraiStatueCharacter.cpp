@@ -2,6 +2,8 @@
 
 
 #include "SamuraiStatueCharacter.h"
+
+#include "Components/CapsuleComponent.h"
 #include "PayRock/Enemy/EnemyController.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
@@ -11,6 +13,10 @@ ASamuraiStatueCharacter::ASamuraiStatueCharacter()
 	AIControllerClass = AEnemyController::StaticClass();
 
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+
+	WeaponCollision = CreateDefaultSubobject<UCapsuleComponent>(TEXT("RightHandCollision"));
+	WeaponCollision->SetupAttachment(Weapon);
+	
 }
 
 void ASamuraiStatueCharacter::PauseAnimation()

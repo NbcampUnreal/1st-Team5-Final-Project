@@ -20,6 +20,7 @@ protected:
 	UFUNCTION()
 	void OnMoveCompleted(FAIRequestID RequestID, EPathFollowingResult::Type Result);
 
+	virtual void TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds);
 protected:
 	UPROPERTY(EditAnywhere, Category = "Chase")
 	float Speed = 600.f;
