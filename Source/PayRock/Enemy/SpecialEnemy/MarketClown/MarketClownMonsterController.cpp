@@ -1,0 +1,26 @@
+// PayRockGames
+
+
+#include "MarketClownMonsterController.h"
+
+
+// Sets default values
+AMarketClownMonsterController::AMarketClownMonsterController()
+{
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	PrimaryActorTick.bCanEverTick = true;
+}
+
+// Called when the game starts or when spawned
+void AMarketClownMonsterController::BeginPlay()
+{
+	Super::BeginPlay();
+	
+}
+
+// Called every frame
+void AMarketClownMonsterController::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+}
+
