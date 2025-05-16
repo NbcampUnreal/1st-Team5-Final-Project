@@ -30,7 +30,6 @@ void APRPlayerController::BeginPlay()
 void APRPlayerController::Client_ShowDeathOptions_Implementation()
 {
 	UE_LOG(LogTemp, Log, TEXT("Display Death UI"))
-/*
 	if (DeathOptionsWidgetClass && !DeathOptionsWidget)
 	{
 		DeathOptionsWidget = CreateWidget<UUserWidget>(this, DeathOptionsWidgetClass);
@@ -41,13 +40,12 @@ void APRPlayerController::Client_ShowDeathOptions_Implementation()
 			SetInputMode(FInputModeUIOnly());
 		}
 	}
-*/
 }
 
 void APRPlayerController::StartSpectating()
 {
 	SpectateTargets.Empty();
-
+	UE_LOG(LogTemp, Log, TEXT("StartSpectating"));
 	for (TActorIterator<ACharacter> It(GetWorld()); It; ++It)
 	{
 		ACharacter* Chara = *It;
@@ -62,6 +60,22 @@ void APRPlayerController::StartSpectating()
 				SpectateTargets.Add(Chara);
 			}
 		}
+	}
+
+	if (SpectateTargets.Num() > 0)
+	{
+		CurrentSpectateIndex = 0;
+		SetSpectateTarget(SpectateTargets[CurrentSpectateIndex]);
+
+		// 입력 모드 전환
+		SetInputMode(FInputModeGameOnly());
+		SetShowMouseCursor(false);
+
+		UE_LOG(LogTemp, Log, TEXT("관전 시작: 대상 %d명"), SpectateTargets.Num());
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("관전 대상 없음"));
 	}
 }
 
@@ -85,6 +99,7 @@ void APRPlayerController::SetSpectateTarget(AActor* NewTarget)
 {
 	if (NewTarget)
 	{
+		UnPossess();	
 		SetViewTargetWithBlend(NewTarget, 0.5f);
 		UE_LOG(LogTemp, Log, TEXT("Set view target: %s"), *NewTarget->GetName());
 	}

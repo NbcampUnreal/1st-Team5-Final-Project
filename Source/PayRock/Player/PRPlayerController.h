@@ -54,6 +54,7 @@ public:
 	UFUNCTION(Client, Reliable)
 	void Client_ShowDeathOptions();
 
+	UFUNCTION(BlueprintCallable)
 	void StartSpectating();
 	void SpectateNext();
 	void SpectatePrevious();
