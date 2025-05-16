@@ -10,6 +10,8 @@ struct FInputActionValue;
 class UInputMappingContext;
 class UInputAction;
 
+DECLARE_MULTICAST_DELEGATE(FShowLeaveOptionsDelegate)
+
 UCLASS()
 class PAYROCK_API APRPlayerController : public APlayerController
 {
@@ -57,6 +59,8 @@ public:
 	void StartSpectating();
 	void SpectateNext();
 	void SpectatePrevious();
+
+	FShowLeaveOptionsDelegate ShowLeaveOptionsDelegate;
 	
 protected:
 	virtual void BeginPlay() override;

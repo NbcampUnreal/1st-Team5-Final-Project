@@ -2,6 +2,7 @@
 
 #include "PRPlayerState.h"
 
+#include "PRPlayerController.h"
 #include "Net/UnrealNetwork.h"
 #include "PayRock/PRGameplayTags.h"
 #include "PayRock/AbilitySystem/PRAbilitySystemComponent.h"
@@ -38,7 +39,11 @@ void APRPlayerState::SetIsDead(bool bDead)
 {
 	if (HasAuthority())
 	{
-		bIsDead = bDead;	
+		bIsDead = bDead;
+		if (APRPlayerController* PC = Cast<APRPlayerController>(GetOwningController()))
+		{
+			PC->Client_ShowDeathOptions();
+		}
 	}
 }
 
@@ -55,6 +60,14 @@ void APRPlayerState::ForceDeath()
 	FGameplayTagContainer TagContainer;
 	TagContainer.AddTag(FPRGameplayTags::Get().Status_Life_Dead);
 	GetAbilitySystemComponent()->TryActivateAbilitiesByTag(TagContainer);
+}
+
+void APRPlayerState::Extract()
+{
+    if (HasAuthority())
+    {
+        SetIsExtracted(true);
+    }
 }
 
 void APRPlayerState::OnRep_Level(int32 OldLevel)
@@ -78,5 +91,6 @@ void APRPlayerState::OnRep_bIsExtracted()
 	if (bIsExtracted)
 	{
 		OnExtractionDelegate.Broadcast();
+		
 	}
 }

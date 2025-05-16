@@ -13,7 +13,7 @@
 APRPlayerController::APRPlayerController()
 {
 	bReplicates = true;
-	DeathOptionsWidgetClass = nullptr;
+	// DeathOptionsWidgetClass = nullptr;
 }
 
 void APRPlayerController::BeginPlay()
@@ -30,7 +30,7 @@ void APRPlayerController::BeginPlay()
 void APRPlayerController::Client_ShowDeathOptions_Implementation()
 {
 	UE_LOG(LogTemp, Log, TEXT("Display Death UI"))
-/*
+	
 	if (DeathOptionsWidgetClass && !DeathOptionsWidget)
 	{
 		DeathOptionsWidget = CreateWidget<UUserWidget>(this, DeathOptionsWidgetClass);
@@ -41,7 +41,6 @@ void APRPlayerController::Client_ShowDeathOptions_Implementation()
 			SetInputMode(FInputModeUIOnly());
 		}
 	}
-*/
 }
 
 void APRPlayerController::StartSpectating()
