@@ -10,25 +10,19 @@ UBTTask_KappaIdle::UBTTask_KappaIdle()
 	NodeName = TEXT("Kappa Idle");
 	bNotifyTick = true;
 	bNotifyTaskFinished = true;
+	bCreateNodeInstance = true;
 }
 
 EBTNodeResult::Type UBTTask_KappaIdle::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	CachedOwnerComp = &OwnerComp;
+	ElapsedTime = 0.f;
 	bShouldReturn = false;
 
 	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
 	if (!BB) return EBTNodeResult::Failed;
 
 	StartPosition = BB->GetValueAsVector(TEXT("StartPosition"));
-	
-	OwnerComp.GetWorld()->GetTimerManager().SetTimer(WaitTimerHandle, [this]() {
-		if (CachedOwnerComp)
-		{
-			FinishLatentTask(*CachedOwnerComp, bShouldReturn ? EBTNodeResult::Failed : EBTNodeResult::Succeeded);
-		}
-	}, WaitDuration, false);
-
 	return EBTNodeResult::InProgress;
 }
 
@@ -41,12 +35,25 @@ void UBTTask_KappaIdle::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeM
 
 	if (!Player || !Controlled) return;
 
-	float Distance = FVector::Dist(Player->GetActorLocation(), Controlled->GetActorLocation());
+	const FVector PlayerLoc = Player->GetActorLocation();
+	const FVector MyLoc = Controlled->GetActorLocation();
 	
-	if (Distance > MaxDistanceFromPlayer)
+	const float DistanceToPlayer = FVector::Dist(PlayerLoc, MyLoc);
+	if (DistanceToPlayer > MaxDistanceFromPlayer)
 	{
 		bShouldReturn = true;
-		OwnerComp.GetWorld()->GetTimerManager().ClearTimer(WaitTimerHandle);
 		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
+		return;
 	}
+	
+	ElapsedTime += DeltaSeconds;
+	if (ElapsedTime >= WaitDuration)
+	{
+		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+	}
+}
+
+uint16 UBTTask_KappaIdle::GetInstanceMemorySize() const
+{
+	return sizeof(UBTTask_KappaIdle);
 }
