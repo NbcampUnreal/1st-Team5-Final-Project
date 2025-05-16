@@ -25,6 +25,7 @@ void APRPlayerState::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>&
 
 	DOREPLIFETIME(APRPlayerState, Level);
 	DOREPLIFETIME(APRPlayerState, bIsDead);
+	DOREPLIFETIME(APRPlayerState, bIsExtracted);
 }
 
 UAbilitySystemComponent* APRPlayerState::GetAbilitySystemComponent() const
@@ -34,10 +35,40 @@ UAbilitySystemComponent* APRPlayerState::GetAbilitySystemComponent() const
 
 void APRPlayerState::SetIsDead(bool bDead)
 {
-	bIsDead = bDead;
+	if (HasAuthority())
+	{
+		bIsDead = bDead;	
+	}
+}
+
+void APRPlayerState::SetIsExtracted(bool bExtracted)
+{
+	if (HasAuthority())
+	{
+		bIsExtracted = bExtracted;	
+	}
 }
 
 void APRPlayerState::OnRep_Level(int32 OldLevel)
 {
-	
+	if (Level != OldLevel)
+	{
+		OnLevelChangeDelegate.Broadcast(Level);
+	}
+}
+
+void APRPlayerState::OnRep_bIsDead(bool Old_bIsDead)
+{
+	if (bIsDead && !Old_bIsDead)
+	{
+		OnDeathDelegate.Broadcast();
+	}
+}
+
+void APRPlayerState::OnRep_bIsExtracted()
+{
+	if (bIsExtracted)
+	{
+		OnExtractionDelegate.Broadcast();
+	}
 }

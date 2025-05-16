@@ -6,7 +6,7 @@
 #include "GameFramework/Character.h"
 #include "Net/UnrealNetwork.h"
 #include "PayRock/PRGameplayTags.h"
-#include "PayRock/Character/CombatInterface.h"
+#include "PayRock/Character/BaseCharacter.h"
 
 UPRAttributeSet::UPRAttributeSet()
 {
@@ -145,9 +145,7 @@ void UPRAttributeSet::HandleIncomingDamage(const FEffectProperties& Props, const
 		
 		SetHealth(NewHealth);
 		//GetHealthAttribute().SetNumericValueChecked(NewHealth, this);
-		 
-		GetOwningAbilitySystemComponent()->GetGameplayAttributeValueChangeDelegate(
-			GetHealthAttribute()).Broadcast(AttributeChangeData);
+		Props.TargetASC->GetGameplayAttributeValueChangeDelegate(GetHealthAttribute()).Broadcast(AttributeChangeData);
 
 		const float HealthCurrent = GetHealth();
 		const float HealthBase = GetOwningAbilitySystemComponent()->GetNumericAttributeBase(GetHealthAttribute());
@@ -159,9 +157,14 @@ void UPRAttributeSet::HandleIncomingDamage(const FEffectProperties& Props, const
 		if (NewHealth <= 0.f)
 		{
 			// Handle death
+			// option 1: (몽타주 재생 필요 시) 태그 달린 어빌리티로 몽타주 재생 및 Die 함수 호출
 			FGameplayTagContainer TagContainer;
 			TagContainer.AddTag(FPRGameplayTags::Get().Status_Life_Dead);
 			Props.TargetASC->TryActivateAbilitiesByTag(TagContainer);
+
+			/*const FHitResult* HitResult = Data.EffectSpec.GetContext().GetHitResult();
+			Cast<ABaseCharacter>(Props.TargetCharacter)->Die(CalculatedDamage,
+				HitResult == nullptr ? FHitResult() : *HitResult);*/
 		}
 		else
 		{

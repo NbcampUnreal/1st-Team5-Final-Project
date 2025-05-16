@@ -12,6 +12,9 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHealthChangedSignature, float, Ne
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMaxHealthChangedSignature, float, NewMaxHealth);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnManaChangedSignature, float, NewMana);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMaxManaChangedSignature, float, NewMaxMana);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDeathSignature);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnExtractionSignature);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLevelChangeSignature, int32, NewLevel);
 
 USTRUCT(BlueprintType)
 struct FUIWidgetRow : public FTableRowBase
@@ -45,6 +48,12 @@ public:
 	FOnManaChangedSignature OnManaChanged;
 	UPROPERTY(BlueprintAssignable, Category = "GAS|Attributes")
 	FOnMaxManaChangedSignature OnMaxManaChanged;
+	UPROPERTY(BlueprintAssignable)
+	FOnDeathSignature OnDeath;
+	UPROPERTY(BlueprintAssignable)
+	FOnExtractionSignature OnExtraction;
+	UPROPERTY(BlueprintAssignable)
+	FOnLevelChangeSignature OnLevelChange;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GAS|WidgetData")
@@ -54,6 +63,9 @@ protected:
 	void MaxHealthChanged(const FOnAttributeChangeData& Data) const;
 	void ManaChanged(const FOnAttributeChangeData& Data) const;
 	void MaxManaChanged(const FOnAttributeChangeData& Data) const;
+	void BroadcastDeath() const;
+	void BroadcastExtraction() const;
+	void BroadcastLevelChange(int32 NewLevel) const;
 
 	template<typename T>
 	T* GetDataTableRowByTag(UDataTable* DataTable, const FGameplayTag& Tag);

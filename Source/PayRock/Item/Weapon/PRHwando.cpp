@@ -20,7 +20,7 @@ TSubclassOf<UGameplayAbility> APRHwando::GetAbilities() const
 	return Super::GetAbilities();
 }
 
-float APRHwando::GetAbilityLevel() const
+int32 APRHwando::GetAbilityLevel() const
 {
 	return Super::GetAbilityLevel();
 }

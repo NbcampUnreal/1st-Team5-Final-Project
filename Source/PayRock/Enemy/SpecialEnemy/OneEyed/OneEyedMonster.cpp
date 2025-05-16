@@ -24,6 +24,16 @@ AOneEyedMonster::AOneEyedMonster()
 	TorchBeamVisual->SetupAttachment(TorchLight);
 	TorchBeamVisual->SetRelativeRotation(FRotator(-90.f, 0.f, 0.f));
 	TorchBeamVisual->SetVisibility(true);
+
+	WeaponCollision = CreateDefaultSubobject<USphereComponent>(TEXT("WeaponCollision"));
+	WeaponCollision->SetupAttachment(Weapon, CollisionSocketName);
+
+	WeaponCollision->InitSphereRadius(12.0f);
+	WeaponCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	WeaponCollision->SetCollisionObjectType(ECC_WorldDynamic);
+	WeaponCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
+	WeaponCollision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+	WeaponCollision->SetGenerateOverlapEvents(true);
 }
 
 

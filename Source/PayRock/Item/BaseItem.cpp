@@ -35,7 +35,7 @@ TSubclassOf<UGameplayAbility> ABaseItem::GetAbilities() const
 	return ActiveAbilityClass;
 }
 
-float ABaseItem::GetAbilityLevel() const
+int32 ABaseItem::GetAbilityLevel() const
 {
 	return AbilityLevel;
 }
