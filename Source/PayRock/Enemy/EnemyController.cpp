@@ -103,7 +103,6 @@ void AEnemyController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stim
 	}
 
 	const FVector AIPos = Enemy->GetActorLocation();
-	const FVector StimulusPos = Stimulus.StimulusLocation;
 
 	const FAISenseID HearingID = UAISense::GetSenseID<UAISense_Hearing>();
 	const FAISenseID SightID = UAISense::GetSenseID<UAISense_Sight>();
@@ -111,9 +110,8 @@ void AEnemyController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stim
 
 	if (Stimulus.Type == HearingID)
 	{
-		UE_LOG(LogTemp, Log, TEXT(" AI heard sound: %s | Strength: %.2f"), *Actor->GetName(), Stimulus.Strength);
+		UE_LOG(LogTemp, Log, TEXT("AI heard sound: %s | Strength: %.2f"), *Actor->GetName(), Stimulus.Strength);
 
-		break;
 		if (Stimulus.Strength >= LoudnessThreshold)
 		{
 			BlackboardComponent->SetValueAsObject(TEXT("TargetActor"), Actor);
@@ -126,7 +124,6 @@ void AEnemyController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stim
 			Enemy->SetActorRotation(FRotator(0.f, LookRot.Yaw, 0.f));
 			UE_LOG(LogTemp, Log, TEXT("AI looks toward weak sound at %s"), *Stimulus.StimulusLocation.ToString());
 		}
-		break;
 	}
 	else if (Stimulus.Type == SightID || Stimulus.Type == DamageID)
 	{
@@ -141,6 +138,7 @@ void AEnemyController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stim
 			GetWorld()->GetTimerManager().SetTimer(ForgetPlayerTimerHandle, this, &AEnemyController::ClearDetectedPlayer, 2.0f, false);
 		}
 	}
+
 }
 
 
