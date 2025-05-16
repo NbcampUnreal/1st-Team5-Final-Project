@@ -100,7 +100,7 @@ void AEnemyController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stim
 	{
 		Enemy->SetBattleState(true);
 	}
-
+/*
 	const FVector AIPos = Enemy->GetActorLocation();
 	const FVector StimulusPos = Stimulus.StimulusLocation;
 
@@ -154,6 +154,7 @@ void AEnemyController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stim
 			break;
 		}
 	}
+	*/
 }
 
 
