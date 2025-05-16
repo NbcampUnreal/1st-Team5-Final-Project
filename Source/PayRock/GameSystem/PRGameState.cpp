@@ -198,8 +198,18 @@ void APRGameState::ForceStartMatch()
 void APRGameState::OnRep_MatchStart_CountDown()
 {
 	UE_LOG(LogTemp, Warning, TEXT("CountDown: %d"), MatchStart_CountDown);
+	OnMatchStart_CountDown.Broadcast(MatchStart_CountDown);
 }
 
+void APRGameState::OnRep_CurrentAmountOfPlayers()
+{
+	OnCurrentAmountOfPlayers.Broadcast(CurrentAmountOfPlayers);
+}
+
+void APRGameState::OnRep_MinimumRequirePlayers()
+{
+	OnMinimumRequirePlayers.Broadcast(MinimumRequirePlayers);
+}
 
 void APRGameState::EnableExtractionZones()
 {
@@ -250,6 +260,6 @@ void APRGameState::TickMatchTimer()
 void APRGameState::OnRep_RemainingMatchTime()
 {
 	UE_LOG(LogTemp, Warning, TEXT("남은 매치 시간: %d초"), RemainingMatchTime);
-
+	OnRemainingMatchTime.Broadcast(RemainingMatchTime);
 }
 

@@ -16,6 +16,11 @@ enum class EMatchFlowState : uint8
 	MatchEnded
 };
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnMatchStart_CountDown, int32);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnCurrentAmountOfPlayers, int32);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnMinimumRequirePlayers, int32);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnRemainingMatchTime, int32);
+
 
 UCLASS()
 class PAYROCK_API APRGameState : public AGameState, public IPRIGameState
@@ -25,10 +30,10 @@ public:
 
 protected:
 	///////////////매치 시작 전 ////////////////////////////////////////////
-	UPROPERTY(BlueprintReadWrite, Replicated, EditAnywhere, Category = "MatchFlow|Players")
+	UPROPERTY(BlueprintReadWrite, ReplicatedUsing = OnRep_MinimumRequirePlayers, EditAnywhere, Category = "MatchFlow|Players")
 	int32 MinimumRequirePlayers;
 
-	UPROPERTY(BlueprintReadWrite, Replicated, EditAnywhere, Category = "MatchFlow|Players")
+	UPROPERTY(BlueprintReadWrite, ReplicatedUsing = OnRep_CurrentAmountOfPlayers, EditAnywhere, Category = "MatchFlow|Players")
 	int32 CurrentAmountOfPlayers;
 
 	UPROPERTY(BlueprintReadWrite, ReplicatedUsing = OnRep_MatchStart_CountDown, EditAnywhere, Category = "MatchFlow|Players")
@@ -36,6 +41,10 @@ protected:
 
 	bool bHasStartedCountdown = false;
 	bool bForceStarted = false;
+
+	FOnMatchStart_CountDown OnMatchStart_CountDown;
+	FOnCurrentAmountOfPlayers OnCurrentAmountOfPlayers;
+	FOnMinimumRequirePlayers OnMinimumRequirePlayers;
 	
 	FTimerHandle MatchStartTimerHandle;
 	FTimerHandle ForceStartTimerHandle;
@@ -54,6 +63,9 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MatchFlow|Extraction")
 	TSubclassOf<AActor> ExtractionZoneClass;
+
+
+	FOnRemainingMatchTime OnRemainingMatchTime;
 	
 	FTimerHandle MatchTimerHandle;
 
@@ -94,12 +106,19 @@ protected:
 	
 	UFUNCTION()
 	void OnRep_MatchStart_CountDown();
+
+	UFUNCTION()
+	void OnRep_CurrentAmountOfPlayers();
+
+	UFUNCTION()
+	void OnRep_MinimumRequirePlayers();
 	//////////////////////////////////////////////////////////////////////
 
 	///////////////매치 시작 후 ////////////////////////////////////////////
 	void EnableExtractionZones(); // 탈출구 Open
 
 	void TickMatchTimer();
+	
 	UFUNCTION()
 	void OnRep_RemainingMatchTime();
 	/////////////////////////////////////////////////////////////////////
