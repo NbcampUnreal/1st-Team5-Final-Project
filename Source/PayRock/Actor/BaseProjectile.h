@@ -24,6 +24,9 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, meta = (ExposeOnSpawn = true))
 	TObjectPtr<UGameplayAbility> SourceAbility;
+
+	UPROPERTY(BlueprintReadWrite)
+	TObjectPtr<AActor> SourceActor;
 	
 	UPROPERTY(BlueprintReadWrite, meta = (ExposeOnSpawn = true))
 	FGameplayEffectSpecHandle DamageEffectSpecHandle;
