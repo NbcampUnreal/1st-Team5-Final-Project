@@ -34,7 +34,9 @@ public:
 	bool GetIsExtracted() const { return bIsExtracted; }
 	UFUNCTION(BlueprintCallable)
 	void SetIsExtracted(bool bExtracted);
-
+	UFUNCTION(BlueprintCallable)
+	void ForceDeath();
+	
 	FOnDeathDelegate OnDeathDelegate;
 	FOnLevelChangeDelegate OnLevelChangeDelegate;
 	FOnExtractionDelegate OnExtractionDelegate;

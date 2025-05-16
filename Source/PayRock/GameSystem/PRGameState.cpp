@@ -9,6 +9,7 @@
 #include "GameFramework/PlayerState.h"
 #include "GameFramework/GameModeBase.h"
 #include "Kismet/GameplayStatics.h"
+#include "PayRock/Character/BaseCharacter.h"
 
 
 APRGameState::APRGameState()
@@ -16,7 +17,7 @@ APRGameState::APRGameState()
 	MinimumRequirePlayers = 2;  // 매치 시작시 필요한 플레이어 수
 	CurrentAmountOfPlayers = 0; // 현재 플레이어 수 초기화
 	MatchStart_CountDown = -1;  // 매치 시작 카운트다운
-	MatchDurationSeconds = 30; // 매치 시작 후 매치 지속시간
+	MatchDurationSeconds = 10; // 매치 시작 후 매치 지속시간
 	ExtractionActivationTime = 5; // 탈출구 열리는 시간
 	RemainingMatchTime = MatchDurationSeconds;
 	bReplicates = true;
@@ -100,9 +101,10 @@ void APRGameState::MatchEnd() const
 {
 	UE_LOG(LogTemp, Warning, TEXT("Match Ended"));
 	GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
-	if (APRGameMode* Gm = Cast<APRGameMode>(GetWorld()->GetAuthGameMode()))
+	for (APlayerState* PS : PlayerArray)
 	{
-		Gm->EndMatch();
+		APRPlayerState* PRPS = Cast<APRPlayerState>(PS);
+		PRPS->ForceDeath();
 	}
 }
 

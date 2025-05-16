@@ -3,6 +3,7 @@
 #include "PRPlayerState.h"
 
 #include "Net/UnrealNetwork.h"
+#include "PayRock/PRGameplayTags.h"
 #include "PayRock/AbilitySystem/PRAbilitySystemComponent.h"
 #include "PayRock/AbilitySystem/PRAttributeSet.h"
 
@@ -47,6 +48,13 @@ void APRPlayerState::SetIsExtracted(bool bExtracted)
 	{
 		bIsExtracted = bExtracted;	
 	}
+}
+
+void APRPlayerState::ForceDeath()
+{
+	FGameplayTagContainer TagContainer;
+	TagContainer.AddTag(FPRGameplayTags::Get().Status_Life_Dead);
+	GetAbilitySystemComponent()->TryActivateAbilitiesByTag(TagContainer);
 }
 
 void APRPlayerState::OnRep_Level(int32 OldLevel)

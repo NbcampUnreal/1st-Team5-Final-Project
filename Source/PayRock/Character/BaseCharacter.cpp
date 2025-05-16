@@ -56,7 +56,7 @@ const UAnimMontage* ABaseCharacter::GetHitReactMontage()
 
 void ABaseCharacter::Die(/*const FHitResult& HitResult*/)
 {
-	if (HasAuthority())
+	if (true) //HasAuthority()
 	{
 		GetCharacterMovement()->DisableMovement();
 		GetCharacterMovement()->StopMovementImmediately();
