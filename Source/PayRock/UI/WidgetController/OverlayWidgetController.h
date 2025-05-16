@@ -14,6 +14,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnManaChangedSignature, float, NewM
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMaxManaChangedSignature, float, NewMaxMana);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDeathSignature);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnExtractionSignature);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnShowLeaveOptionsSignature);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLevelChangeSignature, int32, NewLevel);
 
 USTRUCT(BlueprintType)
@@ -53,6 +54,8 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnExtractionSignature OnExtraction;
 	UPROPERTY(BlueprintAssignable)
+	FOnShowLeaveOptionsSignature OnShowLeaveOptions;
+	UPROPERTY(BlueprintAssignable)
 	FOnLevelChangeSignature OnLevelChange;
 
 protected:
@@ -65,6 +68,7 @@ protected:
 	void MaxManaChanged(const FOnAttributeChangeData& Data) const;
 	void BroadcastDeath() const;
 	void BroadcastExtraction() const;
+	void BroadcastShowLeaveOptions() const;
 	void BroadcastLevelChange(int32 NewLevel) const;
 
 	template<typename T>
