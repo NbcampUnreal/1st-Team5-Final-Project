@@ -96,6 +96,7 @@ void AEnemyController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stim
 	if (!Actor || !Actor->IsA(APRCharacter::StaticClass())) return;
 
 	AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(GetPawn());
+	if (!Enemy) return;
 	if (Enemy)
 	{
 		Enemy->SetBattleState(true);
@@ -104,54 +105,38 @@ void AEnemyController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stim
 	const FVector AIPos = Enemy->GetActorLocation();
 	const FVector StimulusPos = Stimulus.StimulusLocation;
 
-	switch (Stimulus.Type)
+	const FAISenseID HearingID = UAISense::GetSenseID<UAISense_Hearing>();
+	const FAISenseID SightID = UAISense::GetSenseID<UAISense_Sight>();
+	const FAISenseID DamageID = UAISense::GetSenseID<UAISense_Damage>();
+
+	if (Stimulus.Type == HearingID)
 	{
-	case UAISense::GetSenseID<UAISense_Hearing>():
+		UE_LOG(LogTemp, Log, TEXT(" AI heard sound: %s | Strength: %.2f"), *Actor->GetName(), Stimulus.Strength);
+
+		if (Stimulus.Strength >= LoudnessThreshold)
 		{
-			UE_LOG(LogTemp, Log, TEXT(" AI heard sound: %s | Strength: %.2f"), *Actor->GetName(), Stimulus.Strength);
-
-			if (Stimulus.Strength >= LoudnessThreshold)
-			{
-				BlackboardComponent->SetValueAsObject(TEXT("TargetActor"), Actor);
-				BlackboardComponent->SetValueAsBool(TEXT("bPlayerDetect"), true);
-
-				if (GetWorld())
-				{
-					GetWorld()->GetTimerManager().ClearTimer(ForgetPlayerTimerHandle);
-				}
-			}
-			else if (Stimulus.Strength >= MinLoudnessToReact)
-			{
-				FRotator LookRot = (StimulusPos - AIPos).Rotation();
-				Enemy->SetActorRotation(FRotator(0.f, LookRot.Yaw, 0.f));
-
-				UE_LOG(LogTemp, Log, TEXT("AI looks toward weak sound at %s"), *StimulusPos.ToString());
-			}
-			break;
+			BlackboardComponent->SetValueAsObject(TEXT("TargetActor"), Actor);
+			BlackboardComponent->SetValueAsBool(TEXT("bPlayerDetect"), true);
+			GetWorld()->GetTimerManager().ClearTimer(ForgetPlayerTimerHandle);
 		}
-
-	case UAISense::GetSenseID<UAISense_Sight>():
-	case UAISense::GetSenseID<UAISense_Damage>():
-	default:
+		else if (Stimulus.Strength >= MinLoudnessToReact)
 		{
-			if (Stimulus.WasSuccessfullySensed())
-			{
-				BlackboardComponent->SetValueAsObject(TEXT("TargetActor"), Actor);
-				BlackboardComponent->SetValueAsBool(TEXT("bPlayerDetect"), true);
-
-				if (GetWorld())
-				{
-					GetWorld()->GetTimerManager().ClearTimer(ForgetPlayerTimerHandle);
-				}
-			}
-			else
-			{
-				if (GetWorld())
-				{
-					GetWorld()->GetTimerManager().SetTimer(ForgetPlayerTimerHandle, this, &AEnemyController::ClearDetectedPlayer, 2.0f, false);
-				}
-			}
-			break;
+			FRotator LookRot = (Stimulus.StimulusLocation - AIPos).Rotation();
+			Enemy->SetActorRotation(FRotator(0.f, LookRot.Yaw, 0.f));
+			UE_LOG(LogTemp, Log, TEXT("AI looks toward weak sound at %s"), *Stimulus.StimulusLocation.ToString());
+		}
+	}
+	else if (Stimulus.Type == SightID || Stimulus.Type == DamageID)
+	{
+		if (Stimulus.WasSuccessfullySensed())
+		{
+			BlackboardComponent->SetValueAsObject(TEXT("TargetActor"), Actor);
+			BlackboardComponent->SetValueAsBool(TEXT("bPlayerDetect"), true);
+			GetWorld()->GetTimerManager().ClearTimer(ForgetPlayerTimerHandle);
+		}
+		else
+		{
+			GetWorld()->GetTimerManager().SetTimer(ForgetPlayerTimerHandle, this, &AEnemyController::ClearDetectedPlayer, 2.0f, false);
 		}
 	}
 }
