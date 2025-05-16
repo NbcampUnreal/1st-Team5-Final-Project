@@ -15,6 +15,7 @@ public:
 	AEnemyCharacter();
 	void ToggleWeaponCollision(bool bEnable);
 
+
 	UFUNCTION(BlueprintCallable, Category = "Combat")
 	UAnimMontage* GetRandomAttackMontage() const;
 	UFUNCTION(BlueprintCallable, Category = "Combat")
@@ -22,7 +23,7 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = "State")
 	bool GetBattleState() const { return bIsBattle; }
-	void SetBattleState(bool Bat){ bIsBattle = Bat; };
+	void SetBattleState(bool Value){ bIsBattle = Value; };
 
 	
 protected:
@@ -36,9 +37,9 @@ protected:
 	
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Combat")
-	TArray<UAnimMontage*> AttackMontages;
+	TArray<TObjectPtr<UAnimMontage>> AttackMontages;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Combat")
-	TArray<UAnimMontage*> DetectMontages;
+	TArray<TObjectPtr<UAnimMontage>> DetectMontages;
 	
 };

@@ -101,11 +101,6 @@ void APRCharacter::BeginPlay()
     LeftHandCollisionComp->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Overlap);
     LeftHandCollisionComp->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
     LeftHandCollisionComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
-    if (AbilitySystemComponent && HasAuthority())
-    {
-        AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(GA_UseHealItemClass, 1, INDEX_NONE));
-    }
 }
 
 void APRCharacter::PossessedBy(AController* NewController)
@@ -693,11 +688,39 @@ void APRCharacter::Tick(float DeltaSeconds)
     bIsCrouching = GetCharacterMovement()->IsCrouching();
 }
 
-void APRCharacter::Die()
+void APRCharacter::Die(/*const FHitResult& HitResult*/)
 {
     Super::Die();
+
+    if (HasAuthority())
+    {
+        GetPlayerState<APRPlayerState>()->SetIsDead(true);
+    }
+    MulticastRagdoll();
+    // Ragdoll
+    // MulticastRagdoll();
 }
 
+void APRCharacter::Extract()
+{
+    if (HasAuthority())
+    {
+        GetPlayerState<APRPlayerState>()->SetIsExtracted(true);
+    }
+}
+
+void APRCharacter::MulticastRagdoll_Implementation()
+{
+    if (APlayerController* PC = Cast<APlayerController>(GetController()))
+    {
+        DisableInput(PC);
+    }
+	
+    USkeletalMeshComponent* CharacterMesh = GetMesh();
+    CharacterMesh->SetSimulatePhysics(true);
+    CharacterMesh->SetCollisionProfileName(FName("Ragdoll"));
+    CharacterMesh->WakeAllRigidBodies();
+}
 
 float APRCharacter::CalculateDirectionCustom(const FVector& Velocity, const FRotator& BaseRotation)
 {

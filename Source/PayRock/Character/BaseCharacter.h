@@ -21,17 +21,22 @@ public:
 	ABaseCharacter();
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	UAttributeSet* GetAttributeSet() const { return AttributeSet; }
+	USkeletalMeshComponent* GetWeapon() const { return Weapon.Get(); }
 
 	/* GA - Hit React */
 	void OnHitReactTagChanged(const FGameplayTag ChangedTag, int32 TagCount);
 	UFUNCTION(BlueprintCallable)
-	const UAnimMontage* GetHitReactMontage() { return HitReactMontage; }
-
-	UFUNCTION(BlueprintCallable)
-	virtual void Die();
-
+	const UAnimMontage* GetHitReactMontage();
 	UPROPERTY(BlueprintReadOnly, Category = "Combat")
 	bool bHitReact = false;
+
+	/* Death */
+	UFUNCTION(BlueprintCallable)
+	virtual void Die(/*const FHitResult& HitResult*/);
+	UFUNCTION(BlueprintCallable)
+	virtual UAnimMontage* GetDeathMontage();
+	UFUNCTION(BlueprintCallable)
+	void ForceDeath();
 
 protected:
 	virtual void BeginPlay() override;
@@ -44,14 +49,14 @@ protected:
 	void BindToTagChange();
 
 protected:
-	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "Combat")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
 	TObjectPtr<USkeletalMeshComponent> Weapon;
 	UPROPERTY(EditAnywhere, Category = "Combat")
-	FName RightHandSocketName;
+	FName RightHandSocketName = FName("RightHandSocket");
 	UPROPERTY(EditAnywhere, Category = "Combat")
-	FName LeftHandSocketName;
+	FName LeftHandSocketName = FName("LeftHandSocket");
 	UPROPERTY(EditAnywhere, Category = "Combat")
-	FName WeaponSocketName;
+	FName WeaponSocketName = FName("WeaponSocket");
 	
 	UPROPERTY()
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
@@ -71,5 +76,7 @@ protected:
 
 private:
 	UPROPERTY(EditAnywhere, Category = "Combat")
-	TObjectPtr<UAnimMontage> HitReactMontage;
+	TArray<UAnimMontage*> HitReactMontages;
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	TArray<UAnimMontage*> DeathMontages;
 };

@@ -27,7 +27,13 @@ public:
 
 	virtual void Tick(float DeltaSeconds) override;
 
-	virtual void Die() override;
+	virtual void Die(/*const FHitResult& HitResult*/) override;
+
+	UFUNCTION(BlueprintCallable)
+	void Extract();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastRagdoll();
 
 	// SpringArm Component
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")

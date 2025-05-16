@@ -6,6 +6,7 @@
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISenseConfig_Sight.h"
 #include "Perception/AISenseConfig_Damage.h"
+#include "Perception/AISenseConfig_Hearing.h"
 #include "Runtime/AIModule/Classes/AIController.h"
 #include "EnemyController.generated.h"
 
@@ -24,8 +25,8 @@ public:
 	virtual void BeginPlay() override;
 	virtual void OnPossess(APawn* InPawn) override;
 	virtual void OnUnPossess() override;
+	void ClearBlackboardKeys();
 
-	
 
 	UFUNCTION()
 	virtual void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
@@ -42,20 +43,26 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
 	UAIPerceptionComponent* AIPerceptionComponent;
 
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI|Perception")
 	UAISenseConfig_Sight* SightConfig;
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI|Perception")
 	UAISenseConfig_Damage* DamageConfig;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI|Perception")
+	UAISenseConfig_Hearing* HearingConfig;
 
 private:
 	
-	UPROPERTY(EditAnywhere, Category = "AI|Perception")
+	UPROPERTY(EditAnywhere, Category = "AI|Sight")
 	float SightRadius = 1500.f;
-	UPROPERTY(EditAnywhere, Category = "AI|Perception")
+	UPROPERTY(EditAnywhere, Category = "AI|Sight")
 	float LoseSightRadius = 1800.f;
-	UPROPERTY(EditAnywhere, Category = "AI|Perception")
+	UPROPERTY(EditAnywhere, Category = "AI|Sight")
 	float PeripheralVisionAngle = 90.f;
-
+	
+	UPROPERTY(EditAnywhere, Category = "AI|Hearing")
+	float LoudnessThreshold = 0.8f;  
+	UPROPERTY(EditAnywhere, Category = "AI|Hearing")
+	float MinLoudnessToReact = 0.3f;
 	
 	FTimerHandle ForgetPlayerTimerHandle;
 	

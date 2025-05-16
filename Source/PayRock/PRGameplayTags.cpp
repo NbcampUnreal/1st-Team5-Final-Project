@@ -154,6 +154,22 @@ void FPRGameplayTags::InitializeNativeGameplayTags()
        );
 
     /*
+    *   Character Status
+    */
+    GameplayTags.Status_Life_Alive = UGameplayTagsManager::Get().AddNativeGameplayTag(
+       FName("Status.Life.Alive")
+       );
+    GameplayTags.Status_Life_Dead = UGameplayTagsManager::Get().AddNativeGameplayTag(
+       FName("Status.Life.Dead")
+       );
+    GameplayTags.Status_Weapon_Equipped = UGameplayTagsManager::Get().AddNativeGameplayTag(
+       FName("Status.Weapon.Equipped")
+       );
+    GameplayTags.Status_Weapon_Unarmed = UGameplayTagsManager::Get().AddNativeGameplayTag(
+       FName("Status.Weapon.Unarmed")
+       ); 
+    
+    /*
      * Effects
      */
     GameplayTags.Effects_HitReact = UGameplayTagsManager::Get().AddNativeGameplayTag(

@@ -3,6 +3,7 @@
 #include "PRPlayerState.h"
 
 #include "Net/UnrealNetwork.h"
+#include "PayRock/PRGameplayTags.h"
 #include "PayRock/AbilitySystem/PRAbilitySystemComponent.h"
 #include "PayRock/AbilitySystem/PRAttributeSet.h"
 
@@ -25,6 +26,7 @@ void APRPlayerState::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>&
 
 	DOREPLIFETIME(APRPlayerState, Level);
 	DOREPLIFETIME(APRPlayerState, bIsDead);
+	DOREPLIFETIME(APRPlayerState, bIsExtracted);
 }
 
 UAbilitySystemComponent* APRPlayerState::GetAbilitySystemComponent() const
@@ -32,7 +34,49 @@ UAbilitySystemComponent* APRPlayerState::GetAbilitySystemComponent() const
 	return AbilitySystemComponent;
 }
 
+void APRPlayerState::SetIsDead(bool bDead)
+{
+	if (HasAuthority())
+	{
+		bIsDead = bDead;	
+	}
+}
+
+void APRPlayerState::SetIsExtracted(bool bExtracted)
+{
+	if (HasAuthority())
+	{
+		bIsExtracted = bExtracted;	
+	}
+}
+
+void APRPlayerState::ForceDeath()
+{
+	FGameplayTagContainer TagContainer;
+	TagContainer.AddTag(FPRGameplayTags::Get().Status_Life_Dead);
+	GetAbilitySystemComponent()->TryActivateAbilitiesByTag(TagContainer);
+}
+
 void APRPlayerState::OnRep_Level(int32 OldLevel)
 {
-	
+	if (Level != OldLevel)
+	{
+		OnLevelChangeDelegate.Broadcast(Level);
+	}
+}
+
+void APRPlayerState::OnRep_bIsDead(bool Old_bIsDead)
+{
+	if (bIsDead && !Old_bIsDead)
+	{
+		OnDeathDelegate.Broadcast();
+	}
+}
+
+void APRPlayerState::OnRep_bIsExtracted()
+{
+	if (bIsExtracted)
+	{
+		OnExtractionDelegate.Broadcast();
+	}
 }

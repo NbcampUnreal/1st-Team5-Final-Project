@@ -2,6 +2,7 @@
 
 #include "PRAbilitySystemComponent.h"
 #include "Abilities/BaseGameplayAbility.h"
+#include "PayRock/PRGameplayTags.h"
 
 void UPRAbilitySystemComponent::OnAbilityActorInfoInitialized()
 {
