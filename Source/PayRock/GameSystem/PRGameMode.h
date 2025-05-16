@@ -27,7 +27,8 @@ protected: // For Class Member variable
 public: // For Class Member Function
 	
 	virtual AActor* ChooseMatchStartSpot();
-	
+
+	void EndThisMatch();
 protected: // For Class Member Function
 
 	APRGameMode();
@@ -38,5 +39,4 @@ protected: // For Class Member Function
 	
 	virtual void Logout(AController* Exiting) override;
 
-	void EndThisMatch();
 };

@@ -695,8 +695,8 @@ void APRCharacter::Die(/*const FHitResult& HitResult*/)
     if (HasAuthority())
     {
         GetPlayerState<APRPlayerState>()->SetIsDead(true);
-        MulticastRagdoll();
     }
+    MulticastRagdoll();
     // Ragdoll
     // MulticastRagdoll();
 }

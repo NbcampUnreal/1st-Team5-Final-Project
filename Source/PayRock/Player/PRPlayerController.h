@@ -48,9 +48,27 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> AimAction;
 
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UUserWidget> DeathOptionsWidgetClass;
+	
+	UFUNCTION(Client, Reliable)
+	void Client_ShowDeathOptions();
+
+	void StartSpectating();
+	void SpectateNext();
+	void SpectatePrevious();
+	
 protected:
 	virtual void BeginPlay() override;
 
 private:
+	void SetSpectateTarget(AActor* NewTarget);
 
+	UPROPERTY()
+	TArray<AActor*> SpectateTargets;
+
+	int32 CurrentSpectateIndex = -1;
+
+	UPROPERTY()
+	UUserWidget* DeathOptionsWidget;
 };
