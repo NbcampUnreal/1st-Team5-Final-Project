@@ -1,4 +1,4 @@
-﻿#include "EnemyController.h"
+#include "EnemyController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "Perception/AIPerceptionComponent.h"
@@ -113,6 +113,7 @@ void AEnemyController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stim
 	{
 		UE_LOG(LogTemp, Log, TEXT(" AI heard sound: %s | Strength: %.2f"), *Actor->GetName(), Stimulus.Strength);
 
+		break;
 		if (Stimulus.Strength >= LoudnessThreshold)
 		{
 			BlackboardComponent->SetValueAsObject(TEXT("TargetActor"), Actor);
@@ -125,6 +126,7 @@ void AEnemyController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stim
 			Enemy->SetActorRotation(FRotator(0.f, LookRot.Yaw, 0.f));
 			UE_LOG(LogTemp, Log, TEXT("AI looks toward weak sound at %s"), *Stimulus.StimulusLocation.ToString());
 		}
+		break;
 	}
 	else if (Stimulus.Type == SightID || Stimulus.Type == DamageID)
 	{

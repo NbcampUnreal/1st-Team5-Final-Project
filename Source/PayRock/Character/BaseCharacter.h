@@ -35,6 +35,8 @@ public:
 	virtual void Die(/*const FHitResult& HitResult*/);
 	UFUNCTION(BlueprintCallable)
 	virtual UAnimMontage* GetDeathMontage();
+	UFUNCTION(BlueprintCallable)
+	void ForceDeath();
 
 protected:
 	virtual void BeginPlay() override;

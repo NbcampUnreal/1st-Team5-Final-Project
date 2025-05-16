@@ -14,8 +14,6 @@ class USpringArmComponent; // 스프링 암 관련 클래스 헤더
 class UCameraComponent; // 카메라 관련 클래스 전방 선언
 struct FInputActionValue; // Enhanced Input에서 액션 값을 받을 때 사용하는 구조체
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDeathDelegate);
-
 UCLASS()
 class PAYROCK_API APRCharacter : public ABaseCharacter
 {
@@ -30,7 +28,9 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 
 	virtual void Die(/*const FHitResult& HitResult*/) override;
-	FOnDeathDelegate OnDeathDelegate;
+
+	UFUNCTION(BlueprintCallable)
+	void Extract();
 
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastRagdoll();

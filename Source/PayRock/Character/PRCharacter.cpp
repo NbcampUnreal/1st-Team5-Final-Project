@@ -697,9 +697,16 @@ void APRCharacter::Die(/*const FHitResult& HitResult*/)
         GetPlayerState<APRPlayerState>()->SetIsDead(true);
         MulticastRagdoll();
     }
-    OnDeathDelegate.Broadcast();
     // Ragdoll
     // MulticastRagdoll();
+}
+
+void APRCharacter::Extract()
+{
+    if (HasAuthority())
+    {
+        GetPlayerState<APRPlayerState>()->SetIsExtracted(true);
+    }
 }
 
 void APRCharacter::MulticastRagdoll_Implementation()
