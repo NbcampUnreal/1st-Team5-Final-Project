@@ -694,19 +694,19 @@ void APRCharacter::Die(/*const FHitResult& HitResult*/)
 
     if (HasAuthority())
     {
-        GetPlayerState<APRPlayerState>()->SetIsDead(true);
+        if (APRPlayerState* PS = GetPlayerState<APRPlayerState>())
+        {
+            PS->SetIsDead(true);
+        }
+        else
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "PlayerState casting failed");
+        }
     }
+    //UnPossessed();
     MulticastRagdoll();
     // Ragdoll
     // MulticastRagdoll();
-}
-
-void APRCharacter::Extract()
-{
-    if (HasAuthority())
-    {
-        GetPlayerState<APRPlayerState>()->SetIsExtracted(true);
-    }
 }
 
 void APRCharacter::MulticastRagdoll_Implementation()
