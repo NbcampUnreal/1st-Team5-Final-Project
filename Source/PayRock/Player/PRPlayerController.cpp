@@ -13,7 +13,7 @@
 APRPlayerController::APRPlayerController()
 {
 	bReplicates = true;
-	DeathOptionsWidgetClass = nullptr;
+	// DeathOptionsWidgetClass = nullptr;
 }
 
 void APRPlayerController::BeginPlay()
