@@ -6,7 +6,7 @@
 #include "GameFramework/Character.h"
 #include "Net/UnrealNetwork.h"
 #include "PayRock/PRGameplayTags.h"
-#include "PayRock/Character/CombatInterface.h"
+#include "PayRock/Character/BaseCharacter.h"
 
 UPRAttributeSet::UPRAttributeSet()
 {
@@ -51,7 +51,7 @@ void UPRAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 	DOREPLIFETIME_CONDITION_NOTIFY(UPRAttributeSet, Mana, COND_None, REPNOTIFY_Always);
 }
 
-/*
+
 void UPRAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
 {
 	Super::PreAttributeChange(Attribute, NewValue);
@@ -65,7 +65,7 @@ void UPRAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, fl
 		NewValue = FMath::Clamp(NewValue, 0.f, GetMaxMana());
 	}
 }
-*/
+
 
 void UPRAttributeSet::SetEffectProperties(const FGameplayEffectModCallbackData& Data, FEffectProperties& Props)
 {
@@ -109,22 +109,14 @@ void UPRAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
 
 	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
 	{
-		UE_LOG(LogTemp, Warning, TEXT(
-			"TICK DEBUG -- GetHealth() : %1f / Base: %.1f / GetMaxHealth() : %.1f"),
-			GetHealth(), GetOwningAbilitySystemComponent()->GetNumericAttributeBase(GetHealthAttribute()), GetMaxHealth());
-
-		float Current = GetHealth();
-		float Amount = Data.EvaluatedData.Magnitude;
-		float NewHealth = FMath::Clamp(Current + Amount, 0.f, GetMaxHealth());
-		SetHealth(NewHealth);
+		SetHealth(FMath::Clamp(GetHealth(), 0.f, GetMaxHealth()));
 
 		const float HealthCurrent = GetHealth();
 		const float HealthBase = GetOwningAbilitySystemComponent()->GetNumericAttributeBase(GetHealthAttribute());
 		UE_LOG(LogTemp, Warning, TEXT(
 			"after --> AvatarActor: %s / Amount: %f / Health(Current): %f / GetHealth(Base): %f"),
 			*GetOwningAbilitySystemComponent()->GetAvatarActor()->GetName(),
-			Amount, HealthCurrent, HealthBase);
-		UE_LOG(LogTemp, Warning, TEXT(">>> GetHealth()/GetMaxHealth() : %.1f / %.1f"), GetHealth(), GetMaxHealth()); //test
+			Data.EvaluatedData.Magnitude, HealthCurrent, HealthBase);
 	}
 	if (Data.EvaluatedData.Attribute == GetManaAttribute())
 	{
@@ -151,11 +143,9 @@ void UPRAttributeSet::HandleIncomingDamage(const FEffectProperties& Props, const
 		AttributeChangeData.OldValue = GetHealth();
 		AttributeChangeData.NewValue = NewHealth;
 		
-		//SetHealth(NewHealth);
-		GetHealthAttribute().SetNumericValueChecked(NewHealth, this);
-		
-		GetOwningAbilitySystemComponent()->GetGameplayAttributeValueChangeDelegate(
-			GetHealthAttribute()).Broadcast(AttributeChangeData);
+		SetHealth(NewHealth);
+		//GetHealthAttribute().SetNumericValueChecked(NewHealth, this);
+		Props.TargetASC->GetGameplayAttributeValueChangeDelegate(GetHealthAttribute()).Broadcast(AttributeChangeData);
 
 		const float HealthCurrent = GetHealth();
 		const float HealthBase = GetOwningAbilitySystemComponent()->GetNumericAttributeBase(GetHealthAttribute());
@@ -167,9 +157,14 @@ void UPRAttributeSet::HandleIncomingDamage(const FEffectProperties& Props, const
 		if (NewHealth <= 0.f)
 		{
 			// Handle death
+			// option 1: (몽타주 재생 필요 시) 태그 달린 어빌리티로 몽타주 재생 및 Die 함수 호출
 			FGameplayTagContainer TagContainer;
 			TagContainer.AddTag(FPRGameplayTags::Get().Status_Life_Dead);
 			Props.TargetASC->TryActivateAbilitiesByTag(TagContainer);
+
+			/*const FHitResult* HitResult = Data.EffectSpec.GetContext().GetHitResult();
+			Cast<ABaseCharacter>(Props.TargetCharacter)->Die(CalculatedDamage,
+				HitResult == nullptr ? FHitResult() : *HitResult);*/
 		}
 		else
 		{

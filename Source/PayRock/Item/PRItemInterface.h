@@ -27,7 +27,7 @@ public:
 	
 	virtual TSubclassOf<UGameplayAbility> GetAbilities() const = 0;
 
-	virtual float GetAbilityLevel() const = 0;
+	virtual int32 GetAbilityLevel() const = 0;
 
 	virtual int32 GetItemPrice() const = 0;
 };

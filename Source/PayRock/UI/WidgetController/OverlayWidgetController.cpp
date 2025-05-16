@@ -3,6 +3,8 @@
 #include "PayRock/UI/WidgetController/OverlayWidgetController.h"
 #include "PayRock/AbilitySystem/PRAbilitySystemComponent.h"
 #include "PayRock/AbilitySystem/PRAttributeSet.h"
+#include "PayRock/GameSystem/PRGameState.h"
+#include "PayRock/Player/PRPlayerState.h"
 
 void UOverlayWidgetController::BroadcastInitialValues()
 {
@@ -24,6 +26,7 @@ void UOverlayWidgetController::BindCallbacksToDependencies()
 		PRAttributeSet->GetManaAttribute()).AddUObject(this, &UOverlayWidgetController::ManaChanged);
 	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
 		PRAttributeSet->GetMaxManaAttribute()).AddUObject(this, &UOverlayWidgetController::MaxManaChanged);
+
 	Cast<UPRAbilitySystemComponent>(AbilitySystemComponent)->EffectAssetTagsDelegate.AddLambda(
 		[this](const FGameplayTagContainer& AssetTags)
 		{
@@ -34,6 +37,13 @@ void UOverlayWidgetController::BindCallbacksToDependencies()
 			}
 		}
 	);
+
+	if (APRPlayerState* PS = Cast<APRPlayerState>(PlayerState))
+	{
+		PS->OnDeathDelegate.AddUObject(this, &UOverlayWidgetController::BroadcastDeath);
+		PS->OnExtractionDelegate.AddUObject(this, &UOverlayWidgetController::BroadcastExtraction);
+		PS->OnLevelChangeDelegate.AddUObject(this, &UOverlayWidgetController::BroadcastLevelChange);
+	}
 }
 
 void UOverlayWidgetController::HealthChanged(const FOnAttributeChangeData& Data) const
@@ -54,4 +64,19 @@ void UOverlayWidgetController::ManaChanged(const FOnAttributeChangeData& Data) c
 void UOverlayWidgetController::MaxManaChanged(const FOnAttributeChangeData& Data) const
 {
 	OnMaxManaChanged.Broadcast(Data.NewValue);
+}
+
+void UOverlayWidgetController::BroadcastDeath() const
+{
+	OnDeath.Broadcast();
+}
+
+void UOverlayWidgetController::BroadcastExtraction() const
+{
+	OnExtraction.Broadcast();
+}
+
+void UOverlayWidgetController::BroadcastLevelChange(int32 NewLevel) const
+{
+	OnLevelChange.Broadcast(NewLevel);
 }

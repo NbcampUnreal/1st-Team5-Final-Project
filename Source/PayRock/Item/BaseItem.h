@@ -23,7 +23,7 @@ protected:
 	TSubclassOf<UGameplayAbility> PassiveAbilityClass;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Item")
-	float AbilityLevel;
+	int32 AbilityLevel;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Item")
 	FString ItemName;
@@ -44,7 +44,7 @@ public:
 
 	virtual TSubclassOf<UGameplayAbility> GetAbilities() const override;
 	
-	virtual float GetAbilityLevel() const override;
+	virtual int32 GetAbilityLevel() const override;
 	
 	virtual int32 GetItemPrice() const override;
 };

@@ -63,6 +63,8 @@ public:
 
 	FGameplayTag Status_Life_Dead;
 	FGameplayTag Status_Life_Alive;
+	FGameplayTag Status_Weapon_Equipped;
+	FGameplayTag Status_Weapon_Unarmed;
 
 	FGameplayTag Effects_HitReact;
 

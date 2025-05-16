@@ -32,7 +32,11 @@ public:
 
 	/* Death */
 	UFUNCTION(BlueprintCallable)
-	virtual void Die();
+	virtual void Die(/*const FHitResult& HitResult*/);
+	UFUNCTION(BlueprintCallable)
+	virtual UAnimMontage* GetDeathMontage();
+	UFUNCTION(BlueprintCallable)
+	void ForceDeath();
 
 protected:
 	virtual void BeginPlay() override;
@@ -73,4 +77,6 @@ protected:
 private:
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	TArray<UAnimMontage*> HitReactMontages;
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	TArray<UAnimMontage*> DeathMontages;
 };
