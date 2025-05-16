@@ -61,6 +61,9 @@ public:
 	FGameplayTag Damage_Physical;
 	FGameplayTag Damage_Magic;
 
+	FGameplayTag Status_Life_Dead;
+	FGameplayTag Status_Life_Alive;
+
 	FGameplayTag Effects_HitReact;
 
 	FGameplayTag Ability_Attack;

@@ -688,11 +688,32 @@ void APRCharacter::Tick(float DeltaSeconds)
     bIsCrouching = GetCharacterMovement()->IsCrouching();
 }
 
-void APRCharacter::Die()
+void APRCharacter::Die(/*const FHitResult& HitResult*/)
 {
     Super::Die();
+
+    if (HasAuthority())
+    {
+        GetPlayerState<APRPlayerState>()->SetIsDead(true);
+        MulticastRagdoll();
+    }
+    OnDeathDelegate.Broadcast();
+    // Ragdoll
+    // MulticastRagdoll();
 }
 
+void APRCharacter::MulticastRagdoll_Implementation()
+{
+    if (APlayerController* PC = Cast<APlayerController>(GetController()))
+    {
+        DisableInput(PC);
+    }
+	
+    USkeletalMeshComponent* CharacterMesh = GetMesh();
+    CharacterMesh->SetSimulatePhysics(true);
+    CharacterMesh->SetCollisionProfileName(FName("Ragdoll"));
+    CharacterMesh->WakeAllRigidBodies();
+}
 
 float APRCharacter::CalculateDirectionCustom(const FVector& Velocity, const FRotator& BaseRotation)
 {

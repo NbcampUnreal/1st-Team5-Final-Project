@@ -3,6 +3,7 @@
 #include "BaseCharacter.h"
 #include "AbilitySystemComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "PayRock/PRGameplayTags.h"
 
 ABaseCharacter::ABaseCharacter()
@@ -14,7 +15,7 @@ ABaseCharacter::ABaseCharacter()
 	GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 
 	Weapon = CreateDefaultSubobject<USkeletalMeshComponent>("Weapon");
-	Weapon->SetupAttachment(GetMesh(), FName("RightHandSocket"));
+	Weapon->SetupAttachment(GetMesh(), WeaponSocketName);
 	Weapon->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
@@ -38,8 +39,43 @@ void ABaseCharacter::OnHitReactTagChanged(const FGameplayTag ChangedTag, int32 T
 	bHitReact = TagCount > 0;
 }
 
-void ABaseCharacter::Die()
+const UAnimMontage* ABaseCharacter::GetHitReactMontage()
 {
+	if (HitReactMontages.IsEmpty())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("HitReactMontages TArray is empty. Please assign montages in BP."))
+	}
+
+	return HitReactMontages[FMath::RandRange(0, HitReactMontages.Num() - 1)];
+}
+
+void ABaseCharacter::Die(/*const FHitResult& HitResult*/)
+{
+	if (HasAuthority())
+	{
+		GetCharacterMovement()->DisableMovement();
+		GetCharacterMovement()->StopMovementImmediately();
+	
+		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		
+		/*if (HitResult.bBlockingHit)
+		{
+			FVector Impulse = -HitResult.ImpactNormal * 10000.f;
+			Impulse = Impulse.GetClampedToMaxSize(100000.f);
+			GetMesh()->AddImpulseAtLocation(Impulse, HitResult.ImpactPoint, HitResult.BoneName);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Die - Not a blocking hit. No Impulse applied"));
+		}*/
+	}
+}
+
+UAnimMontage* ABaseCharacter::GetDeathMontage()
+{
+	if (DeathMontages.IsEmpty()) return nullptr;
+
+	return DeathMontages[FMath::RandRange(0, DeathMontages.Num() - 1)];
 }
 
 void ABaseCharacter::BeginPlay()

@@ -17,10 +17,10 @@ void UBaseDamageGameplayAbility::ActivateAbility(const FGameplayAbilitySpecHandl
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 }
 
-void UBaseDamageGameplayAbility::CauseDamage(AActor* TargetActor)
+void UBaseDamageGameplayAbility::CauseDamage(AActor* TargetActor /*, const FHitResult& InHitResult*/)
 {
 	if (!GetAvatarActorFromActorInfo()->HasAuthority()) return;
-	
+	// HitResult = InHitResult;
 	if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor))
 	{
 		FGameplayEffectSpecHandle DamageEffectSpecHandle = MakeOutgoingGameplayEffectSpec(DamageEffectClass, 1.f);

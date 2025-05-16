@@ -23,6 +23,7 @@ public:
 	FORCEINLINE int32 GetCharacterLevel() const { return Level; };
 
 	FORCEINLINE bool GetIsDead() const { return bIsDead; };
+	void SetIsDead(bool bDead);
 
 private:
 	UFUNCTION()

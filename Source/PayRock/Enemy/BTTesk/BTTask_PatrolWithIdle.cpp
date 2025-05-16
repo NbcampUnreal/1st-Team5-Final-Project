@@ -1,113 +1,90 @@
 #include "BTTask_PatrolWithIdle.h"
 #include "AIController.h"
-#include "NavigationSystem.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "DrawDebugHelpers.h"
+#include "NavigationSystem.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "NavigationPath.h"
+#include "DrawDebugHelpers.h"
+#include "Navigation/PathFollowingComponent.h"
 
 UBTTask_PatrolWithIdle::UBTTask_PatrolWithIdle()
 {
-    NodeName = "Patrol With Idle";
-    bNotifyTick = true;
-    bNotifyTaskFinished = true;
+	NodeName = "Patrol With Idle (Tick Accumulation)";
+	bNotifyTick = true;
+	bNotifyTaskFinished = true;
+	bCreateNodeInstance = true;
 }
 
 EBTNodeResult::Type UBTTask_PatrolWithIdle::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-    CachedOwnerComp = &OwnerComp;
-    bReachedDestination = false;
-    bWaitingForIdle = false;
+	FPatrolIdleMemory* Memory = (FPatrolIdleMemory*)NodeMemory;
+	Memory->ElapsedTime = 0.f;
+	Memory->bWaitingForIdle = false;
 
-    AAIController* AICon = OwnerComp.GetAIOwner();
-    APawn* Pawn = AICon ? AICon->GetPawn() : nullptr;
-    if (!Pawn) return EBTNodeResult::Failed;
+	AAIController* AICon = OwnerComp.GetAIOwner();
+	APawn* Pawn = AICon ? AICon->GetPawn() : nullptr;
+	if (!Pawn) return EBTNodeResult::Failed;
 
-    UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
-    if (!BB) return EBTNodeResult::Failed;
+	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
+	if (!BB) return EBTNodeResult::Failed;
 
-    FVector StartPosition = BB->GetValueAsVector("StartPosition");
-    
-    DrawDebugSphere(GetWorld(), StartPosition, PatrolRadius, 12, FColor::Green, false, 5.0f, 0, 2.0f);
-    FNavLocation RandomLocation;
-    UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(GetWorld());
-    if (NavSys && NavSys->GetRandomReachablePointInRadius(StartPosition, PatrolRadius, RandomLocation))
-    {
-        ACharacter* Character = Cast<ACharacter>(Pawn);
-        if (Character && Character->GetCharacterMovement())
-        {
-            Character->GetCharacterMovement()->MaxWalkSpeed = PatrolMoveSpeed; 
-        }
-        AICon->MoveToLocation(RandomLocation.Location, 50.f, true);
-        return EBTNodeResult::InProgress;
-    }
+	FVector StartPosition = BB->GetValueAsVector("StartPosition");
 
-    return EBTNodeResult::Failed;
+	FNavLocation RandomLocation;
+	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(GetWorld());
+
+	if (NavSys && NavSys->GetRandomReachablePointInRadius(StartPosition, PatrolRadius, RandomLocation))
+	{
+		if (ACharacter* Character = Cast<ACharacter>(Pawn))
+		{
+			if (UCharacterMovementComponent* Move = Character->GetCharacterMovement())
+			{
+				Move->MaxWalkSpeed = PatrolMoveSpeed;
+			}
+		}
+		AICon->MoveToLocation(RandomLocation.Location, 50.f, true);
+		return EBTNodeResult::InProgress;
+	}
+
+	return EBTNodeResult::Failed;
 }
 
 void UBTTask_PatrolWithIdle::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
-    Super::TickTask(OwnerComp, NodeMemory, DeltaSeconds);
+	Super::TickTask(OwnerComp, NodeMemory, DeltaSeconds);
 
-    UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
-    if (!BB || !CachedOwnerComp) return;
+	FPatrolIdleMemory* Memory = (FPatrolIdleMemory*)NodeMemory;
+	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
+	AAIController* AICon = OwnerComp.GetAIOwner();
+	APawn* Pawn = AICon ? AICon->GetPawn() : nullptr;
 
-    AAIController* AICon = OwnerComp.GetAIOwner();
-    if (!AICon) return;
+	if (!BB || !AICon || !Pawn) return;
 
-    if (BB->GetValueAsBool("bPlayerDetected"))
-    {
-        ACharacter* Character = Cast<ACharacter>(AICon->GetPawn());
-        if (Character && Character->GetCharacterMovement())
-        {
-            Character->GetCharacterMovement()->MaxWalkSpeed = 600.0f;
-        }
-        
-        GetWorld()->GetTimerManager().ClearTimer(IdleTimerHandle);
+	if (BB->GetValueAsBool("bPlayerDetect"))
+	{
+		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+		return;
+	}
 
-        if (bWaitingForIdle || !bReachedDestination)
-        {
-            bWaitingForIdle = false;
-            FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
-        }
+	if (!Memory->bWaitingForIdle && AICon->GetPathFollowingComponent()->GetStatus() == EPathFollowingStatus::Idle)
+	{
+		Memory->bWaitingForIdle = true;
+		Memory->ElapsedTime = 0.f;
+		return;
+	}
 
-        return;
-    }
-
-    if (!bReachedDestination)
-    {
-        EPathFollowingStatus::Type Status = AICon->GetPathFollowingComponent()->GetStatus();
-        if (Status == EPathFollowingStatus::Idle) 
-        {
-            bReachedDestination = true;
-            StartIdleDelay();
-        }
-    }
+	if (Memory->bWaitingForIdle)
+	{
+		Memory->ElapsedTime += DeltaSeconds;
+		if (Memory->ElapsedTime >= IdleDuration)
+		{
+			FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+		}
+	}
 }
 
-void UBTTask_PatrolWithIdle::OnTaskFinished(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, EBTNodeResult::Type TaskResult)
+uint16 UBTTask_PatrolWithIdle::GetInstanceMemorySize() const
 {
-    Super::OnTaskFinished(OwnerComp, NodeMemory, TaskResult);
-    
-    GetWorld()->GetTimerManager().ClearTimer(IdleTimerHandle);
-    
-    bWaitingForIdle = false;
-}
-
-void UBTTask_PatrolWithIdle::StartIdleDelay()
-{
-    if (!CachedOwnerComp) return;
-
-    bWaitingForIdle = true;
-
-    GetWorld()->GetTimerManager().SetTimer(IdleTimerHandle, [this]()
-    {
-        if (CachedOwnerComp)
-        {
-            bWaitingForIdle = false;
-            FinishLatentTask(*CachedOwnerComp, EBTNodeResult::Succeeded);
-        }
-    }, IdleDuration, false);
-
-    
+	return sizeof(FPatrolIdleMemory);
 }
