@@ -7,7 +7,7 @@
 #include "MarketClownMonster.generated.h"
 
 UENUM(BlueprintType)
-enum class EMaskType : uint8
+enum class ETalMaskType : uint8
 {
 	Yangban UMETA(DisplayName = "양반"),
 	Imae UMETA(DisplayName = "이매"),
@@ -27,7 +27,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UFUNCTION(BlueprintCallable)
-	void ApplyMaskBehavior(EMaskType MaskType);
+	void ApplyMaskBehavior(ETalMaskType MaskType);
 	UFUNCTION(BlueprintCallable)
 	void SplitOnDeath();
 	void InitSplitLevel(int32 InLevel);
@@ -35,7 +35,7 @@ public:
 	UAnimMontage* GetCurrentMaskAttackMontage() const;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mask")
-	EMaskType CurrentMask;
+	ETalMaskType CurrentMask;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "MaskAttack")

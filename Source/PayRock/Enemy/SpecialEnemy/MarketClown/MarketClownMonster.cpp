@@ -6,7 +6,7 @@
 AMarketClownMonster::AMarketClownMonster()
 {
 	PrimaryActorTick.bCanEverTick = true;
-	CurrentMask = EMaskType::Yangban;
+	CurrentMask = ETalMaskType::Yangban;
 }
 
 void AMarketClownMonster::BeginPlay()
@@ -22,22 +22,22 @@ void AMarketClownMonster::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void AMarketClownMonster::ApplyMaskBehavior(EMaskType Mask)
+void AMarketClownMonster::ApplyMaskBehavior(ETalMaskType Mask)
 {
 	CurrentMask = Mask;
 
 	switch (Mask)
 	{
-	case EMaskType::Yangban:
+	case ETalMaskType::Yangban:
 		GetCharacterMovement()->MaxWalkSpeed = YangbanSpeed;
 		break;
-	case EMaskType::Imae:
+	case ETalMaskType::Imae:
 		GetCharacterMovement()->MaxWalkSpeed = ImaeSpeed;
 		break;
-	case EMaskType::Baekjeong:
+	case ETalMaskType::Baekjeong:
 		GetCharacterMovement()->MaxWalkSpeed = BaekjeSpeed;
 		break;
-	case EMaskType::Bune:
+	case ETalMaskType::Bune:
 		GetCharacterMovement()->MaxWalkSpeed = BuneSpeed;
 		break;
 	default:
@@ -59,11 +59,11 @@ void AMarketClownMonster::SplitOnDeath()
 {
 	if (!GetWorld()) return;
 
-	TArray<EMaskType> MaskPool = {
-		EMaskType::Yangban,
-		EMaskType::Imae,
-		EMaskType::Baekjeong,
-		EMaskType::Bune
+	TArray<ETalMaskType> MaskPool = {
+		ETalMaskType::Yangban,
+		ETalMaskType::Imae,
+		ETalMaskType::Baekjeong,
+		ETalMaskType::Bune
 	};
 
 	FVector Origin = GetActorLocation();
@@ -77,7 +77,7 @@ void AMarketClownMonster::SplitOnDeath()
 	for (int i = 0; i < 2; ++i)
 	{
 		FVector SpawnLoc = (i == 0) ? LeftSpawn : RightSpawn;
-		EMaskType RandomMask = MaskPool[FMath::RandRange(0, MaskPool.Num() - 1)];
+		ETalMaskType RandomMask = MaskPool[FMath::RandRange(0, MaskPool.Num() - 1)];
 
 		AMarketClownMonster* Clone = GetWorld()->SpawnActor<AMarketClownMonster>(CloneClass, SpawnLoc, SpawnRotation);
 		if (Clone)
