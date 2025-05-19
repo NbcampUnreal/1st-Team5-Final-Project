@@ -34,10 +34,9 @@ public:
 	
 	UAnimMontage* GetCurrentMaskAttackMontage() const;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mask")
+	UPROPERTY(EditDefaultsOnly, Category = "Mask")
 	ETalMaskType CurrentMask;
 
-	
 
 protected:
 
