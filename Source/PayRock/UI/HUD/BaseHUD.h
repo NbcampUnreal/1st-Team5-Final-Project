@@ -19,18 +19,18 @@ class PAYROCK_API ABaseHUD : public AHUD
 
 public:
 	UPROPERTY()
-	TObjectPtr<UBaseUserWidget> OverlayWidget;
+	TObjectPtr<UBaseUserWidget> InGameHUDWidget;
 
 	UFUNCTION(BlueprintCallable)
-	UOverlayWidgetController* GetOverlayWidgetController(const FWidgetControllerParams& WCParams);
+	UOverlayWidgetController* GetInGameHUDWidgetController(const FWidgetControllerParams& WCParams);
 
-	void InitOverlay(APlayerController* PC, APlayerState* PS, UAbilitySystemComponent* ASC, UAttributeSet* AS);
+	void InitInGameHUD(APlayerController* PC, APlayerState* PS, UAbilitySystemComponent* ASC, UAttributeSet* AS);
 
 private:
 	UPROPERTY(EditAnywhere)
-	TSubclassOf<UUserWidget> OverlayWidgetClass;
+	TSubclassOf<UUserWidget> InGameHUDWidgetClass;
 	UPROPERTY()
-	TObjectPtr<UOverlayWidgetController> OverlayWidgetController;
+	TObjectPtr<UOverlayWidgetController> InGameHUDWidgetController;
 	UPROPERTY(EditAnywhere)
-	TSubclassOf<UOverlayWidgetController> OverlayWidgetControllerClass;
+	TSubclassOf<UOverlayWidgetController> InGameHUDWidgetControllerClass;
 };

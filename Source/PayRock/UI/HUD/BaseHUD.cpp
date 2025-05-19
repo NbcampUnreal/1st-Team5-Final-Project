@@ -4,32 +4,32 @@
 #include "PayRock/UI/Widget/BaseUserWidget.h"
 #include "PayRock/UI/WidgetController/OverlayWidgetController.h"
 
-UOverlayWidgetController* ABaseHUD::GetOverlayWidgetController(const FWidgetControllerParams& WCParams)
+UOverlayWidgetController* ABaseHUD::GetInGameHUDWidgetController(const FWidgetControllerParams& WCParams)
 {
-	if (OverlayWidgetController == nullptr)
+	if (InGameHUDWidgetController == nullptr)
 	{
-		OverlayWidgetController = NewObject<UOverlayWidgetController>(this, OverlayWidgetControllerClass);
-		OverlayWidgetController->SetWidgetControllerParams(WCParams);
-		OverlayWidgetController->BindCallbacksToDependencies();
-		return OverlayWidgetController;
+		InGameHUDWidgetController = NewObject<UOverlayWidgetController>(this, InGameHUDWidgetControllerClass);
+		InGameHUDWidgetController->SetWidgetControllerParams(WCParams);
+		InGameHUDWidgetController->BindCallbacksToDependencies();
+		return InGameHUDWidgetController;
 	}
-	return OverlayWidgetController;
+	return InGameHUDWidgetController;
 }
 
-void ABaseHUD::InitOverlay(APlayerController* PC, APlayerState* PS, UAbilitySystemComponent* ASC, UAttributeSet* AS)
+void ABaseHUD::InitInGameHUD(APlayerController* PC, APlayerState* PS, UAbilitySystemComponent* ASC, UAttributeSet* AS)
 {
-	checkf(OverlayWidgetClass, TEXT("OverlayWidgetClass uninitialized - BP_BaseHUD"));
-	checkf(OverlayWidgetControllerClass, TEXT("OverlayWidgetControllerClass uninitialized - BP_BaseHUD"));
+	checkf(InGameHUDWidgetClass, TEXT("InGameHUDWidgetClass uninitialized - BP_BaseHUD"));
+	checkf(InGameHUDWidgetControllerClass, TEXT("InGameHUDWidgetControllerClass uninitialized - BP_BaseHUD"));
 
-	// Create OverlayWidget
-	OverlayWidget = CreateWidget<UBaseUserWidget>(GetWorld(), OverlayWidgetClass);
+	// Create InGameHUDWidget
+	InGameHUDWidget = CreateWidget<UBaseUserWidget>(GetWorld(), InGameHUDWidgetClass);
 
-	// Construct and assign OverlayWidgetController to OverlayWidget
+	// Construct and assign InGameHUDWidgetController to InGameHUDWidget
 	const FWidgetControllerParams WCParams(PC, PS, ASC, AS);
-	OverlayWidget->SetWidgetController(GetOverlayWidgetController(WCParams));
+	InGameHUDWidget->SetWidgetController(GetInGameHUDWidgetController(WCParams));
 
-	// Broadcast initial values after OverlayWidgetController has been initialized
-	OverlayWidgetController->BroadcastInitialValues();
+	// Broadcast initial values after InGameHUDWidgetController has been initialized
+	InGameHUDWidgetController->BroadcastInitialValues();
 	
-	OverlayWidget->AddToViewport();
+	InGameHUDWidget->AddToViewport();
 }

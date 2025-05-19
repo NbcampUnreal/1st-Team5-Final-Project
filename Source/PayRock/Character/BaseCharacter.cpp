@@ -62,6 +62,11 @@ void ABaseCharacter::Die(/*const FHitResult& HitResult*/)
 		GetCharacterMovement()->StopMovementImmediately();
 	
 		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+		if (HasAuthority())
+		{
+			SpawnLootContainer();
+		}
 		
 		/*if (HitResult.bBlockingHit)
 		{

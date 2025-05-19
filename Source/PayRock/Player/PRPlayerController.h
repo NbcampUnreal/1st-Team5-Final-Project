@@ -10,8 +10,6 @@ struct FInputActionValue;
 class UInputMappingContext;
 class UInputAction;
 
-DECLARE_MULTICAST_DELEGATE(FShowLeaveOptionsDelegate)
-
 UCLASS()
 class PAYROCK_API APRPlayerController : public APlayerController
 {
@@ -72,7 +70,6 @@ public:
 	void SpectatePrevious();
 
 	FString GetNetModeAsString() const; // 디버깅용 함수
-	FShowLeaveOptionsDelegate ShowLeaveOptionsDelegate;
 
 	UFUNCTION(Client, Reliable)
 	void Client_OnSpectateTargetDied(AActor* DeadActor);
