@@ -138,7 +138,7 @@ void APRCharacter::AddCharacterAbilities()
 void APRCharacter::InitAbilityActorInfo()
 {
     APRPlayerState* PRPlayerState = GetPlayerState<APRPlayerState>();
-    check(PRPlayerState);
+    if(!PRPlayerState) return;
     AbilitySystemComponent = PRPlayerState->GetAbilitySystemComponent();
     AbilitySystemComponent->InitAbilityActorInfo(PRPlayerState, this);
     Cast<UPRAbilitySystemComponent>(AbilitySystemComponent)->OnAbilityActorInfoInitialized();
