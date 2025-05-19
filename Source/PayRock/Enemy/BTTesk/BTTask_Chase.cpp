@@ -9,6 +9,7 @@ UBTTask_Chase::UBTTask_Chase()
 {
 	NodeName = "Chase Target";
 	bNotifyTaskFinished = true;
+	bNotifyTick = true;
 	bCreateNodeInstance = true;
 }
 
@@ -64,6 +65,23 @@ void UBTTask_Chase::OnMoveCompleted(FAIRequestID RequestID, EPathFollowingResult
 		(Result == EPathFollowingResult::Success) ? EBTNodeResult::Succeeded : EBTNodeResult::Failed;
 
 	FinishLatentTask(*CachedOwnerComp, FinalResult);
+}
+
+void UBTTask_Chase::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
+{
+	Super::TickTask(OwnerComp, NodeMemory, DeltaSeconds);
+	
+
+	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
+	AAIController* AICon = OwnerComp.GetAIOwner();
+
+	if (!BB || !AICon) return;
+
+	if (BB->GetValueAsBool("bIsBeingWatched"))
+	{
+		AICon->StopMovement();
+		FinishLatentTask(OwnerComp, EBTNodeResult::Aborted);
+	}
 }
 
 void UBTTask_Chase::OnTaskFinished(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, EBTNodeResult::Type TaskResult)
