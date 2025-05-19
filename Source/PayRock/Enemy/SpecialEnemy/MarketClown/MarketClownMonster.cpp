@@ -1,9 +1,7 @@
 #include "MarketClownMonster.h"
-#include "MarketClownMonsterController.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Animation/AnimInstance.h"
 #include "Components/CapsuleComponent.h"
-#include "Kismet/GameplayStatics.h"
 #include "PayRock/AbilitySystem/PRAttributeSet.h"
 
 AMarketClownMonster::AMarketClownMonster()
@@ -16,9 +14,6 @@ AMarketClownMonster::AMarketClownMonster()
 	MaskMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	
 	CurrentMask = ETalMaskType::Yangban;
-	
-	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
-	AIControllerClass = AMarketClownMonsterController::StaticClass();
 }
 
 void AMarketClownMonster::BeginPlay()
@@ -95,34 +90,31 @@ void AMarketClownMonster::SplitOnDeath()
 		FVector SpawnLoc = (i == 0) ? LeftSpawn : RightSpawn;
 		ETalMaskType RandomMask = MaskPool[FMath::RandRange(0, MaskPool.Num() - 1)];
 
-		FTransform SpawnTransform = FTransform(SpawnRotation, SpawnLoc);
-		
-		AMarketClownMonster* Clone = GetWorld()->SpawnActorDeferred<AMarketClownMonster>(CloneClass, SpawnTransform, nullptr, nullptr, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
+		AMarketClownMonster* Clone = GetWorld()->SpawnActor<AMarketClownMonster>(CloneClass, SpawnLoc, SpawnRotation);
 		if (Clone)
 		{
 			Clone->MaskAttackMontages = MaskAttackMontages;
 			Clone->ApplyMaskBehavior(RandomMask);
 			Clone->InitSplitLevel(SplitLevel + 1);
 			
-			UGameplayStatics::FinishSpawningActor(Clone, SpawnTransform);
-
-			// ✅ 콜리전 및 이동 가능 상태로 복구
-			Clone->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 			Clone->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
-
-			// ✅ 튀어나오는 느낌의 런치
+			Clone->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+			
 			FVector LaunchDir = (i == 0) ? -GetActorRightVector() : GetActorRightVector();
 			LaunchDir.Z = 0.4f;
-			Clone->LaunchCharacter(LaunchDir.GetSafeNormal() * 400.f, true, true);
+			LaunchDir = LaunchDir.GetSafeNormal();
+
+			FVector LaunchVelocity = LaunchDir * 400.f;
+			Clone->LaunchCharacter(LaunchVelocity, true, true);
 		}
 	}
-
-	Destroy();
+	Destroy(); 
 }
 
 void AMarketClownMonster::InitSplitLevel(int32 InLevel)
 {
 	SplitLevel = InLevel;
+
 	const float Scale = FMath::Clamp(1.f - (SplitLevel * 0.2f), 0.3f, 1.0f);
 
 	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponent())
