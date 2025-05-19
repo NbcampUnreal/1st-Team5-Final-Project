@@ -72,6 +72,8 @@ protected:
 	FTimerHandle AliveCheckTimerHandle;
 
 	FTimerHandle ExtractionActivationTimerHandle;
+
+	FTimerHandle MatchEndTimerHandle;
 	/////////////////////////////////////////////////////////////////////
 
 public:
@@ -92,7 +94,7 @@ public:
 
 	void CheckAlivePlayers(); // 플레이어가 모두 사망했는지 체크
 	
-	void MatchEnd() const; // 매치 끝
+	void MatchEnd(); // 매치 끝
 	//////////////////////////////////////////////////////////////////////
 	
 protected:
@@ -120,6 +122,8 @@ protected:
 	void TickMatchTimer();
 	
 	UFUNCTION()
-	void OnRep_RemainingMatchTime();
+	void OnRep_RemainingMatchTime() const;
+
+	void CallTheGmToEnd();
 	/////////////////////////////////////////////////////////////////////
 };
