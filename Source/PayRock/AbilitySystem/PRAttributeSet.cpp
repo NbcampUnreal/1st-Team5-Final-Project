@@ -178,12 +178,8 @@ void UPRAttributeSet::HandleIncomingDamage(const FEffectProperties& Props, const
 
 float UPRAttributeSet::GetCalculatedDamage(float LocalIncomingDamage, const FEffectProperties& Props)
 {
-	// Block Chance --> 10% damage
-	if (FMath::RandRange(0, 100) < GetBlockChance())
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Blocked!"));
-		return LocalIncomingDamage * 0.1f;
-	}
+	// TODO: Block
+	
 	
 	const UPRAttributeSet* AttackerAttributeSet =
 		Cast<UPRAttributeSet>(Props.SourceASC->GetAttributeSet(UPRAttributeSet::StaticClass()));

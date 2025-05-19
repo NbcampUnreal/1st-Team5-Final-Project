@@ -20,6 +20,7 @@ public:
 	void PauseAnimation();
 	void ResumeAnimation();
 
+
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CollisionComponent")
 	UCapsuleComponent* WeaponCollision;

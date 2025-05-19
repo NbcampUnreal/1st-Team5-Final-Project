@@ -64,8 +64,7 @@ void UGA_ClownAttack::ActivateAbility(
 	{
 		ApplyCooldown(Handle, ActorInfo, ActivationInfo);
 	}
-
-	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+	
 }
 
 void UGA_ClownAttack::OnMontageEnded(UAnimMontage* Montage, bool bInterrupted)
@@ -74,6 +73,7 @@ void UGA_ClownAttack::OnMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 	{
 		ResetBlackboardAttackState(Boss);
 	}
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, bInterrupted);
 }
 
 void UGA_ClownAttack::ResetBlackboardAttackState(AMarketClownMonster* Boss)
@@ -83,6 +83,7 @@ void UGA_ClownAttack::ResetBlackboardAttackState(AMarketClownMonster* Boss)
 		if (UBlackboardComponent* BB = AICon->GetBlackboardComponent())
 		{
 			BB->SetValueAsBool(FName("bIsBusy"), false);
+			BB->SetValueAsBool(FName("bIsAttacking"), false);
 		}
 	}
 }
