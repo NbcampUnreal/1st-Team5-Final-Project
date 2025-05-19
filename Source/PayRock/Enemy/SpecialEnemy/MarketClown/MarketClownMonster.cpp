@@ -105,12 +105,10 @@ void AMarketClownMonster::SplitOnDeath()
 			Clone->InitSplitLevel(SplitLevel + 1);
 			
 			UGameplayStatics::FinishSpawningActor(Clone, SpawnTransform);
-
-			// ✅ 콜리전 및 이동 가능 상태로 복구
+			
 			Clone->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 			Clone->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
-
-			// ✅ 튀어나오는 느낌의 런치
+			
 			FVector LaunchDir = (i == 0) ? -GetActorRightVector() : GetActorRightVector();
 			LaunchDir.Z = 0.4f;
 			Clone->LaunchCharacter(LaunchDir.GetSafeNormal() * 400.f, true, true);
