@@ -31,26 +31,6 @@ void AEnemyCharacter::ToggleWeaponCollision(bool bEnable)
 	}
 }
 
-void AEnemyCharacter::Die()
-{
-	Super::Die();
-	if (AAIController* AICon = Cast<AAIController>(GetController()))
-	{
-		if (UBrainComponent* Brain = AICon->GetBrainComponent())
-		{
-			Brain->StopLogic("Died");
-		}
-
-		if (UBlackboardComponent* BB = AICon->GetBlackboardComponent())
-		{
-			BB->ClearValue("TargetActor");
-			BB->SetValueAsBool("bPlayerDetect", false);
-			BB->SetValueAsBool("bIsAttacking", false);
-		}
-
-		AICon->UnPossess();
-	}
-}
 
 void AEnemyCharacter::BeginPlay()
 {
@@ -106,7 +86,11 @@ void AEnemyCharacter::Die()
 		if (UBlackboardComponent* BB = AICon->GetBlackboardComponent())
 		{
 			BB->SetValueAsBool(FName("bIsDead"), true);
+			BB->ClearValue("TargetActor");
+			BB->SetValueAsBool("bPlayerDetect", false);
+			BB->SetValueAsBool("bIsAttacking", false);
 		}
+		AICon->UnPossess();
 	}
 	
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
