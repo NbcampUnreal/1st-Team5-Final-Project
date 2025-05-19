@@ -9,8 +9,8 @@ public class PayRock : ModuleRules
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "PhysicsCore",
-
-            "EnhancedInput", "GameplayAbilities", "GameplayTags", "GameplayTasks", "AIModule", "NavigationSystem","OnlineSubsystem" });
+            "EnhancedInput", "GameplayAbilities", "GameplayTags", "GameplayTasks", "AIModule", "NavigationSystem", "UMG","OnlineSubsystem" 
+		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] { "Niagara" });
 

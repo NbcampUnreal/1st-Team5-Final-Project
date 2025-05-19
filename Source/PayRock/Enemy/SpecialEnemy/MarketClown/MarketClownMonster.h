@@ -31,15 +31,35 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SplitOnDeath();
 	void InitSplitLevel(int32 InLevel);
-
+	
 	UAnimMontage* GetCurrentMaskAttackMontage() const;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mask")
 	ETalMaskType CurrentMask;
 
+	
+
 protected:
+
+	virtual void Die() override;
+	
 	UPROPERTY(EditDefaultsOnly, Category = "MaskAttack")
 	TArray<TObjectPtr<UAnimMontage>> MaskAttackMontages;
+
+	UPROPERTY(VisibleAnywhere, Category = "Mask")
+	USkeletalMeshComponent* MaskMesh;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Mask")
+	USkeletalMesh* MaskMesh_Yangban;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Mask")
+	USkeletalMesh* MaskMesh_Imae;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Mask")
+	USkeletalMesh* MaskMesh_Baekjeong;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Mask")
+	USkeletalMesh* MaskMesh_Bune;
 
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MaskMovement", meta = (AllowPrivateAccess = "true"))
