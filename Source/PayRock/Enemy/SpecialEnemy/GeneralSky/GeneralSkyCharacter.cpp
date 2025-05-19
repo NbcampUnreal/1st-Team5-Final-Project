@@ -21,6 +21,7 @@ void AGeneralSkyCharacter::BeginPlay()
 
 void AGeneralSkyCharacter::Tick(float DeltaSeconds)
 {
+	
 	Super::Tick(DeltaSeconds);
 
 	if (bIsCharging)

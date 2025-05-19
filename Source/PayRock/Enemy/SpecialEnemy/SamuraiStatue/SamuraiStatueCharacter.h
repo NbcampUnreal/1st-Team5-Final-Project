@@ -20,8 +20,18 @@ public:
 	void PauseAnimation();
 	void ResumeAnimation();
 
+	UFUNCTION(BlueprintCallable)
+	void SetDie(bool isdie);
 
+	UFUNCTION(BlueprintCallable)
+	bool GetDie();
+	
+virtual void Die() override;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CollisionComponent")
 	UCapsuleComponent* WeaponCollision;
+
+	
+	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "Dead State")
+	bool bisDead = false;
 };
