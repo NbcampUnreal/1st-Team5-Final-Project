@@ -174,6 +174,20 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	EWeaponType GetCurrentWeaponType() const { return CurrentWeaponType; }
 
+	// 발소리 관련
+	UFUNCTION(Server, Reliable)
+	void ServerRequestFootstep(FVector Location, USoundBase* Sound);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastPlayFootstep(FVector Location, USoundBase* Sound);
+
+	UFUNCTION(BlueprintCallable)
+	USoundBase* GetFootstepSoundBySurface(EPhysicalSurface SurfaceType);
+
+	// 발소리 사운드 큐
+	UPROPERTY(EditDefaultsOnly, Category = "Footstep")
+	USoundBase* DefaultFootstepSound;
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void AddCharacterAbilities() override;
