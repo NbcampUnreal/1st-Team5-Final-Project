@@ -74,7 +74,10 @@ void AEnemyCharacter::Die()
 	if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
 	{
 		AnimInstance->StopAllMontages(0.2f);
+		// GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
+		// GetMesh()->SetSimulatePhysics(true);
 	}
+
 	
 	if (AAIController* AICon = Cast<AAIController>(GetController()))
 	{
