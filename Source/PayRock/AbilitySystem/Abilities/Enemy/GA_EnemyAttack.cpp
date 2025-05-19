@@ -8,6 +8,7 @@
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Animation/AnimInstance.h"
+#include "Net/RepLayout.h"
 
 UGA_EnemyAttack::UGA_EnemyAttack()
 {
@@ -76,7 +77,6 @@ void UGA_EnemyAttack::ActivateAbility(
 		ApplyCooldown(Handle, ActorInfo, ActivationInfo);
 	}
 	
-	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 }
 
 void UGA_EnemyAttack::OnMontageEnded(UAnimMontage* Montage, bool bInterrupted)
@@ -86,6 +86,7 @@ void UGA_EnemyAttack::OnMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 	{
 		ResetBlackboardAttackState(Enemy);
 	}
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, bInterrupted);
 }
 
 
@@ -97,5 +98,28 @@ void UGA_EnemyAttack::ResetBlackboardAttackState(AEnemyCharacter* Enemy)
 		{
 			BB->SetValueAsBool(FName("bIsBusy"), false);
 		}
+	}
+}
+
+void UGA_EnemyAttack::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
+{
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+
+	if (!ActorInfo || !ActorInfo->AvatarActor.IsValid()) return;
+
+	AController* Controller = Cast<AController>(ActorInfo->PlayerController.Get());
+	if (!Controller)
+	{
+		APawn* Pawn = Cast<APawn>(ActorInfo->AvatarActor.Get());
+		if (Pawn) Controller = Pawn->GetController();
+	}
+	if (!Controller) return;
+
+	UBlackboardComponent* BB = Controller->FindComponentByClass<UBlackboardComponent>();
+	if (BB)
+	{
+		BB->SetValueAsBool(FName("bIsBusy"), false);
+		BB->SetValueAsBool(FName("bIsAttacking"), false);
 	}
 }

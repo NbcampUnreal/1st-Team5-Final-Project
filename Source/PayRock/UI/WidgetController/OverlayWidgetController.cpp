@@ -44,11 +44,6 @@ void UOverlayWidgetController::BindCallbacksToDependencies()
 		PS->OnExtractionDelegate.AddUObject(this, &UOverlayWidgetController::BroadcastExtraction);
 		PS->OnLevelChangeDelegate.AddUObject(this, &UOverlayWidgetController::BroadcastLevelChange);
 	}
-
-	if (APRPlayerController* PC = Cast<APRPlayerController>(PlayerController))
-	{
-		PC->ShowLeaveOptionsDelegate.AddUObject(this, &UOverlayWidgetController::BroadcastShowLeaveOptions);
-	}
 }
 
 void UOverlayWidgetController::HealthChanged(const FOnAttributeChangeData& Data) const
@@ -79,11 +74,6 @@ void UOverlayWidgetController::BroadcastDeath() const
 void UOverlayWidgetController::BroadcastExtraction() const
 {
 	OnExtraction.Broadcast();
-}
-
-void UOverlayWidgetController::BroadcastShowLeaveOptions() const
-{
-	OnShowLeaveOptions.Broadcast();
 }
 
 void UOverlayWidgetController::BroadcastLevelChange(int32 NewLevel) const

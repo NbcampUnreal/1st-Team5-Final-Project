@@ -37,6 +37,8 @@ public:
 	virtual UAnimMontage* GetDeathMontage();
 	UFUNCTION(BlueprintCallable)
 	void ForceDeath();
+	UFUNCTION(BlueprintImplementableEvent)
+	void SpawnLootContainer();
 
 protected:
 	virtual void BeginPlay() override;

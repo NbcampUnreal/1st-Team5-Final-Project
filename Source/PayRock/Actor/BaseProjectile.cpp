@@ -6,6 +6,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
+#include "Net/UnrealNetwork.h"
 #include "PayRock/AbilitySystem/Abilities/BaseDamageGameplayAbility.h"
 
 ABaseProjectile::ABaseProjectile()
@@ -16,8 +17,9 @@ ABaseProjectile::ABaseProjectile()
 	Sphere = CreateDefaultSubobject<USphereComponent>("Sphere");
 	SetRootComponent(Sphere);
 	Sphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	Sphere->SetCollisionObjectType(ECC_GameTraceChannel1);
+
 	Sphere->SetCollisionResponseToAllChannels(ECR_Ignore);
+	Sphere->SetCollisionObjectType(ECC_GameTraceChannel2);
 	Sphere->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
 	Sphere->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Overlap);
 	Sphere->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
@@ -36,12 +38,20 @@ void ABaseProjectile::BeginPlay()
 	Sphere->OnComponentBeginOverlap.AddDynamic(this, &ABaseProjectile::OnSphereOverlap);
 }
 
+void ABaseProjectile::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ABaseProjectile, SourceActor);
+}
+
 void ABaseProjectile::Destroyed()
 {
 	if (!bHit && !HasAuthority())
 	{
 		UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation(), FRotator());
 		UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ImpactEffect, GetActorLocation(), FRotator());
+		bHit = true;
 	}
 	
 	Super::Destroyed();
@@ -50,11 +60,10 @@ void ABaseProjectile::Destroyed()
 void ABaseProjectile::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
                                       UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (bHit) return;
+	if (bHit || SourceActor == OtherActor) return;
 	
 	UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation(), FRotator());
 	UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ImpactEffect, GetActorLocation(), FRotator());
-	
 	bHit = true;
 	
 	if (HasAuthority())
