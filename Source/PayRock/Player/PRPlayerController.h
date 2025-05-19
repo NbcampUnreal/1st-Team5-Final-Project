@@ -70,7 +70,6 @@ public:
 	void SpectatePrevious();
 
 	FString GetNetModeAsString() const; // 디버깅용 함수
-	FShowLeaveOptionsDelegate ShowLeaveOptionsDelegate;
 	
 protected:
 	virtual void BeginPlay() override;
