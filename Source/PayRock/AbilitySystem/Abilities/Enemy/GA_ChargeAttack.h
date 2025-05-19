@@ -25,6 +25,8 @@ public:
 		const FGameplayEventData* TriggerEventData) override;
 
 protected:
+	
+	UFUNCTION(BlueprintCallable)
 	void OnChargeStart();
 
 	UFUNCTION()
@@ -36,6 +38,8 @@ protected:
 		bool bFromSweep,
 		const FHitResult& SweepResult);
 
+	
+	UFUNCTION(BlueprintCallable)
 	void EndCharge();
 
 protected:
@@ -47,6 +51,7 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Charge")
 	float ChargeDuration = 1.0f;
+	
 
 private:
 	UPROPERTY()
@@ -57,4 +62,6 @@ private:
 
 	UPROPERTY()
 	TSet<AActor*> HitActors;
+
+	
 };

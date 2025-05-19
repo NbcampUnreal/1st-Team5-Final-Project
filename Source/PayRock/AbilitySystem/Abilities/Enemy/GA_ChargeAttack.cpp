@@ -17,8 +17,9 @@ void UGA_ChargeAttack::ActivateAbility(
 	const FGameplayAbilityActivationInfo ActivationInfo,
 	const FGameplayEventData* TriggerEventData)
 {
-
 	
+	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+
 	
 	if (!CommitAbility(Handle, ActorInfo, ActivationInfo)) return;
 
@@ -30,18 +31,10 @@ void UGA_ChargeAttack::ActivateAbility(
 		if (UBlackboardComponent* BB = AICon->GetBlackboardComponent())
 		{
 			BB->SetValueAsBool("bIsAttacking", true);
-			Tiger->PlayAnimMontage(Tiger->GetChargingMontage());
 			AICon->StopMovement();
 		}
 	}
 	
-	Tiger->GetWorldTimerManager().SetTimer(
-		TelegraphTimerHandle,
-		this,
-		&UGA_ChargeAttack::OnChargeStart,
-		TelegraphDuration,
-		false
-	);
 }
 
 void UGA_ChargeAttack::OnChargeStart()
@@ -49,7 +42,6 @@ void UGA_ChargeAttack::OnChargeStart()
 	if (!Tiger) return;
 
 	
-	Tiger->PlayAnimMontage(Tiger->GetRushAttackMontage());
 	const FVector Forward = Tiger->GetActorForwardVector();
 	Tiger->LaunchCharacter(Forward * ChargeSpeed, true, true);
 
@@ -59,13 +51,6 @@ void UGA_ChargeAttack::OnChargeStart()
 		Tiger->ChargeCollision->OnComponentBeginOverlap.AddDynamic(this, &UGA_ChargeAttack::OnChargeHit);
 	}
 
-	Tiger->GetWorldTimerManager().SetTimer(
-		EndChargeTimerHandle,
-		this,
-		&UGA_ChargeAttack::EndCharge,
-		ChargeDuration,
-		false
-	);
 }
 
 void UGA_ChargeAttack::OnChargeHit(
@@ -86,7 +71,6 @@ void UGA_ChargeAttack::EndCharge()
 {
 	if (!Tiger) return;
 
-	Tiger->GetCharacterMovement()->StopMovementImmediately();
 
 	if (Tiger->ChargeCollision)
 	{
@@ -94,7 +78,6 @@ void UGA_ChargeAttack::EndCharge()
 		Tiger->ChargeCollision->OnComponentBeginOverlap.RemoveAll(this);
 	}
 
-	// bIsAttacking 초기화
 	if (AAIController* AICon = Cast<AAIController>(Tiger->GetController()))
 	{
 		if (UBlackboardComponent* BB = AICon->GetBlackboardComponent())
@@ -104,5 +87,4 @@ void UGA_ChargeAttack::EndCharge()
 		}
 	}
 
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }

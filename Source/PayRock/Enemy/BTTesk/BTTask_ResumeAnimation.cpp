@@ -22,9 +22,9 @@ EBTNodeResult::Type UBTTask_ResumeAnimation::ExecuteTask(UBehaviorTreeComponent&
 
 	Statue->ResumeAnimation();
 	
-	if (UCharacterMovementComponent* MoveComp = Statue->GetCharacterMovement())
-	{
-		MoveComp->SetMovementMode(MOVE_Walking);
-	}
+	// if (UCharacterMovementComponent* MoveComp = Statue->GetCharacterMovement())
+	// {
+	// 	MoveComp->SetMovementMode(MOVE_Walking);
+	// }
 	return EBTNodeResult::Succeeded;
 }
