@@ -3,6 +3,8 @@
 
 #include "SamuraiStatueCharacter.h"
 
+#include "BrainComponent.h"
+#include "BehaviorTree/BlackboardComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "PayRock/Enemy/EnemyController.h"
 #include "GameFramework/CharacterMovementComponent.h"

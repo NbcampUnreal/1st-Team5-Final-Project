@@ -25,7 +25,7 @@ public:
 	bool GetBattleState() const { return bIsBattle; }
 	void SetBattleState(bool Value){ bIsBattle = Value; };
 
-	
+	virtual void Die() override;
 protected:
 	virtual void BeginPlay() override;
 	virtual void InitAbilityActorInfo() override;
