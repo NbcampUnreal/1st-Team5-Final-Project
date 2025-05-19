@@ -12,7 +12,13 @@
  */
 
 class UButton;
+class UMainMenuUserWidget;
 class UWidgetSwitcher;
+class UVideoSettingsWidget;
+class UAudioSettingsWidget;
+// 등등
+
+
 UCLASS()
 class PAYROCK_API UOptionsMenuWidget : public UBaseUserWidget
 {
@@ -36,6 +42,19 @@ protected:
     UPROPERTY(meta = (BindWidget))
     UWidgetSwitcher* TabSwitcher;
 
+public:
+    // 메인메뉴 기억하기 위해서(back)
+    UPROPERTY()
+    UMainMenuUserWidget* MainMenuRef;
+
+    UPROPERTY(meta = (BindWidget))
+    UVideoSettingsWidget* VideoSettingsWidget;
+
+    UPROPERTY(meta = (BindWidget))
+    UAudioSettingsWidget* AudioSettingsWidget;
+
+
+protected:
     // 클릭 핸들러들
     UFUNCTION()
     void OnVideoButtonClicked();
@@ -55,6 +74,10 @@ protected:
 
 public:
 	virtual void NativeOnInitialized() override;
+
+    // 커스텀 이닛
+    void InitOptionsMenu(UMainMenuUserWidget* InMainMenuRef);
+    
 
 };
 

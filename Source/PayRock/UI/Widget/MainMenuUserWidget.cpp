@@ -25,15 +25,32 @@ void UMainMenuUserWidget::HandleOptionsClicked()
     if (OptionsMenuWidgetClass) // TSubclassOf<UOptionsMenuWidget>
     {
         UOptionsMenuWidget* OptionsWidget = CreateWidget<UOptionsMenuWidget>(GetWorld(), OptionsMenuWidgetClass);
+
+
+
         if (OptionsWidget)
         {
+            //// ;옵션 위젯이 가지고 있는 Ref 메인메뉴 넘겨주기!!! 순서 조심!
+            //OptionsWidget->MainMenuRef = this;
+
             OptionsWidget->AddToViewport();
+            //// ;옵션 위젯이 가지고 있는 Ref 메인메뉴 넘겨주기!!! 순서 조심!
+            //OptionsWidget->MainMenuRef = this;
+
+            // 커스텀 함수
+            OptionsWidget->InitOptionsMenu(this); //  그 다음 참조 세팅
+
+
             APlayerController* PC = GetWorld()->GetFirstPlayerController();
             if (PC)
             {
                 PC->SetInputMode(FInputModeUIOnly());
                 PC->bShowMouseCursor = true;
             }
+
+
+            //OptionsWidget->AddToViewport();
+
 
             // 자신 숨기거나 비활성화할 수도 있음
             this->SetVisibility(ESlateVisibility::Hidden);

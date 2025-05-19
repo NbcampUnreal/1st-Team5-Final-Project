@@ -2,8 +2,8 @@
 
 
 //#include "UI/Widget/AudioSettingsWidget.h"
-#include "BaseUserWidget.h"
 #include "AudioSettingsWidget.h"
+#include "BaseUserWidget.h"
 
 #include "Components/Slider.h"
 #include "Components/Button.h"
@@ -15,6 +15,16 @@ void UAudioSettingsWidget::OnApplyClicked()
 {
     ApplyAudioSettings();
 
+}
+
+void UAudioSettingsWidget::OnBackClicked()
+{
+    // 다시 메인 메뉴로 
+
+    RemoveFromParent(); // 단순 닫기
+
+    // 또는 이벤트 디스패치
+    // OnBackRequested(); ← Blueprint에서 연결해서 다음 화면 전환 처리
 }
 
 void UAudioSettingsWidget::ApplyAudioSettings()
@@ -49,6 +59,12 @@ void UAudioSettingsWidget::NativeOnInitialized()
     if (ApplyButton)
     {
         ApplyButton->OnClicked.AddDynamic(this, &UAudioSettingsWidget::OnApplyClicked);
+    }
+
+    if (BackButton)
+    {
+        BackButton->OnClicked.AddDynamic(this, &UAudioSettingsWidget::OnBackClicked);
+
     }
 
     // 초기값 세팅 (옵션)

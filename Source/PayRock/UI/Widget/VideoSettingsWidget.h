@@ -10,7 +10,8 @@
 class UComboBoxString;
 class USlider;
 class UButton;
-
+class UMainMenuUserWidget;
+class UOptionsMenuWidget;
 /**
  * 비디오 설정 탭 UI 위젯
  */
@@ -36,9 +37,26 @@ protected:
     UPROPERTY(meta = (BindWidget))
     UButton* ApplyButton;
 
+    /* 뒤로 가기 버튼 */
+    UPROPERTY(meta = (BindWidget))
+    UButton* BackButton;
+
+public:
+    // MainMenu 위젯에 대한 참조 (SetVisibility를 위해 필요)
+    UPROPERTY()
+    UMainMenuUserWidget* MainMenuRef;
+
+    UPROPERTY()
+    UOptionsMenuWidget* OptionsMenuRef;
+
+protected:
     /** 버튼 클릭 처리 */
     UFUNCTION()
     void OnApplyClicked();
+
+    /** 뒤로 가기 버튼 **/
+    UFUNCTION()
+    void OnBackClicked();
 
     /** 내부 유틸: 설정 값 적용 */
     void ApplySettings();

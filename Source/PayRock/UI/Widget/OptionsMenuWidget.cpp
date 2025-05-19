@@ -2,10 +2,12 @@
 
 
 //#include "UI/Widget/OptionsMenuWidget.h"
+#include "OptionsMenuWidget.h"
+#include "VideoSettingsWidget.h"
+#include "AudioSettingsWidget.h"
 #include "BaseUserWidget.h"
 #include "Components/Button.h"
 #include "Components/WidgetSwitcher.h"
-#include "OptionsMenuWidget.h"
 
 void UOptionsMenuWidget::OnVideoButtonClicked()
 {
@@ -45,6 +47,20 @@ void UOptionsMenuWidget::NativeOnInitialized()
 {
     Super::NativeOnInitialized();
 
+
+    //// Back 눌렀을때 돌아갈 수 있도록 들고 있기 
+    //if (VideoSettingsWidget && MainMenuRef)
+    //{
+    //    VideoSettingsWidget->MainMenuRef = MainMenuRef;
+    //}
+
+    //if (AudioSettingsWidget && MainMenuRef)
+    //{
+    //    VideoSettingsWidget->MainMenuRef = MainMenuRef;
+    //}
+
+
+
     // ; 함수들 연결
     if (VideoButton)
     {
@@ -68,4 +84,35 @@ void UOptionsMenuWidget::NativeOnInitialized()
 
     // 기본 탭 설정 (비디오 탭)
     SwitchTab(0);
+
+
+    //// Back 눌렀을때 돌아갈 수 있도록 들고 있게 주소 넘겨주기 
+    //if (VideoSettingsWidget && MainMenuRef)
+    //{
+    //    VideoSettingsWidget->MainMenuRef = MainMenuRef;
+    //}
+
+    //if (AudioSettingsWidget && MainMenuRef)
+    //{
+    //    VideoSettingsWidget->MainMenuRef = MainMenuRef;
+    //}
+
+}
+
+void UOptionsMenuWidget::InitOptionsMenu(UMainMenuUserWidget* InMainMenuRef)
+{
+    MainMenuRef = InMainMenuRef;
+
+    if (VideoSettingsWidget && MainMenuRef)
+    {
+        VideoSettingsWidget->MainMenuRef = MainMenuRef;
+        VideoSettingsWidget->OptionsMenuRef = this; // 비디오에서 옵션 끄게?
+    }
+
+    /*if (AudioSettingsWidget && MainMenuRef)
+    {
+        AudioSettingsWidget->MainMenuRef = MainMenuRef;
+        AudioSettingsWidget->OptionsMenuRef = this;
+
+    }*/
 }
