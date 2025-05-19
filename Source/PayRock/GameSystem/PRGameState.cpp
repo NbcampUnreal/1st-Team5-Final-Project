@@ -17,8 +17,8 @@ APRGameState::APRGameState()
 	MinimumRequirePlayers = 2;  // 매치 시작시 필요한 플레이어 수
 	CurrentAmountOfPlayers = 0; // 현재 플레이어 수 초기화
 	MatchStart_CountDown = -1;  // 매치 시작 카운트다운
-	MatchDurationSeconds = 10; // 매치 시작 후 매치 지속시간
-	ExtractionActivationTime = 5; // 탈출구 열리는 시간
+	MatchDurationSeconds = 120; // 매치 시작 후 매치 지속시간
+	ExtractionActivationTime = 60; // 탈출구 열리는 시간
 	RemainingMatchTime = MatchDurationSeconds;
 	bReplicates = true;
 }
@@ -77,9 +77,9 @@ int32 APRGameState::GetAlivePlayerCount() const
 		if (!Player) continue;
 
 		const bool bIsDead = Player->GetIsDead();
-
-		if (!bIsDead) ++AliveCount;
-	}
+		const bool bIsExtracted = Player->GetIsExtracted();
+		if (!bIsDead && !bIsExtracted) ++AliveCount;
+	} 
 	return AliveCount;
 }
 
@@ -97,19 +97,24 @@ void APRGameState::CheckAlivePlayers()
 	
 }
 
-void APRGameState::MatchEnd() const
+void APRGameState::MatchEnd() 
 {
 	UE_LOG(LogTemp, Warning, TEXT("Match Ended"));
-	GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
+	GetWorld()->GetTimerManager().ClearTimer(AliveCheckTimerHandle);
+	GetWorld()->GetTimerManager().ClearTimer(ExtractionActivationTimerHandle);
 	for (APlayerState* PS : PlayerArray)
 	{
 		APRPlayerState* PRPS = Cast<APRPlayerState>(PS);
 		PRPS->ForceDeath();
 	}
-	if (APRGameMode* GM = Cast<APRGameMode>(GetWorld()->GetAuthGameMode()))
-	{
-		GM->EndThisMatch();
-	}
+	GetWorld()->GetTimerManager().SetTimer(
+		MatchEndTimerHandle,
+		this,
+		&APRGameState::CallTheGmToEnd,
+		10,
+		false
+	);
+	
 }
 
 void APRGameState::TickMatchCountdown()
@@ -253,7 +258,7 @@ void APRGameState::EnableExtractionZones()
 void APRGameState::TickMatchTimer()
 {
 	if (!HasAuthority()) return;
-
+	if (RemainingMatchTime <= 0)return;
 	RemainingMatchTime--;
 
 	if (RemainingMatchTime <= 0)
@@ -264,10 +269,19 @@ void APRGameState::TickMatchTimer()
 }
 
 
-void APRGameState::OnRep_RemainingMatchTime()
+void APRGameState::OnRep_RemainingMatchTime() const
 {
 	if (!HasAuthority())
 	UE_LOG(LogTemp, Warning, TEXT("남은 매치 시간: %d초"), RemainingMatchTime);
 	OnRemainingMatchTime.Broadcast(RemainingMatchTime);
+}
+
+void APRGameState::CallTheGmToEnd()
+{
+	GetWorld()->GetTimerManager().ClearTimer(MatchEndTimerHandle);
+	if (APRGameMode* GM = Cast<APRGameMode>(GetWorld()->GetAuthGameMode()))
+	{
+		GM->EndThisMatch();
+	}
 }
 

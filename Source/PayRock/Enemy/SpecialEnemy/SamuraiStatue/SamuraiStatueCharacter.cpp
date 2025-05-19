@@ -3,6 +3,8 @@
 
 #include "SamuraiStatueCharacter.h"
 
+#include "BrainComponent.h"
+#include "BehaviorTree/BlackboardComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "PayRock/Enemy/EnemyController.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -29,4 +31,20 @@ void ASamuraiStatueCharacter::ResumeAnimation()
 {
 	GetMesh()->bPauseAnims = false;
 	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+}
+
+void ASamuraiStatueCharacter::SetDie(bool isdie)
+{
+	bisDead = isdie;
+}
+
+bool ASamuraiStatueCharacter::GetDie()
+{
+	return bisDead;
+}
+
+void ASamuraiStatueCharacter::Die()
+{
+	Super::Die();
+	bisDead = true;
 }

@@ -56,6 +56,17 @@ void APRPlayerState::SetIsExtracted(bool bExtracted)
 		{
 			if (bIsExtracted) PC->Client_ShowDeathOptions();
 		}
+		for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+		{
+			if (APRPlayerController* PC = Cast<APRPlayerController>(It->Get()))
+			{
+				// 서버에서는 직접 호출
+				PC->OnSpectateTargetDied(this);
+
+				// 클라이언트에게도 전파
+				PC->Client_OnSpectateTargetDied(this);
+			}
+		}
 	}
 }
 

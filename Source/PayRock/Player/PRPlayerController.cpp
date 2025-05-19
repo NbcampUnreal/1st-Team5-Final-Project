@@ -173,7 +173,7 @@ void APRPlayerController::OnSpectateTargetDied(AActor* DeadActor)
 
 		if (DeadActor == GetViewTarget())
 		{
-			UE_LOG(LogTemp, Warning, TEXT("관전하던 대상이 사망함. 다음 대상으로 전환"));
+			UE_LOG(LogTemp, Warning, TEXT("관전하던 대상이 사망 또는 탈출함. 다음 대상으로 전환"));
 
 			if (SpectateTargets.Num() > 0)
 			{

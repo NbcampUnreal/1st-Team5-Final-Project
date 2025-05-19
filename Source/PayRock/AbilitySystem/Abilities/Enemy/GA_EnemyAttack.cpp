@@ -8,6 +8,8 @@
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Animation/AnimInstance.h"
+#include "Net/RepLayout.h"
+
 
 UGA_EnemyAttack::UGA_EnemyAttack()
 {
@@ -48,7 +50,11 @@ void UGA_EnemyAttack::ActivateAbility(
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
-	
+	if (!Enemy || Enemy->IsDead())  
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
+	}
 	
 	if (UAnimMontage* Montage = Enemy->GetRandomAttackMontage())
 	{
@@ -70,13 +76,6 @@ void UGA_EnemyAttack::ActivateAbility(
 	{
 		ResetBlackboardAttackState(Enemy);
 	}
-
-	if (CooldownGameplayEffect)
-	{
-		ApplyCooldown(Handle, ActorInfo, ActivationInfo);
-	}
-	
-	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 }
 
 void UGA_EnemyAttack::OnMontageEnded(UAnimMontage* Montage, bool bInterrupted)
@@ -85,7 +84,12 @@ void UGA_EnemyAttack::OnMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 	if (Enemy)
 	{
 		ResetBlackboardAttackState(Enemy);
+		if (CooldownGameplayEffect)
+		{
+			ApplyCooldown(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo);
+		}
 	}
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, bInterrupted);
 }
 
 
@@ -99,3 +103,27 @@ void UGA_EnemyAttack::ResetBlackboardAttackState(AEnemyCharacter* Enemy)
 		}
 	}
 }
+
+void UGA_EnemyAttack::EndAbility(const FGameplayAbilitySpecHandle Handle,
+	const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayAbilityActivationInfo ActivationInfo,
+	bool bReplicateEndAbility, bool bWasCancelled)
+{
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+
+	if (!ActorInfo || !ActorInfo->AvatarActor.IsValid()) return;
+
+	AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(ActorInfo->AvatarActor.Get());
+	if (!Enemy) return;
+
+	AAIController* Controller = Cast<AAIController>(Enemy->GetController());
+	if (!Controller) return;
+
+	UBlackboardComponent* BB = Controller->GetBlackboardComponent();
+	if (BB)
+	{
+		BB->SetValueAsBool(FName("bIsBusy"), false);
+	}
+	
+}
+

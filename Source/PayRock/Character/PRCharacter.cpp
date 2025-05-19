@@ -755,6 +755,8 @@ void APRCharacter::Die(/*const FHitResult& HitResult*/)
                 PC->Client_OnSpectateTargetDied(this);
             }
         }
+        
+        StimuliSourceComponent->UnregisterFromPerceptionSystem();
     }
     //UnPossessed();
     MulticastRagdoll();
@@ -770,6 +772,11 @@ void APRCharacter::MulticastRagdoll_Implementation()
     }
 	
     USkeletalMeshComponent* CharacterMesh = GetMesh();
+    if (!CharacterMesh->IsRegistered())
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Component not registered yet"));
+        return;
+    }
     CharacterMesh->SetSimulatePhysics(true);
     CharacterMesh->SetCollisionProfileName(FName("Ragdoll"));
     CharacterMesh->WakeAllRigidBodies();

@@ -21,5 +21,5 @@ protected:
 
 public:
 	UPROPERTY(EditAnywhere, Category = "GAS")
-	TSubclassOf<UGameplayAbility> BossAttackAbility;
+	TSubclassOf<UGameplayAbility> AttackAbility;
 };

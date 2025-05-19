@@ -1,9 +1,16 @@
 // PayRockGames
 
 #include "EnemyCharacter.h"
+
+#include "AIController.h"
+#include "BrainComponent.h"
 #include "GenericTeamAgentInterface.h"
+#include "BehaviorTree/BlackboardComponent.h"
+#include "Components/CapsuleComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "PayRock/AbilitySystem/PRAbilitySystemComponent.h"
 #include "PayRock/AbilitySystem/PRAttributeSet.h"
+
 
 AEnemyCharacter::AEnemyCharacter()
 {
@@ -23,6 +30,7 @@ void AEnemyCharacter::ToggleWeaponCollision(bool bEnable)
 		Weapon->SetCollisionEnabled(bEnable ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
 	}
 }
+
 
 void AEnemyCharacter::BeginPlay()
 {
@@ -51,6 +59,49 @@ void AEnemyCharacter::AddCharacterAbilities()
 	}
 }
 
+void AEnemyCharacter::Die()
+{
+	Super::Die();
+
+	bIsDead = true;
+	
+
+	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponent())
+	{
+		ASC->CancelAllAbilities();
+	}
+	
+	if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
+	{
+		AnimInstance->StopAllMontages(0.2f);
+	}
+	
+	if (AAIController* AICon = Cast<AAIController>(GetController()))
+	{
+		if (UBrainComponent* Brain = AICon->GetBrainComponent())
+		{
+			Brain->StopLogic(TEXT("Die"));
+		}
+
+		if (UBlackboardComponent* BB = AICon->GetBlackboardComponent())
+		{
+			BB->SetValueAsBool(FName("bIsDead"), true);
+			BB->ClearValue("TargetActor");
+			BB->SetValueAsBool("bPlayerDetect", false);
+			BB->SetValueAsBool("bIsAttacking", false);
+		}
+		AICon->UnPossess();
+	}
+	
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetCharacterMovement()->DisableMovement();
+	GetCharacterMovement()->StopMovementImmediately();
+	
+	
+	SetLifeSpan(5.0f);
+}
+
+
 UAnimMontage* AEnemyCharacter::GetRandomAttackMontage() const
 {
 	if (AttackMontages.Num() == 0) return nullptr;
@@ -65,4 +116,9 @@ UAnimMontage* AEnemyCharacter::GetRandomDetectMontage() const
 
 	int32 Index = FMath::RandRange(0, DetectMontages.Num() - 1);
 	return DetectMontages[Index];
+}
+
+bool AEnemyCharacter::IsDead() const
+{
+	return bIsDead;
 }
