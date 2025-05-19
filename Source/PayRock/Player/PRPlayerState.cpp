@@ -42,7 +42,7 @@ void APRPlayerState::SetIsDead(bool bDead)
 		bIsDead = bDead;
 		if (APRPlayerController* PC = Cast<APRPlayerController>(GetOwningController()))
 		{
-			PC->Client_ShowDeathOptions();
+			if (bIsDead) PC->Client_ShowDeathOptions();
 		}
 	}
 }
@@ -51,7 +51,11 @@ void APRPlayerState::SetIsExtracted(bool bExtracted)
 {
 	if (HasAuthority())
 	{
-		bIsExtracted = bExtracted;	
+		bIsExtracted = bExtracted;
+		if (APRPlayerController* PC = Cast<APRPlayerController>(GetOwningController()))
+		{
+			if (bIsExtracted) PC->Client_ShowDeathOptions();
+		}
 	}
 }
 
