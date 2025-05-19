@@ -314,7 +314,6 @@ void APRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
             if (PlayerController->AttackAction)
             {
-                // ����
                 EnhancedInput->BindAction(
                     PlayerController->AttackAction,
                     ETriggerEvent::Triggered,
@@ -445,14 +444,14 @@ void APRCharacter::ServerStartSprint_Implementation()
 
 void APRCharacter::StopSprint(const FInputActionValue& value)
 {
-    SetSpeedMode(false); // 이걸로 대체
+    SetSpeedMode(false);
 
     if (!HasAuthority())
     {
         ServerStopSprint();
     }
 
-    bIsSprinting = false; // 클라에서도 상태 유지
+    bIsSprinting = false;
 }
 
 void APRCharacter::ServerStopSprint_Implementation()
@@ -463,11 +462,13 @@ void APRCharacter::ServerStopSprint_Implementation()
 void APRCharacter::ServerRequestFootstep_Implementation(FVector Location, USoundBase* Sound)
 {
     MulticastPlayFootstep(Location, Sound);
+    UE_LOG(LogTemp, Warning, TEXT("ServerRequestFootstep called!"));
 }
 
 void APRCharacter::MulticastPlayFootstep_Implementation(FVector Location, USoundBase* Sound)
 {
     UGameplayStatics::PlaySoundAtLocation(this, Sound, Location);
+    UE_LOG(LogTemp, Warning, TEXT("MulticastPlayFootstep playing sound!"));
 }
 
 USoundBase* APRCharacter::GetFootstepSoundBySurface(EPhysicalSurface SurfaceType)
@@ -810,6 +811,37 @@ void APRCharacter::SetJustJumped(bool bNewValue)
             false
         );
     }
+}
+
+void APRCharacter::Landed(const FHitResult& Hit)
+{
+    Super::Landed(Hit);
+
+    USoundBase* LandSound = GetLandingSoundBySurface(
+        UPhysicalMaterial::DetermineSurfaceType(Hit.PhysMaterial.Get())
+    );
+
+    if (!LandSound) return;
+
+    if (HasAuthority())
+        MulticastPlayFootstep(Hit.Location, LandSound);
+    else
+        ServerRequestFootstep(Hit.Location, LandSound);
+}
+
+void APRCharacter::ServerRequestLandingSound_Implementation(FVector Location, USoundBase* Sound)
+{
+    MulticastPlayLandingSound(Location, Sound);
+}
+
+void APRCharacter::MulticastPlayLandingSound_Implementation(FVector Location, USoundBase* Sound)
+{
+    UGameplayStatics::PlaySoundAtLocation(this, Sound, Location);
+}
+
+USoundBase* APRCharacter::GetLandingSoundBySurface(EPhysicalSurface SurfaceType)
+{   
+    return DefaultLandSound;
 }
 
 void APRCharacter::SetWeaponType(EWeaponType NewType)

@@ -189,9 +189,22 @@ public:
 	UFUNCTION(BlueprintCallable)
 	USoundBase* GetFootstepSoundBySurface(EPhysicalSurface SurfaceType);
 
-	// 발소리 사운드 큐
 	UPROPERTY(EditDefaultsOnly, Category = "Footstep")
 	USoundBase* DefaultFootstepSound;
+
+	// 착지 관련
+	void Landed(const FHitResult& Hit);
+
+	UFUNCTION(Server, Reliable)
+	void ServerRequestLandingSound(FVector Location, USoundBase* Sound);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastPlayLandingSound(FVector Location, USoundBase* Sound);
+
+	USoundBase* GetLandingSoundBySurface(EPhysicalSurface SurfaceType);
+
+	UPROPERTY(EditDefaultsOnly, Category = "Sound")
+	USoundBase* DefaultLandSound;
 
 protected:
 	virtual void BeginPlay() override;
