@@ -19,6 +19,6 @@ public:
 	void SetWidgetController(UObject* InWidgetController);
 
 protected:
-	UFUNCTION(BlueprintImplementableEvent)
-	void OnWidgetControllerSet();
+	UFUNCTION(BlueprintCallable)
+	virtual void OnWidgetControllerSet();
 };

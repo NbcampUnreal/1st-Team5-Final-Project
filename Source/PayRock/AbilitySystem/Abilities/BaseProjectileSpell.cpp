@@ -34,6 +34,7 @@ void UBaseProjectileSpell::SpawnProjectile(const FGameplayTag& SocketTag)
 		ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
 	
 	Projectile->SourceAbility = this;
+	Projectile->SourceActor = GetAvatarActorFromActorInfo();
 
 	bSpawned = true;
 	Projectile->FinishSpawning(SpawnTransform);

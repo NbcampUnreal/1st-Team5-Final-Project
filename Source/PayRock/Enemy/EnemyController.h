@@ -50,7 +50,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI|Perception")
 	UAISenseConfig_Hearing* HearingConfig;
 
-private:
+protected:
 	
 	UPROPERTY(EditAnywhere, Category = "AI|Sight")
 	float SightRadius = 1500.f;

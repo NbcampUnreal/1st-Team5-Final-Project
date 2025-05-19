@@ -1,61 +1,29 @@
 // PayRockGames
 
 
-//#include "UI/Widget/HealthBar.h"
-
-#include "PayRock/UI/Widget/BaseUserWidget.h"
-#include "Components/ProgressBar.h"
 #include "HealthBar.h"
+#include "Components/ProgressBar.h"
+#include "PayRock/UI/WidgetController/OverlayWidgetController.h"
 
-
-void UHealthBar::NativeConstruct()
+void UHealthBar::OnWidgetControllerSet()
 {
-    Super::NativeConstruct();
+	Super::OnWidgetControllerSet();
 
-    // 초기값 설정 (옵션)
-    UpdateHealthBar();
+	if (UOverlayWidgetController* OverlayWidgetController = Cast<UOverlayWidgetController>(WidgetController))
+	{
+		OverlayWidgetController->OnHealthChanged.AddDynamic(this, &UHealthBar::OnHealthChanged);
+		OverlayWidgetController->OnMaxHealthChanged.AddDynamic(this, &UHealthBar::OnMaxHealthChanged);
+	}
 }
 
 void UHealthBar::OnHealthChanged(float NewHealth)
 {
-    Health = NewHealth;
-    UpdateHealthBar();
+	Health = NewHealth;
+	HealthBar->SetPercent(Health / (MaxHealth == 0 ? 1 : MaxHealth));
 }
 
 void UHealthBar::OnMaxHealthChanged(float NewMaxHealth)
 {
-    MaxHealth = NewMaxHealth;
-    UpdateHealthBar();
+	MaxHealth = NewMaxHealth;
+	HealthBar->SetPercent(Health / (MaxHealth == 0 ? 1 : MaxHealth));
 }
-
-void UHealthBar::UpdateHealthBar()
-{
-    if (!HealthProgressBar) return;
-
-    float Percent = (MaxHealth > 0.f) ? Health / MaxHealth : 0.f;
-    HealthProgressBar->SetPercent(Percent);
-}
-
-
-// 
-//void UHealthBar::OnWidgetControllerSet()
-//{
-//    OverlayWidgetController = Cast<UOverlayWidgetController>(WidgetController);
-//    if (!OverlayWidgetController) return;
-//
-//    OverlayWidgetController->OnHealthChanged.AddDynamic(this, &UHealthBar::OnHealthChanged);
-//    OverlayWidgetController->OnMaxHealthChanged.AddDynamic(this, &UHealthBar::OnMaxHealthChanged);
-//}
-
-//void UHealthBar::OnWidgetControllerSet(UOverlayWidgetController* Controller)
-//{
-//    if (!Controller) return;
-//
-//    OverlayWidgetController = Controller;
-//
-//    // 바인딩
-//   /* OverlayWidgetController->OnHealthChanged.AddUObject(this, &UMyWidget::OnHealthChanged);
-//    OverlayWidgetController->OnMaxHealthChanged.AddUObject(this, &UMyWidget::OnMaxHealthChanged);*/
-//    OverlayWidgetController->OnHealthChanged.AddDynamic(this, &UHealthBar::OnHealthChanged);
-//    OverlayWidgetController->OnMaxHealthChanged.AddDynamic(this, &UHealthBar::OnMaxHealthChanged);
-//}

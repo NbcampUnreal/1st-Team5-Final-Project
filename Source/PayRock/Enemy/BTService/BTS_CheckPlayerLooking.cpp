@@ -12,6 +12,7 @@
 UBTS_CheckPlayerLooking::UBTS_CheckPlayerLooking()
 {
 	NodeName = "Check If Player Is Looking";
+	bNotifyBecomeRelevant = true;
 	bNotifyTick = true;
 }
 
@@ -41,6 +42,9 @@ void UBTS_CheckPlayerLooking::TickNode(UBehaviorTreeComponent& OwnerComp, uint8*
 		float Dot = FVector::DotProduct(PlayerForward, ToStatue);
 		float Angle = FMath::RadiansToDegrees(FMath::Acos(Dot));
 
+		
+		DrawDebugSphere(GetWorld(), SelfPawn->GetActorLocation(), MaxDetectDistance, 12, FColor::Green, false, 1.0f, 0, 2.0f);
+		
 		if (Angle < MaxAngleDegrees)
 		{
 			BB->SetValueAsBool("bIsBeingWatched", true);
@@ -48,10 +52,7 @@ void UBTS_CheckPlayerLooking::TickNode(UBehaviorTreeComponent& OwnerComp, uint8*
 		}
 		else
 		{
-			if (!BB->GetValueAsObject("TargetActor"))
-			{
-				BB->SetValueAsObject("TargetActor", PlayerActor);
-			}
+			
 
 			BB->SetValueAsBool("bIsBeingWatched", false);
 		}

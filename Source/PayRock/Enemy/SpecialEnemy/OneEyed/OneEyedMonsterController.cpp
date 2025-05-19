@@ -81,9 +81,7 @@ void AOneEyedMonsterController::CheckLightBasedDetection()
 
 	bool bVisibleInLight = LightLevel >= LightDetectionThreshold;
 	BB->SetValueAsBool(TEXT("bPlayerDetectedByLight"), bVisibleInLight);
-
-	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Cyan,
-		FString::Printf(TEXT("[OneEye] LightLevel = %.1f → Detect(Light): %s"), LightLevel, bVisibleInLight ? TEXT("True") : TEXT("False")));
+	
 }
 
 

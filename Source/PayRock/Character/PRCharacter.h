@@ -29,9 +29,6 @@ public:
 
 	virtual void Die(/*const FHitResult& HitResult*/) override;
 
-	UFUNCTION(BlueprintCallable)
-	void Extract();
-
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastRagdoll();
 
@@ -46,6 +43,11 @@ public:
 	// Aiming 카메라 전용 설정
 	float DefaultArmLength;
 	float AimingArmLength;
+
+	//관전용 카메라 컨트롤 Replication
+	UPROPERTY(Replicated)
+	FRotator ReplicatedControlRotation;
+
 
 	FVector DefaultSocketOffset = FVector::ZeroVector;
 	FVector AimingSocketOffset = FVector(0.f, 50.f, 30.f); // 오른쪽 위에서 보는 느낌
@@ -176,6 +178,20 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	EWeaponType GetCurrentWeaponType() const { return CurrentWeaponType; }
+
+	// 발소리 관련
+	UFUNCTION(Server, Reliable)
+	void ServerRequestFootstep(FVector Location, USoundBase* Sound);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastPlayFootstep(FVector Location, USoundBase* Sound);
+
+	UFUNCTION(BlueprintCallable)
+	USoundBase* GetFootstepSoundBySurface(EPhysicalSurface SurfaceType);
+
+	// 발소리 사운드 큐
+	UPROPERTY(EditDefaultsOnly, Category = "Footstep")
+	USoundBase* DefaultFootstepSound;
 
 protected:
 	virtual void BeginPlay() override;
