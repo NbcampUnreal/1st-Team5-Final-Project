@@ -32,3 +32,19 @@ void ASamuraiStatueCharacter::ResumeAnimation()
 	GetMesh()->bPauseAnims = false;
 	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
 }
+
+void ASamuraiStatueCharacter::SetDie(bool isdie)
+{
+	bisDead = isdie;
+}
+
+bool ASamuraiStatueCharacter::GetDie()
+{
+	return bisDead;
+}
+
+void ASamuraiStatueCharacter::Die()
+{
+	Super::Die();
+	bisDead = true;
+}
