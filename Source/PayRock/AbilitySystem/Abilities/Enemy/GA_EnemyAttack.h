@@ -30,4 +30,6 @@ private:
 	void OnMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 
 	void ResetBlackboardAttackState(class AEnemyCharacter* Enemy);
+	void EndAbility(FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+	                FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled);
 };
