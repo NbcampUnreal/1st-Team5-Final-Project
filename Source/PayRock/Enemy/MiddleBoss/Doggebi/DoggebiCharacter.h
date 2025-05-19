@@ -46,6 +46,9 @@ public:
 
 	void OnPatternEnd();
 
+	
+	UPROPERTY()
+	UMaterialInstanceDynamic* DynamicMaskMaterial;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
 	TObjectPtr<USkeletalMeshComponent> Mask;
