@@ -78,8 +78,8 @@ int32 APRGameState::GetAlivePlayerCount() const
 
 		const bool bIsDead = Player->GetIsDead();
 		const bool bIsExtracted = Player->GetIsExtracted();
-		if (!bIsDead) ++AliveCount;
-	}
+		if (!bIsDead && !bIsExtracted) ++AliveCount;
+	} 
 	return AliveCount;
 }
 
