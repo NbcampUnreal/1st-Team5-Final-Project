@@ -16,6 +16,14 @@ EBTNodeResult::Type UBTTask_Attack::ExecuteTask(UBehaviorTreeComponent& OwnerCom
 	AAIController* AICon = OwnerComp.GetAIOwner();
 	AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(AICon ? AICon->GetPawn() : nullptr);
 	if (!Enemy || !AttackAbility) return EBTNodeResult::Failed;
+	if (Enemy->IsDead()) return EBTNodeResult::Failed;
+	if (UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent())
+	{
+		if (BB->GetValueAsBool(FName("bIsDead")))
+		{
+			return EBTNodeResult::Failed;
+		}
+	}
 
 	if (AICon)
 	{

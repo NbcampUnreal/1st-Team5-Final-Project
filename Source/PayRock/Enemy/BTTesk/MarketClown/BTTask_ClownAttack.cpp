@@ -17,7 +17,7 @@ EBTNodeResult::Type UBTTask_ClownAttack::ExecuteTask(UBehaviorTreeComponent& Own
 {
 	AAIController* AICon = OwnerComp.GetAIOwner();
 	AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(AICon ? AICon->GetPawn() : nullptr);
-	if (!Enemy || !BossAttackAbility) return EBTNodeResult::Failed;
+	if (!Enemy || !AttackAbility) return EBTNodeResult::Failed;
 
 	if (AICon)
 	{
@@ -27,7 +27,7 @@ EBTNodeResult::Type UBTTask_ClownAttack::ExecuteTask(UBehaviorTreeComponent& Own
 	UAbilitySystemComponent* ASC = Enemy->GetAbilitySystemComponent();
 	if (!ASC) return EBTNodeResult::Failed;
 
-	if (ASC->TryActivateAbilityByClass(BossAttackAbility))
+	if (ASC->TryActivateAbilityByClass(AttackAbility))
 	{
 		if (UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent())
 		{
