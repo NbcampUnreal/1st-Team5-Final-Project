@@ -4,6 +4,7 @@
 #include "Net/UnrealNetwork.h"
 #include "DrawDebugHelpers.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "EnhancedInputComponent.h"
@@ -457,6 +458,21 @@ void APRCharacter::StopSprint(const FInputActionValue& value)
 void APRCharacter::ServerStopSprint_Implementation()
 {
     SetSpeedMode(false);
+}
+
+void APRCharacter::ServerRequestFootstep_Implementation(FVector Location, USoundBase* Sound)
+{
+    MulticastPlayFootstep(Location, Sound);
+}
+
+void APRCharacter::MulticastPlayFootstep_Implementation(FVector Location, USoundBase* Sound)
+{
+    UGameplayStatics::PlaySoundAtLocation(this, Sound, Location);
+}
+
+USoundBase* APRCharacter::GetFootstepSoundBySurface(EPhysicalSurface SurfaceType)
+{
+        return DefaultFootstepSound;
 }
 
 void APRCharacter::StartCrouch(const FInputActionValue& value)
