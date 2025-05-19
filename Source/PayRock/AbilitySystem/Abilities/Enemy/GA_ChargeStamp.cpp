@@ -36,11 +36,6 @@ void UGA_ChargeStamp::ActivateAbility(
 
 	StartChargeVisual(Avatar);
 
-	/*FTimerHandle Timer;
-	Avatar->GetWorldTimerManager().SetTimer(Timer, FTimerDelegate::CreateLambda([this, Avatar]()
-	{
-		JumpToTarget(Avatar);
-	}), ChargeTime, false);*/
 }
 
 void UGA_ChargeStamp::StartChargeVisual(AActor* Avatar)
@@ -56,7 +51,6 @@ void UGA_ChargeStamp::StartChargeVisual(AActor* Avatar)
 			}
 		}
 		Enemy->NetMulticast_StartChargingVisual(ChargeTime);
-		// Enemy->PlayAnimMontage(Enemy->GetChargingMontage());
 	}
 }
 
@@ -68,17 +62,6 @@ void UGA_ChargeStamp::JumpToTarget(ACharacter* Avatar)
 	FVector LaunchVel = FVector(0, 0, UpwardPower);
 	Avatar->LaunchCharacter(LaunchVel, true, true);
 
-	/*if (AGeneralSkyCharacter* Enemy = Cast<AGeneralSkyCharacter>(Avatar))
-	{
-		Enemy->PlayAnimMontage(Enemy->GetStampMontage());
-	}*/
-	
-	/*FTimerHandle DamageTimer;
-	Avatar->GetWorldTimerManager().SetTimer(DamageTimer, FTimerDelegate::CreateLambda([this, Avatar]()
-	{
-		ApplyStampDamage(Avatar);
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
-	}), 0.6f, false);*/
 }
 
 void UGA_ChargeStamp::ApplyStampDamage(ACharacter* Avatar)
