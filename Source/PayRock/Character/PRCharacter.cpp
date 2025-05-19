@@ -148,7 +148,7 @@ void APRCharacter::InitAbilityActorInfo()
     {
         if (ABaseHUD* HUD = PC->GetHUD<ABaseHUD>())
         {
-            HUD->InitOverlay(PC, GetPlayerState(), AbilitySystemComponent, AttributeSet);
+            HUD->InitInGameHUD(PC, GetPlayerState(), AbilitySystemComponent, AttributeSet);
         }
     }
     InitializeDefaultAttributes();
