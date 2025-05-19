@@ -44,6 +44,11 @@ public:
 	float DefaultArmLength;
 	float AimingArmLength;
 
+	//관전용 카메라 컨트롤 Replication
+	UPROPERTY(Replicated)
+	FRotator ReplicatedControlRotation;
+
+
 	FVector DefaultSocketOffset = FVector::ZeroVector;
 	FVector AimingSocketOffset = FVector(0.f, 50.f, 30.f); // 오른쪽 위에서 보는 느낌
 

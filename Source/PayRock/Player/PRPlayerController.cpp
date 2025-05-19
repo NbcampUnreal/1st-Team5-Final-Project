@@ -30,6 +30,7 @@ void APRPlayerController::BeginPlay()
 		Subsystem->AddMappingContext(PlayerIMC, 0);
 	}
 }
+
 void APRPlayerController::BindingSpector()
 {
 	if (UEnhancedInputComponent* EIComp = Cast<UEnhancedInputComponent>(InputComponent))
@@ -157,6 +158,34 @@ void APRPlayerController::SetSpectateTarget(AActor* NewTarget)
 		SetViewTargetWithBlend(NewTarget, 0.3f);
 	}
 	
+}
+
+void APRPlayerController::Client_OnSpectateTargetDied_Implementation(AActor* DeadActor)
+{
+	OnSpectateTargetDied(DeadActor);
+}
+
+void APRPlayerController::OnSpectateTargetDied(AActor* DeadActor)
+{
+	if (SpectateTargets.Contains(DeadActor))
+	{
+		SpectateTargets.Remove(DeadActor);
+
+		if (DeadActor == GetViewTarget())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("관전하던 대상이 사망함. 다음 대상으로 전환"));
+
+			if (SpectateTargets.Num() > 0)
+			{
+				CurrentSpectateIndex = CurrentSpectateIndex % SpectateTargets.Num();
+				SetSpectateTarget(SpectateTargets[CurrentSpectateIndex]);
+			}
+			else
+			{
+				SetViewTarget(nullptr);
+			}
+		}
+	}
 }
 
 FString APRPlayerController::GetNetModeAsString() const

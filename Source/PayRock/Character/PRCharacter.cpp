@@ -591,6 +591,7 @@ void APRCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
     DOREPLIFETIME(APRCharacter, bJustJumped);
     DOREPLIFETIME(APRCharacter, bIsAiming);
     DOREPLIFETIME(APRCharacter, ReplicatedMaxWalkSpeed);
+    DOREPLIFETIME(APRCharacter, ReplicatedControlRotation);
 }
 
 void APRCharacter::OnRep_MoveDirection()
@@ -702,6 +703,31 @@ void APRCharacter::Tick(float DeltaSeconds)
 
     bIsInAir = GetCharacterMovement()->IsFalling();
     bIsCrouching = GetCharacterMovement()->IsCrouching();
+    
+    if (HasAuthority())
+    {
+        ReplicatedControlRotation = GetControlRotation(); //카메라 회전 리플리케이션
+    }
+    // 클라이언트에서 관전자용 회전 적용
+    if (!IsLocallyControlled())
+    {
+        bool bIsBeingSpectated = !IsLocallyControlled() && ReplicatedControlRotation != FRotator::ZeroRotator;
+
+        USpringArmComponent* SpringArm = FindComponentByClass<USpringArmComponent>();
+        if (bIsBeingSpectated)
+        {
+            if (SpringArm)
+            {
+                // SpringArm이 Pawn 회전 안 따르게 설정 (한 번만 해도 됨)
+                if (SpringArm->bUsePawnControlRotation)
+                {
+                    SpringArm->bUsePawnControlRotation = false;
+                }
+                
+                SpringArm->SetWorldRotation(ReplicatedControlRotation);
+            }
+        }
+    }
 }
 
 void APRCharacter::Die(/*const FHitResult& HitResult*/)
@@ -717,6 +743,17 @@ void APRCharacter::Die(/*const FHitResult& HitResult*/)
         else
         {
             GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "PlayerState casting failed");
+        }
+        for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+        {
+            if (APRPlayerController* PC = Cast<APRPlayerController>(It->Get()))
+            {
+                // 서버에서는 직접 호출
+                PC->OnSpectateTargetDied(this);
+
+                // 클라이언트에게도 전파
+                PC->Client_OnSpectateTargetDied(this);
+            }
         }
     }
     //UnPossessed();
