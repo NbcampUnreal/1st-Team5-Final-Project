@@ -49,6 +49,7 @@ const UAnimMontage* ABaseCharacter::GetHitReactMontage()
 	if (HitReactMontages.IsEmpty())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("HitReactMontages TArray is empty. Please assign montages in BP."))
+		return nullptr;
 	}
 
 	return HitReactMontages[FMath::RandRange(0, HitReactMontages.Num() - 1)];
@@ -66,6 +67,13 @@ void ABaseCharacter::Die(/*const FHitResult& HitResult*/)
 		if (HasAuthority())
 		{
 			SpawnLootContainer();
+			for (const auto& Ability : GetAbilitySystemComponent()->GetActivatableAbilities())
+			{
+				if (Ability.GetDynamicSpecSourceTags().HasTagExact(FPRGameplayTags::Get().Effects_HitReact))
+				{
+					GetAbilitySystemComponent()->ClearAbility(Ability.Handle);
+				}
+			}
 		}
 		
 		/*if (HitResult.bBlockingHit)
