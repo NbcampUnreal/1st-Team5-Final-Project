@@ -26,17 +26,17 @@ public:
 	bool GetBattleState() const { return bIsBattle; }
 	void SetBattleState(bool Value){ bIsBattle = Value; };
 
-protected:
 	virtual void BeginPlay() override;
 	virtual void InitAbilityActorInfo() override;
 	virtual void AddCharacterAbilities() override;
+
+protected:
 	virtual void Die() override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="State")
 	bool bIsBattle = false;
 	bool bIsDead = false;
-	
-private:
+
 	UPROPERTY(EditDefaultsOnly, Category = "Combat")
 	TArray<TObjectPtr<UAnimMontage>> AttackMontages;
 
