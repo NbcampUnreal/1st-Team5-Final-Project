@@ -17,14 +17,14 @@ public:
 		const FGameplayAbilitySpecHandle Handle,
 		const FGameplayAbilityActorInfo* ActorInfo,
 		const FGameplayAbilityActivationInfo ActivationInfo,
-		const FGameplayEventData* TriggerEventData
-	) override;
+		const FGameplayEventData* TriggerEventData) override;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Cooldown")
-	TSubclassOf<UGameplayEffect> CooldownGameplayEffect;
+protected:
+	void ResetBlackboardAttackState(class AMarketClownMonster* Boss);
 
-private:
-	void OnMontageEnded(UAnimMontage* Montage, bool bInterrupted);
-	void ResetBlackboardAttackState(AMarketClownMonster* Boss);
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attack")
+	TSubclassOf<UGameplayAbility> WeaponAbility_Yangban;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attack")
+	TSubclassOf<UGameplayAbility> WeaponAbility_Baekjeong;
 };
-
