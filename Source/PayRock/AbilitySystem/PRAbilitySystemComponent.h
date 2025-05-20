@@ -37,5 +37,7 @@ public:
 	FEffectAssetTagsDelegate EffectAssetTagsDelegate;
 	FAbilitiesGivenDelegate AbilitiesGivenDelegate;
 
+	FHitResult StoredHitResult;
+
 	bool bStartupAbilitiesGiven = false;
 };
