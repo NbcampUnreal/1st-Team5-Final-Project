@@ -167,7 +167,7 @@ public:
 	void OnRep_IsAiming();
 
 	// 기존
-	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Weapon")
+	UPROPERTY(Replicated, BlueprintReadWrite, Category = "Weapon")
 	EWeaponType CurrentWeaponType;
 
 	void SetWeaponType(EWeaponType NewType);
