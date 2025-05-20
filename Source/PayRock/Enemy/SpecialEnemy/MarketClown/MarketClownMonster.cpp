@@ -1,12 +1,7 @@
 #include "MarketClownMonster.h"
-#include "MarketClownMonsterController.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Animation/AnimInstance.h"
-#include "BehaviorTree/BlackboardComponent.h"
 #include "Components/CapsuleComponent.h"
-#include "Kismet/GameplayStatics.h"
-#include "GameplayTagContainer.h"
-#include "GameplayEffect.h"
 #include "PayRock/AbilitySystem/PRAttributeSet.h"
 
 AMarketClownMonster::AMarketClownMonster()
@@ -14,36 +9,18 @@ AMarketClownMonster::AMarketClownMonster()
 	PrimaryActorTick.bCanEverTick = true;
 
 	MaskMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("MaskMesh"));
-	MaskMesh->SetupAttachment(GetMesh(), HeadSocketName);
+	MaskMesh->SetupAttachment(GetMesh(), TEXT("Head"));
 	MaskMesh->SetRelativeLocation(FVector::ZeroVector);
 	MaskMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
-	WeaponCollision = CreateDefaultSubobject<USphereComponent>(TEXT("WeaponCollision"));
-	WeaponCollision->SetupAttachment(Weapon, CollisionSocketName);
-
-	WeaponCollision->InitSphereRadius(30.0f);
-	WeaponCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	WeaponCollision->SetCollisionObjectType(ECC_WorldDynamic);
-	WeaponCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
-	WeaponCollision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
-	WeaponCollision->SetGenerateOverlapEvents(true);
 	
 	CurrentMask = ETalMaskType::Yangban;
-	
-	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
-	AIControllerClass = AMarketClownMonsterController::StaticClass();
 }
 
 void AMarketClownMonster::BeginPlay()
 {
 	Super::BeginPlay();
-
-	if (SplitLevel == 0)
-	{
-		MaxSplitCount = FMath::RandRange(2, 4);
-	}
 	
-	AttackMontages.SetNum(4);
+	MaskAttackMontages.SetNum(4);
 	ApplyMaskBehavior(CurrentMask);
 }
 
@@ -81,31 +58,10 @@ void AMarketClownMonster::ApplyMaskBehavior(ETalMaskType Mask)
 
 UAnimMontage* AMarketClownMonster::GetCurrentMaskAttackMontage() const
 {
-	if (!AttackMontages.IsValidIndex(3)) return nullptr;
-
-	switch (CurrentMask)
+	int32 Index = static_cast<int32>(CurrentMask);
+	if (MaskAttackMontages.IsValidIndex(Index))
 	{
-	case ETalMaskType::Yangban: return AttackMontages[0];
-	case ETalMaskType::Imae: return AttackMontages[1];
-	case ETalMaskType::Baekjeong: return AttackMontages[2];
-	case ETalMaskType::Bune: return AttackMontages[3];
-	default: return AttackMontages[0];
-	}
-}
-
-UAnimMontage* AMarketClownMonster::GetRoarMontage() const
-{
-	return RoarMontage;
-}
-
-AActor* AMarketClownMonster::GetBlackboardTarget() const
-{
-	if (AAIController* AICon = Cast<AAIController>(GetController()))
-	{
-		if (UBlackboardComponent* BB = AICon->GetBlackboardComponent())
-		{
-			return Cast<AActor>(BB->GetValueAsObject(FName("TargetActor")));
-		}
+		return MaskAttackMontages[Index];
 	}
 	return nullptr;
 }
@@ -133,112 +89,58 @@ void AMarketClownMonster::SplitOnDeath()
 	{
 		FVector SpawnLoc = (i == 0) ? LeftSpawn : RightSpawn;
 		ETalMaskType RandomMask = MaskPool[FMath::RandRange(0, MaskPool.Num() - 1)];
-		FTransform SpawnTransform = FTransform(SpawnRotation, SpawnLoc);
 
-		AMarketClownMonster* Clone = GetWorld()->SpawnActorDeferred<AMarketClownMonster>(
-			CloneClass,
-			SpawnTransform,
-			nullptr,
-			nullptr,
-			ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn
-		);
-
+		AMarketClownMonster* Clone = GetWorld()->SpawnActor<AMarketClownMonster>(CloneClass, SpawnLoc, SpawnRotation);
 		if (Clone)
 		{
+			Clone->MaskAttackMontages = MaskAttackMontages;
 			Clone->ApplyMaskBehavior(RandomMask);
-			Clone->InitAbilityActorInfo();
-			Clone->BindToTagChange();
-			Clone->AddCharacterAbilities();
+			Clone->InitSplitLevel(SplitLevel + 1);
 			
-			Clone->ApplySplitLevelAttributes(SplitLevel + 1);
-
-			UGameplayStatics::FinishSpawningActor(Clone, SpawnTransform);
-
+			Clone->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+			Clone->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+			
 			FVector LaunchDir = (i == 0) ? -GetActorRightVector() : GetActorRightVector();
 			LaunchDir.Z = 0.4f;
-			Clone->LaunchCharacter(LaunchDir.GetSafeNormal() * 400.f, true, true);
+			LaunchDir = LaunchDir.GetSafeNormal();
 
-			Clone->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-			Clone->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
-
-			if (AMarketClownMonsterController* CloneController = Cast<AMarketClownMonsterController>(Clone->GetController()))
-			{
-				if (CloneController->GetBlackboardComponent())
-				{
-					CloneController->RunBehaviorTree(CloneController->GetBehaviorTree());
-				}
-
-				if (UBlackboardComponent* BB = CloneController->GetBlackboardComponent())
-				{
-					if (AActor* Target = GetBlackboardTarget())
-					{
-						BB->SetValueAsObject("TargetActor", Target);
-						BB->SetValueAsBool("bPlayerDetect", true);
-					}
-					BB->SetValueAsBool("bIsDead", false);
-					BB->SetValueAsBool("bIsAttacking", false);
-					BB->SetValueAsBool("bIsBusy", false);
-				}
-			}
+			FVector LaunchVelocity = LaunchDir * 400.f;
+			Clone->LaunchCharacter(LaunchVelocity, true, true);
 		}
 	}
-
-	Destroy();
+	Destroy(); 
 }
 
-void AMarketClownMonster::ApplySplitLevelAttributes(int32 InLevel)
+void AMarketClownMonster::InitSplitLevel(int32 InLevel)
 {
 	SplitLevel = InLevel;
 
 	const float Scale = FMath::Clamp(1.f - (SplitLevel * 0.2f), 0.3f, 1.0f);
-	const float InitialStrength = 10.0f;
-	const float NewStrength = InitialStrength * Scale;
 
-	UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
-	if (ASC && StrengthOverrideEffect)
+	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponent())
 	{
-		FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(StrengthOverrideEffect, 1.f, ASC->MakeEffectContext());
-
-		if (SpecHandle.IsValid())
+		if (UPRAttributeSet* AS = Cast<UPRAttributeSet>(GetAttributeSet()))
 		{
-			SpecHandle.Data->SetSetByCallerMagnitude(
-				FGameplayTag::RequestGameplayTag(FName("Attributes.Primary.Strength")),
-				NewStrength
-			);
+			const float NewMaxHealth = AS->GetMaxHealth() * Scale;
+			const float NewAttackSpeed = AS->GetAttackSpeed() * Scale;
 
-			ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data);
+			ASC->SetNumericAttributeBase(UPRAttributeSet::GetMaxHealthAttribute(), NewMaxHealth);
+			ASC->SetNumericAttributeBase(UPRAttributeSet::GetHealthAttribute(), NewMaxHealth);
+			ASC->SetNumericAttributeBase(UPRAttributeSet::GetAttackSpeedAttribute(), NewAttackSpeed);
 		}
 	}
 }
 
 void AMarketClownMonster::Die()
 {
-	if (bIsDead) return;
-	bIsDead = true;
+	Super::Die();
 
-	if (SplitLevel < MaxSplitCount)
+	if (SplitLevel < 2)
 	{
 		SplitOnDeath();
-		Super::Die();
-		return;
 	}
-
-	if (UAnimMontage* DeathMontage = GetDeathMontage())
+	else
 	{
-		if (UAnimInstance* Anim = GetMesh()->GetAnimInstance())
-		{
-			FOnMontageEnded EndDelegate;
-			EndDelegate.BindLambda([this](UAnimMontage*, bool)
-			{
-				Super::Die();
-				Destroy();
-			});
-			Anim->Montage_Play(DeathMontage);
-			Anim->Montage_SetEndDelegate(EndDelegate, DeathMontage);
-			return;
-		}
+		Destroy();
 	}
-
-	Super::Die();
-	Destroy();
 }

@@ -7,7 +7,7 @@
 UBTTask_Attack::UBTTask_Attack()
 {
 	NodeName = "Base Attack";
-	bNotifyTaskFinished = false; 
+	bNotifyTaskFinished = false; // 어빌리티 내부에서 상태 정리하므로 여기선 즉시 종료
 	bCreateNodeInstance = false;
 }
 
