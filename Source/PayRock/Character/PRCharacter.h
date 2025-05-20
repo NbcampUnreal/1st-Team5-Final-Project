@@ -166,13 +166,9 @@ public:
 	UFUNCTION()
 	void OnRep_IsAiming();
 
-	// 현재 무기 판별(실험용)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Test")
-	EWeaponType CurrentWeaponType;
-
 	// 기존
-	//UPROPERTY(Replicated, BlueprintReadOnly, Category = "Weapon")
-	//EWeaponType CurrentWeaponType;
+	UPROPERTY(Replicated, BlueprintReadWrite, Category = "Weapon")
+	EWeaponType CurrentWeaponType;
 
 	void SetWeaponType(EWeaponType NewType);
 
@@ -189,9 +185,29 @@ public:
 	UFUNCTION(BlueprintCallable)
 	USoundBase* GetFootstepSoundBySurface(EPhysicalSurface SurfaceType);
 
+	UPROPERTY(EditAnywhere, Category = "Sound")
+	USoundBase* FootstepSound;
+
+	UPROPERTY(EditAnywhere, Category = "Sound")
+	USoundAttenuation* FootstepAttenuation;
+
 	// 발소리 사운드 큐
 	UPROPERTY(EditDefaultsOnly, Category = "Footstep")
 	USoundBase* DefaultFootstepSound;
+
+	// 착지
+	UFUNCTION(Server, Reliable)
+	void ServerRequestLandingSound(FVector Location, USoundBase* Sound);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastPlayLandingSound(FVector Location, USoundBase* Sound);
+
+	UPROPERTY(EditDefaultsOnly, Category = "Sound")
+	USoundBase* DefaultLandSound;
+
+	USoundBase* GetLandingSoundBySurface(EPhysicalSurface SurfaceType);
+
+	void Landed(const FHitResult& Hit);
 
 protected:
 	virtual void BeginPlay() override;

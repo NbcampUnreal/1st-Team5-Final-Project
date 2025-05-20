@@ -49,6 +49,7 @@ const UAnimMontage* ABaseCharacter::GetHitReactMontage()
 	if (HitReactMontages.IsEmpty())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("HitReactMontages TArray is empty. Please assign montages in BP."))
+		return nullptr;
 	}
 
 	return HitReactMontages[FMath::RandRange(0, HitReactMontages.Num() - 1)];
