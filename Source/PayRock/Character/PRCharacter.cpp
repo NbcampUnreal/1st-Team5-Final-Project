@@ -647,6 +647,7 @@ void APRCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
     DOREPLIFETIME(APRCharacter, bIsAiming);
     DOREPLIFETIME(APRCharacter, ReplicatedMaxWalkSpeed);
     DOREPLIFETIME(APRCharacter, ReplicatedControlRotation);
+    DOREPLIFETIME(APRCharacter, CurrentWeaponType);
 }
 
 void APRCharacter::OnRep_MoveDirection()
