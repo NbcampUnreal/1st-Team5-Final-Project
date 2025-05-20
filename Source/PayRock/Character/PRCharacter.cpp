@@ -51,8 +51,8 @@ APRCharacter::APRCharacter()
 
     RightHandCollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("RightHandCollision"));
     LeftHandCollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("LefttHandCollision"));
-    
-    
+
+
     NormalSpeed = 350.0f;
     SprintSpeedMultiplier = 2.0f;
     CrouchSpeed = 200.0f;
@@ -139,7 +139,7 @@ void APRCharacter::AddCharacterAbilities()
 void APRCharacter::InitAbilityActorInfo()
 {
     APRPlayerState* PRPlayerState = GetPlayerState<APRPlayerState>();
-    if(!PRPlayerState) return;
+    if (!PRPlayerState) return;
     AbilitySystemComponent = PRPlayerState->GetAbilitySystemComponent();
     AbilitySystemComponent->InitAbilityActorInfo(PRPlayerState, this);
     Cast<UPRAbilitySystemComponent>(AbilitySystemComponent)->OnAbilityActorInfoInitialized();
@@ -467,12 +467,67 @@ void APRCharacter::ServerRequestFootstep_Implementation(FVector Location, USound
 
 void APRCharacter::MulticastPlayFootstep_Implementation(FVector Location, USoundBase* Sound)
 {
-    UGameplayStatics::PlaySoundAtLocation(this, Sound, Location);
+    UGameplayStatics::PlaySoundAtLocation(
+        this,
+        Sound,
+        Location,
+        FRotator::ZeroRotator,
+        1.0f,
+        1.0f,
+        0.0f,
+        FootstepAttenuation
+    );
 }
 
 USoundBase* APRCharacter::GetFootstepSoundBySurface(EPhysicalSurface SurfaceType)
 {
-        return DefaultFootstepSound;
+    return DefaultFootstepSound;
+}
+
+// 착지 시 발소리 재생
+void APRCharacter::Landed(const FHitResult& Hit)
+{
+    Super::Landed(Hit);
+
+    FVector Location = Hit.ImpactPoint;
+    EPhysicalSurface SurfaceType = UPhysicalMaterial::DetermineSurfaceType(Hit.PhysMaterial.Get());
+
+    USoundBase* LandingSound = GetLandingSoundBySurface(SurfaceType);
+    if (!LandingSound) return;
+
+    // 멀티플레이 처리
+    if (HasAuthority())
+    {
+        MulticastPlayLandingSound(Location, LandingSound);
+    }
+    else
+    {
+        ServerRequestLandingSound(Location, LandingSound);
+    }
+}
+
+void APRCharacter::ServerRequestLandingSound_Implementation(FVector Location, USoundBase* Sound)
+{
+    MulticastPlayLandingSound(Location, Sound);
+}
+
+void APRCharacter::MulticastPlayLandingSound_Implementation(FVector Location, USoundBase* Sound)
+{
+    UGameplayStatics::PlaySoundAtLocation(
+        this,
+        Sound,
+        Location,
+        FRotator::ZeroRotator,
+        1.0f,
+        1.0f,
+        0.0f,
+        FootstepAttenuation
+    );
+}
+
+USoundBase* APRCharacter::GetLandingSoundBySurface(EPhysicalSurface SurfaceType)
+{
+    return DefaultLandSound;
 }
 
 void APRCharacter::StartCrouch(const FInputActionValue& value)
@@ -711,7 +766,7 @@ void APRCharacter::Tick(float DeltaSeconds)
 
     bIsInAir = GetCharacterMovement()->IsFalling();
     bIsCrouching = GetCharacterMovement()->IsCrouching();
-    
+
     if (HasAuthority())
     {
         ReplicatedControlRotation = GetControlRotation(); //카메라 회전 리플리케이션
@@ -731,7 +786,7 @@ void APRCharacter::Tick(float DeltaSeconds)
                 {
                     SpringArm->bUsePawnControlRotation = false;
                 }
-                
+
                 SpringArm->SetWorldRotation(ReplicatedControlRotation);
             }
         }
@@ -763,7 +818,7 @@ void APRCharacter::Die(/*const FHitResult& HitResult*/)
                 PC->Client_OnSpectateTargetDied(this);
             }
         }
-        
+
         StimuliSourceComponent->UnregisterFromPerceptionSystem();
     }
     //UnPossessed();
@@ -778,7 +833,7 @@ void APRCharacter::MulticastRagdoll_Implementation()
     {
         DisableInput(PC);
     }
-	
+
     USkeletalMeshComponent* CharacterMesh = GetMesh();
     if (!CharacterMesh->IsRegistered())
     {
