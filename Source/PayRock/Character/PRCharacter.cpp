@@ -799,6 +799,7 @@ void APRCharacter::Die(/*const FHitResult& HitResult*/)
 
     if (HasAuthority())
     {
+        GetAbilitySystemComponent()->ClearAllAbilities();
         if (APRPlayerState* PS = GetPlayerState<APRPlayerState>())
         {
             PS->SetIsDead(true);
