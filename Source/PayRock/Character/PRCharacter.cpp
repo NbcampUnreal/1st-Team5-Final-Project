@@ -13,6 +13,7 @@
 #include "Engine/UserDefinedEnum.h"
 #include "PayRock/PRGameplayTags.h"
 #include "PayRock/AbilitySystem/PRAbilitySystemComponent.h"
+#include "PayRock/AbilitySystem/PRAttributeSet.h"
 #include "PayRock/Input/PRInputComponent.h"
 #include "PayRock/Player/PRPlayerState.h"
 #include "PayRock/Player/PRPlayerController.h"
@@ -371,7 +372,6 @@ void APRCharacter::Move(const FInputActionValue& Value)
     {
         SpeedMultiplier = BackwardSpeedMultiplier;
     }
-
     AddMovementInput(MoveDir, SpeedMultiplier);
 }
 
@@ -702,7 +702,15 @@ void APRCharacter::Tick(float DeltaSeconds)
     SpringArmComp->SocketOffset = FMath::VInterpTo(SpringArmComp->SocketOffset, TargetOffset, DeltaSeconds, CameraInterpSpeed);
 
     // 이동 속도 보간
-    const float DesiredTargetSpeed = bIsAiming ? NormalSpeed * BackwardSpeedMultiplier : CurrentTargetSpeed;
+    float DesiredTargetSpeed = bIsAiming ? NormalSpeed * BackwardSpeedMultiplier : CurrentTargetSpeed;
+    float MoveSpeed = 1.f;
+    // MoveSpeed 어트리뷰트 반영
+    if (UPRAttributeSet* AS = Cast<UPRAttributeSet>(GetAttributeSet()))
+    {
+        MoveSpeed = AS->GetMoveSpeed() / 100.f;
+    }
+    DesiredTargetSpeed *= MoveSpeed;
+
     float NewSpeed = FMath::FInterpTo(GetCharacterMovement()->MaxWalkSpeed, DesiredTargetSpeed, DeltaSeconds, CurrentInterpRate);
     GetCharacterMovement()->MaxWalkSpeed = NewSpeed;
 
