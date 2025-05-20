@@ -475,6 +475,43 @@ USoundBase* APRCharacter::GetFootstepSoundBySurface(EPhysicalSurface SurfaceType
         return DefaultFootstepSound;
 }
 
+// 착지 시 발소리 재생
+void APRCharacter::Landed(const FHitResult& Hit)
+{
+    Super::Landed(Hit);
+
+    FVector Location = Hit.ImpactPoint;
+    EPhysicalSurface SurfaceType = UPhysicalMaterial::DetermineSurfaceType(Hit.PhysMaterial.Get());
+
+    USoundBase* LandingSound = GetLandingSoundBySurface(SurfaceType);
+    if (!LandingSound) return;
+
+    // 멀티플레이 처리
+    if (HasAuthority())
+    {
+        MulticastPlayLandingSound(Location, LandingSound);
+    }
+    else
+    {
+        ServerRequestLandingSound(Location, LandingSound);
+    }
+}
+
+void APRCharacter::ServerRequestLandingSound_Implementation(FVector Location, USoundBase* Sound)
+{
+    MulticastPlayLandingSound(Location, Sound);
+}
+
+void APRCharacter::MulticastPlayLandingSound_Implementation(FVector Location, USoundBase* Sound)
+{
+    UGameplayStatics::PlaySoundAtLocation(this, Sound, Location);
+}
+
+USoundBase* APRCharacter::GetLandingSoundBySurface(EPhysicalSurface SurfaceType)
+{
+        return DefaultLandSound;
+}
+
 void APRCharacter::StartCrouch(const FInputActionValue& value)
 {
     if (GetCharacterMovement()->NavAgentProps.bCanCrouch)

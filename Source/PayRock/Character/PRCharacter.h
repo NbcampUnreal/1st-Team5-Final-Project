@@ -193,6 +193,20 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Footstep")
 	USoundBase* DefaultFootstepSound;
 
+	// 착지
+	UFUNCTION(Server, Reliable)
+	void ServerRequestLandingSound(FVector Location, USoundBase* Sound);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastPlayLandingSound(FVector Location, USoundBase* Sound);
+
+	UPROPERTY(EditDefaultsOnly, Category = "Sound")
+	USoundBase* DefaultLandSound;
+
+	USoundBase* GetLandingSoundBySurface(EPhysicalSurface SurfaceType);
+
+	void Landed(const FHitResult& Hit);
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void AddCharacterAbilities() override;
