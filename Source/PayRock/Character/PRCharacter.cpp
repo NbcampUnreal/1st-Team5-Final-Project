@@ -13,6 +13,7 @@
 #include "Engine/UserDefinedEnum.h"
 #include "PayRock/PRGameplayTags.h"
 #include "PayRock/AbilitySystem/PRAbilitySystemComponent.h"
+#include "PayRock/AbilitySystem/PRAttributeSet.h"
 #include "PayRock/Input/PRInputComponent.h"
 #include "PayRock/Player/PRPlayerState.h"
 #include "PayRock/Player/PRPlayerController.h"
@@ -371,7 +372,12 @@ void APRCharacter::Move(const FInputActionValue& Value)
     {
         SpeedMultiplier = BackwardSpeedMultiplier;
     }
-
+    
+    // MoveSpeed 어트리뷰트 반영
+    if (UPRAttributeSet* AS = Cast<UPRAttributeSet>(GetAttributeSet()))
+    {
+        SpeedMultiplier *= AS->GetMoveSpeed() / 100.f;
+    }
     AddMovementInput(MoveDir, SpeedMultiplier);
 }
 
