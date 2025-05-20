@@ -30,10 +30,11 @@ void UPRAnimNotify_PlayFootstep::Notify(USkeletalMeshComponent* MeshComp, UAnimS
 
     // 표면 타입으로 발소리 선택
     EPhysicalSurface SurfaceType = UPhysicalMaterial::DetermineSurfaceType(Hit.PhysMaterial.Get());
-    USoundBase* FootstepSound = PRChar->GetFootstepSoundBySurface(SurfaceType); // 이 함수 네가 만들어줘야 함
+    USoundBase* FootstepSound = PRChar->GetFootstepSoundBySurface(SurfaceType); // 이 함수 네가 만들어야 함
 
     if (!FootstepSound) return;
 
+    // 서버에 발소리 재생 요청 (Multicast 내부에서 어테뉴에이션 포함 재생)
     if (Owner->HasAuthority())
     {
         PRChar->MulticastPlayFootstep(Hit.Location, FootstepSound);
