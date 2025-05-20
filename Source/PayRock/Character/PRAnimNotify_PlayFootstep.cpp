@@ -23,7 +23,7 @@ void UPRAnimNotify_PlayFootstep::Notify(USkeletalMeshComponent* MeshComp, UAnimS
     FCollisionQueryParams Params;
     Params.AddIgnoredActor(Owner);
     bool bHit = Owner->GetWorld()->LineTraceSingleByChannel(
-        Hit, FootLocation, FootLocation - FVector(0, 0, 50.f), ECC_Visibility, Params
+        Hit, FootLocation, FootLocation - FVector(0, 0, 100.f), ECC_Visibility, Params
     );
 
     if (!bHit) return;
