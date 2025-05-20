@@ -56,12 +56,17 @@ const UAnimMontage* ABaseCharacter::GetHitReactMontage()
 
 void ABaseCharacter::Die(/*const FHitResult& HitResult*/)
 {
-	if (HasAuthority())
+	if (true) //HasAuthority()
 	{
 		GetCharacterMovement()->DisableMovement();
 		GetCharacterMovement()->StopMovementImmediately();
 	
 		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+		if (HasAuthority())
+		{
+			SpawnLootContainer();
+		}
 		
 		/*if (HitResult.bBlockingHit)
 		{

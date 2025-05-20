@@ -18,12 +18,16 @@ class PAYROCK_API ABaseProjectile : public AActor
 
 public:
 	ABaseProjectile();
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UProjectileMovementComponent> ProjectileMovement;
 
 	UPROPERTY(BlueprintReadWrite, meta = (ExposeOnSpawn = true))
 	TObjectPtr<UGameplayAbility> SourceAbility;
+
+	UPROPERTY(BlueprintReadWrite, Replicated)
+	TObjectPtr<AActor> SourceActor;
 	
 	UPROPERTY(BlueprintReadWrite, meta = (ExposeOnSpawn = true))
 	FGameplayEffectSpecHandle DamageEffectSpecHandle;

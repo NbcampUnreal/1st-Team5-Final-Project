@@ -101,7 +101,6 @@ void AEnemyController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stim
 	{
 		Enemy->SetBattleState(true);
 	}
-
 	const FVector AIPos = Enemy->GetActorLocation();
 
 	const FAISenseID HearingID = UAISense::GetSenseID<UAISense_Hearing>();

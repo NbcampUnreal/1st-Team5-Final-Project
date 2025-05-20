@@ -3,8 +3,8 @@
 #include "PayRock/UI/WidgetController/OverlayWidgetController.h"
 #include "PayRock/AbilitySystem/PRAbilitySystemComponent.h"
 #include "PayRock/AbilitySystem/PRAttributeSet.h"
-#include "PayRock/GameSystem/PRGameState.h"
 #include "PayRock/Player/PRPlayerState.h"
+#include "PayRock/Player/PRPlayerController.h"
 
 void UOverlayWidgetController::BroadcastInitialValues()
 {

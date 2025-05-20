@@ -2,7 +2,9 @@
 
 #include "PRPlayerState.h"
 
+#include "PRPlayerController.h"
 #include "Net/UnrealNetwork.h"
+#include "PayRock/PRGameplayTags.h"
 #include "PayRock/AbilitySystem/PRAbilitySystemComponent.h"
 #include "PayRock/AbilitySystem/PRAttributeSet.h"
 
@@ -25,6 +27,7 @@ void APRPlayerState::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>&
 
 	DOREPLIFETIME(APRPlayerState, Level);
 	DOREPLIFETIME(APRPlayerState, bIsDead);
+	DOREPLIFETIME(APRPlayerState, bIsExtracted);
 }
 
 UAbilitySystemComponent* APRPlayerState::GetAbilitySystemComponent() const
@@ -36,7 +39,11 @@ void APRPlayerState::SetIsDead(bool bDead)
 {
 	if (HasAuthority())
 	{
-		bIsDead = bDead;	
+		bIsDead = bDead;
+		if (APRPlayerController* PC = Cast<APRPlayerController>(GetOwningController()))
+		{
+			if (bIsDead) PC->Client_ShowDeathOptions();
+		}
 	}
 }
 
@@ -44,8 +51,38 @@ void APRPlayerState::SetIsExtracted(bool bExtracted)
 {
 	if (HasAuthority())
 	{
-		bIsExtracted = bExtracted;	
+		bIsExtracted = bExtracted;
+		if (APRPlayerController* PC = Cast<APRPlayerController>(GetOwningController()))
+		{
+			if (bIsExtracted) PC->Client_ShowDeathOptions();
+		}
+		for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+		{
+			if (APRPlayerController* PC = Cast<APRPlayerController>(It->Get()))
+			{
+				// 서버에서는 직접 호출
+				PC->OnSpectateTargetDied(this);
+
+				// 클라이언트에게도 전파
+				PC->Client_OnSpectateTargetDied(this);
+			}
+		}
 	}
+}
+
+void APRPlayerState::ForceDeath()
+{
+	FGameplayTagContainer TagContainer;
+	TagContainer.AddTag(FPRGameplayTags::Get().Status_Life_Dead);
+	GetAbilitySystemComponent()->TryActivateAbilitiesByTag(TagContainer);
+}
+
+void APRPlayerState::Extract()
+{
+    if (HasAuthority())
+    {
+        SetIsExtracted(true);
+    }
 }
 
 void APRPlayerState::OnRep_Level(int32 OldLevel)
@@ -69,5 +106,6 @@ void APRPlayerState::OnRep_bIsExtracted()
 	if (bIsExtracted)
 	{
 		OnExtractionDelegate.Broadcast();
+		
 	}
 }

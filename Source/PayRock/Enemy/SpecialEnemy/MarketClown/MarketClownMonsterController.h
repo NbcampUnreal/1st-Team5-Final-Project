@@ -6,24 +6,20 @@
 #include "PayRock/Enemy/EnemyController.h"
 #include "MarketClownMonsterController.generated.h"
 
-UENUM(BlueprintType)
-enum class EClownStrategyType : uint8
-{
-	Defensive UMETA(DisplayName = "Defensive"),
-	Aggressive UMETA(DisplayName = "Aggressive"),
-	Berserk   UMETA(DisplayName = "Berserk"),
-	Ranged    UMETA(DisplayName = "Ranged")
-};
-
 UCLASS()
 class PAYROCK_API AMarketClownMonsterController : public AEnemyController
 {
 	GENERATED_BODY()
 
 public:
-	virtual void OnPossess(APawn* InPawn) override;
+	// Sets default values for this actor's properties
+	AMarketClownMonsterController();
 
 protected:
-	UPROPERTY(EditDefaultsOnly, Category = "AI")
-	FName StrategyKeyName = "StrategyType";
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+
+public:
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
 };
