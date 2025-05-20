@@ -35,4 +35,7 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly)
 	FHitResult HitResult;
+
+	UPROPERTY(BlueprintReadOnly)
+	float AttackSpeed = 1.f;
 };

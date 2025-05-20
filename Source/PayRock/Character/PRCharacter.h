@@ -166,13 +166,9 @@ public:
 	UFUNCTION()
 	void OnRep_IsAiming();
 
-	// 현재 무기 판별(실험용)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Test")
-	EWeaponType CurrentWeaponType;
-
 	// 기존
-	//UPROPERTY(Replicated, BlueprintReadOnly, Category = "Weapon")
-	//EWeaponType CurrentWeaponType;
+	UPROPERTY(Replicated, BlueprintReadWrite, Category = "Weapon")
+	EWeaponType CurrentWeaponType;
 
 	void SetWeaponType(EWeaponType NewType);
 

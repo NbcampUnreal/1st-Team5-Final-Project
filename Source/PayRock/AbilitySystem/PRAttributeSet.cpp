@@ -154,24 +154,22 @@ void UPRAttributeSet::HandleIncomingDamage(const FEffectProperties& Props, const
 			*GetOwningAbilitySystemComponent()->GetAvatarActor()->GetName(),
 			LocalIncomingDamage, HealthCurrent, HealthBase);
 
+		// Activate Hit React
+		FGameplayTagContainer TagContainer;
+		TagContainer.AddTag(FPRGameplayTags::Get().Effects_HitReact);
+		Props.TargetASC->TryActivateAbilitiesByTag(TagContainer);
+
 		if (NewHealth <= 0.f)
 		{
 			// Handle death
 			// option 1: (몽타주 재생 필요 시) 태그 달린 어빌리티로 몽타주 재생 및 Die 함수 호출
-			FGameplayTagContainer TagContainer;
+			TagContainer.Reset();
 			TagContainer.AddTag(FPRGameplayTags::Get().Status_Life_Dead);
 			Props.TargetASC->TryActivateAbilitiesByTag(TagContainer);
 
 			/*const FHitResult* HitResult = Data.EffectSpec.GetContext().GetHitResult();
 			Cast<ABaseCharacter>(Props.TargetCharacter)->Die(CalculatedDamage,
 				HitResult == nullptr ? FHitResult() : *HitResult);*/
-		}
-		else
-		{
-			// Activate Hit React
-			FGameplayTagContainer TagContainer;
-			TagContainer.AddTag(FPRGameplayTags::Get().Effects_HitReact);
-			Props.TargetASC->TryActivateAbilitiesByTag(TagContainer);
 		}
 	}
 }
@@ -180,22 +178,34 @@ float UPRAttributeSet::GetCalculatedDamage(float LocalIncomingDamage, const FEff
 {
 	// TODO: Block
 	
-	
 	const UPRAttributeSet* AttackerAttributeSet =
 		Cast<UPRAttributeSet>(Props.SourceASC->GetAttributeSet(UPRAttributeSet::StaticClass()));
+
+	float NetArmor = GetArmor();
+	float CriticalMultiplier = 1.f;
+	if (AttackerAttributeSet)
+	{
+		// Critical Hit Multiplier
+		const float EffectiveCritChance = FMath::Clamp(AttackerAttributeSet->GetCriticalChance() - GetCriticalResistance(), 0.f, 100.f);
+		const bool bIsCritical = FMath::RandRange(0.f, 100.f) < EffectiveCritChance;
+		if (bIsCritical) UE_LOG(LogTemp, Warning, TEXT("Critical Hit!"));
+		CriticalMultiplier = bIsCritical ? (AttackerAttributeSet->GetCriticalDamage() / 100.f) : 1.f;
+
+		// Net Armor = Defender Armor - Attacker Armor Penetration
+		NetArmor = FMath::Max(0.f, GetArmor() - AttackerAttributeSet->GetArmorPenetration());
+
+		// Attacker's Strength multiplier
+		const float StrengthMultiplier = 1.f + (AttackerAttributeSet->GetStrength() / 500.f);
+		LocalIncomingDamage *= StrengthMultiplier;
+	}
+	// Armor Reduction (percentage)
+	const float ArmorReduction = NetArmor / (NetArmor + 100.f);
 	
-	// Critical Hit Multiplier
-	const bool bIsCritical = FMath::RandRange(0, 100) < AttackerAttributeSet->GetCriticalChance();
-	if (bIsCritical) UE_LOG(LogTemp, Warning, TEXT("Critical Hit!"));
-	float CriticalMultiplier = bIsCritical ? (AttackerAttributeSet->GetCriticalDamage() / 100.f) : 1.f;
+	const float DamageAfterArmor = LocalIncomingDamage * (1.f - ArmorReduction);
 
-	// Net Armor = Defender Armor - Attacker Armor Penetration
-	float NetArmor = FMath::Max(0.f, GetArmor() - AttackerAttributeSet->GetArmorPenetration());
-
-	// Armor Reduction percentage
-	float ArmorReduction = NetArmor / (NetArmor + 100.f);
-
-	return LocalIncomingDamage * (1.f - ArmorReduction) * CriticalMultiplier;
+	const float FinalDamage = DamageAfterArmor * CriticalMultiplier;
+	
+	return FinalDamage;
 }
 
 /* Primary Attributes */
