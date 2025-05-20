@@ -18,57 +18,69 @@ EBTNodeResult::Type UBTTask_Chase::ExecuteTask(UBehaviorTreeComponent& OwnerComp
 	CachedOwnerComp = &OwnerComp;
 	CachedAICon = OwnerComp.GetAIOwner();
 
-	if (!CachedAICon) return EBTNodeResult::Failed;
+	if (!CachedAICon || !CachedAICon->IsValidLowLevelFast()) return EBTNodeResult::Failed;
 
 	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
-	if (!BB || BB->GetValueAsBool("bIsBusy") || BB->GetValueAsBool("bIsAttacking")) return EBTNodeResult::Failed;
+	if (!BB) return EBTNodeResult::Failed;
+
+	APawn* Pawn = CachedAICon->GetPawn();
+	if (!Pawn || BB->GetValueAsBool("bIsBusy") || BB->GetValueAsBool("bIsAttacking"))
+		return EBTNodeResult::Failed;
 
 	AActor* Target = Cast<AActor>(BB->GetValueAsObject("TargetActor"));
-	if (!Target) return EBTNodeResult::Failed;
+	if (!Target || !Target->IsValidLowLevelFast()) return EBTNodeResult::Failed;
 
-	if (ACharacter* Character = Cast<ACharacter>(CachedAICon->GetPawn()))
+	if (ACharacter* Character = Cast<ACharacter>(Pawn))
 	{
 		if (UCharacterMovementComponent* Move = Character->GetCharacterMovement())
 		{
-			Move->MaxWalkSpeed = FMath::Max(Speed, 300.f);
+			Move->MaxWalkSpeed = Speed;
 		}
 	}
-
 	
-	CachedAICon->ReceiveMoveCompleted.RemoveDynamic(this, &UBTTask_Chase::OnMoveCompleted);
-	CachedAICon->ReceiveMoveCompleted.AddDynamic(this, &UBTTask_Chase::OnMoveCompleted);
-
 	EPathFollowingRequestResult::Type Result = CachedAICon->MoveToActor(Target, TargetRadius);
-	return (Result == EPathFollowingRequestResult::RequestSuccessful) ? EBTNodeResult::InProgress : EBTNodeResult::Failed;
+	if (Result == EPathFollowingRequestResult::RequestSuccessful)
+	{
+		if (!CachedAICon->ReceiveMoveCompleted.IsAlreadyBound(this, &UBTTask_Chase::OnMoveCompleted))
+		{
+			CachedAICon->ReceiveMoveCompleted.AddDynamic(this, &UBTTask_Chase::OnMoveCompleted);
+		}
+		return EBTNodeResult::InProgress;
+	}
+
+	return EBTNodeResult::Failed;
+}
+
+void UBTTask_Chase::OnMoveCompleted(FAIRequestID RequestID, EPathFollowingResult::Type Result)
+{
+	if (!CachedAICon || !CachedOwnerComp)
+		return;
+
+	if (CachedAICon->ReceiveMoveCompleted.IsAlreadyBound(this, &UBTTask_Chase::OnMoveCompleted))
+	{
+		CachedAICon->ReceiveMoveCompleted.RemoveDynamic(this, &UBTTask_Chase::OnMoveCompleted);
+	}
+
+	const EBTNodeResult::Type FinalResult =
+		(Result == EPathFollowingResult::Success) ? EBTNodeResult::Succeeded : EBTNodeResult::Failed;
+
+	FinishLatentTask(*CachedOwnerComp, FinalResult);
 }
 
 void UBTTask_Chase::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
 	Super::TickTask(OwnerComp, NodeMemory, DeltaSeconds);
+	
 
-	if (UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent())
-	{
-		if (BB->GetValueAsBool("bIsBeingWatched"))
-		{
-			if (AAIController* AICon = OwnerComp.GetAIOwner())
-			{
-				AICon->StopMovement();
-			}
-			FinishLatentTask(OwnerComp, EBTNodeResult::Aborted);
-		}
-	}
-}
+	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
+	AAIController* AICon = OwnerComp.GetAIOwner();
 
-void UBTTask_Chase::OnMoveCompleted(FAIRequestID RequestID, EPathFollowingResult::Type Result)
-{
-	if (CachedAICon)
+	if (!BB || !AICon) return;
+
+	if (BB->GetValueAsBool("bIsBeingWatched"))
 	{
-		CachedAICon->ReceiveMoveCompleted.RemoveDynamic(this, &UBTTask_Chase::OnMoveCompleted);
-	}
-	if (CachedOwnerComp)
-	{
-		const EBTNodeResult::Type FinalResult = (Result == EPathFollowingResult::Success) ? EBTNodeResult::Succeeded : EBTNodeResult::Failed;
-		FinishLatentTask(*CachedOwnerComp, FinalResult);
+		AICon->StopMovement();
+		FinishLatentTask(OwnerComp, EBTNodeResult::Aborted);
 	}
 }
 
