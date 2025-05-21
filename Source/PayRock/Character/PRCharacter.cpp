@@ -525,8 +525,6 @@ void APRCharacter::ServerRequestLandingSound_Implementation(FVector Location, US
 
 void APRCharacter::MulticastPlayLandingSound_Implementation(FVector Location, USoundBase* Sound)
 {
-    if (IsLocallyControlled()) return;
-
     UGameplayStatics::PlaySoundAtLocation(
         this,
         Sound,
