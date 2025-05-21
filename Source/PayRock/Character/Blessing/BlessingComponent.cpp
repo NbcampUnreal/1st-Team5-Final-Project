@@ -4,6 +4,7 @@
 #include "BlessingDataAsset.h"
 #include "PayRock/AbilitySystem/PRAbilitySystemComponent.h"
 #include "PayRock/Character/BaseCharacter.h"
+#include "PayRock/GameSystem/SaveDataSubsystem.h"
 
 UBlessingComponent::UBlessingComponent() :
 	CachedAbilitySystemComponent(nullptr),
@@ -12,6 +13,24 @@ UBlessingComponent::UBlessingComponent() :
 {
 	PrimaryComponentTick.bCanEverTick = false;
 	PrimaryComponentTick.bStartWithTickEnabled = false;
+}
+
+void UBlessingComponent::BeginPlay()
+{
+	Super::BeginPlay();
+
+	USaveDataSubsystem* SaveDataSystem = GetWorld()->GetGameInstance()->GetSubsystem<USaveDataSubsystem>();
+	if (!SaveDataSystem)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("SaveDataSubsystem is null (UBlessingComponent::BeginPlay)"));
+	}
+
+	if (Cast<ACharacter>(GetOwner())->IsLocallyControlled())
+	{
+		Server_EquipActiveBlessing(SaveDataSystem->GetEquippedActiveBlessing());
+		Server_EquipPassiveBlessing(SaveDataSystem->GetEquippedPassiveBlessing());
+	}
+	
 }
 
 void UBlessingComponent::Server_EquipActiveBlessing_Implementation(UBlessingDataAsset* BlessingDataAsset)
@@ -41,8 +60,7 @@ void UBlessingComponent::Server_EquipPassiveBlessing_Implementation(UBlessingDat
 	if (!BlessingDataAsset || !GetAbilitySystemComponent()) return;
 	if (BlessingDataAsset->PassiveEffectClass == nullptr)
 	{
-		const FString BlessingName = BlessingDataAsset ? BlessingDataAsset->BlessingName.ToString() : TEXT("Unknown");
-		UE_LOG(LogTemp, Warning, TEXT("%s: PassiveEffectClass is not set. Check DA_Blessings"), *BlessingName);
+		UE_LOG(LogTemp, Warning, TEXT("%s: PassiveEffectClass is not set. Check DA_Blessings"), *BlessingDataAsset->BlessingName.ToString());
 		return;
 	}
 
