@@ -10,11 +10,6 @@ void UBaseDamageGameplayAbility::ActivateAbility(const FGameplayAbilitySpecHandl
 	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
 	const FGameplayEventData* TriggerEventData)
 {
-	if (MontageArray.Num() > 0)
-	{
-		MontageIndex = (MontageIndex + 1) % MontageArray.Num();		
-	}
-
 	if (const UPRAttributeSet* AttributeSet = Cast<UPRAttributeSet>(
 		GetAbilitySystemComponentFromActorInfo()->GetAttributeSet(UPRAttributeSet::StaticClass())))
 	{
@@ -22,6 +17,17 @@ void UBaseDamageGameplayAbility::ActivateAbility(const FGameplayAbilitySpecHandl
 	}
 	
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+}
+
+void UBaseDamageGameplayAbility::EndAbility(const FGameplayAbilitySpecHandle Handle,
+	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
+	bool bReplicateEndAbility, bool bWasCancelled)
+{
+	if (MontageArray.Num() > 0)
+	{
+		MontageIndex = (MontageIndex + 1) % MontageArray.Num();		
+	}
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
 void UBaseDamageGameplayAbility::CauseDamage(AActor* TargetActor /*, const FHitResult& InHitResult*/)

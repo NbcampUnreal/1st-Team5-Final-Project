@@ -22,9 +22,6 @@ protected:
 	UFUNCTION()
 	void OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
 		int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-
-	UFUNCTION(BlueprintImplementableEvent)
-	void ResetCombo();
 	
 	void GetCollisionComponents(USkeletalMeshComponent* WeaponMesh, const FName& SocketName);
 	void BindCallbackToCollision();
@@ -39,9 +36,6 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	float ComboTimeLimit = 0.3f;
-
-	UPROPERTY(BlueprintReadOnly)
-	FTimerHandle ComboTimerHandle;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TArray<TObjectPtr<UAnimMontage>> EndingMontageArray;
