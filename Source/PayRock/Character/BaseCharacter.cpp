@@ -67,13 +67,6 @@ void ABaseCharacter::Die(/*const FHitResult& HitResult*/)
 		if (HasAuthority())
 		{
 			SpawnLootContainer();
-			for (const auto& Ability : GetAbilitySystemComponent()->GetActivatableAbilities())
-			{
-				if (Ability.GetDynamicSpecSourceTags().HasTagExact(FPRGameplayTags::Get().Effects_HitReact))
-				{
-					GetAbilitySystemComponent()->ClearAbility(Ability.Handle);
-				}
-			}
 		}
 		
 		/*if (HitResult.bBlockingHit)
