@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Engine/TargetPoint.h"
 #include "PayRock/Enemy/EnemyCharacter.h"
 #include "DoggebiCharacter.generated.h"
 
@@ -81,6 +82,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CollisionComponent")
 	UCapsuleComponent* FireCollision;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Pattern")
+	TArray<ATargetPoint*> TargetActors;
 
 	//For Test
 	void CycleMask();
