@@ -36,7 +36,11 @@ public:
 	
 	
 	//이거는 GA애서 playmontage해서 변경해주는거로 하자.
+	UFUNCTION(Blueprintable)
 	void ChangeMask(EMaskType NewMask);
+
+	UFUNCTION(Blueprintable)
+	void RandomChangeMask();
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mask")
 	EMaskType CurrentMaskType;

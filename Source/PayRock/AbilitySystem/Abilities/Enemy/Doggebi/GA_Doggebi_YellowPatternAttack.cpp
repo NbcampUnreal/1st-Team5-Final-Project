@@ -82,6 +82,7 @@ void UGA_Doggebi_YellowPatternAttack::EndAttackBlackboardState()
 			if (UBlackboardComponent* BB = AICon->GetBlackboardComponent())
 			{
 				BB->SetValueAsBool("bIsAttacking", false);
+				BB->SetValueAsEnum("bIsNeedMaskChange", true);
 			}
 		}
 		Doggebi->WeaponCollision->OnComponentBeginOverlap.RemoveDynamic(this, &UGA_Doggebi_YellowPatternAttack::UGA_Doggebi_YellowPatternAttack::OnWeaponOverlap);

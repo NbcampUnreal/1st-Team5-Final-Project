@@ -4,6 +4,7 @@
 #include "DoggebiCharacter.h"
 
 #include "DoggebiController.h"
+#include "BehaviorTree/BlackboardComponent.h"
 #include "Components/CapsuleComponent.h"
 
 ADoggebiCharacter::ADoggebiCharacter()
@@ -29,15 +30,14 @@ void ADoggebiCharacter::BeginPlay()
 	
 	if (Mask)
 	{
-		UMaterialInterface* BaseMat = Mask->GetMaterial(0);
+		UMaterialInterface* BaseMat = Mask->GetMaterial(7);
 		DynamicMaskMaterial = UMaterialInstanceDynamic::Create(BaseMat, this);
 		if (DynamicMaskMaterial)
 		{
-			Mask->SetMaterial(0, DynamicMaskMaterial);
+			Mask->SetMaterial(7, DynamicMaskMaterial);
 		}
 	}
 	
-	GetWorldTimerManager().SetTimer(MaskChangeTimer, this, &ADoggebiCharacter::CycleMask, 3.0f, true);
 
 	
 }
@@ -75,18 +75,18 @@ void ADoggebiCharacter::ChangeMask(EMaskType NewMask)
 
 	if (!DynamicMaskMaterial) return;
 
-	float MaskStateValue = 0.f;
+	float MaskStateValue = 0.0f;
 
 	switch (NewMask)
 	{
 	case EMaskType::Red:
-		MaskStateValue = 0.f;
+		MaskStateValue = 1.5f;
 		break;
 	case EMaskType::Yellow:
-		MaskStateValue = 1.f;
+		MaskStateValue = 1.0f;
 		break;
 	case EMaskType::Blue:
-		MaskStateValue = 2.f;
+		MaskStateValue = 0.0f;
 		break;
 	}
 
@@ -94,6 +94,40 @@ void ADoggebiCharacter::ChangeMask(EMaskType NewMask)
 
 	if (GEngine)
 		GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Cyan, TEXT("가면 교체_ChangeMask "));
+}
+
+void ADoggebiCharacter::RandomChangeMask()
+{
+	EMaskType NextMask = EMaskType::Red;
+	
+	CurrentMaskIndex = (CurrentMaskIndex + 1) % 3;
+
+	if (AAIController* AICon = Cast<AAIController>(GetController()))
+	{
+		if (UBlackboardComponent* BB = AICon->GetBlackboardComponent())
+		{
+			BB->SetValueAsEnum("EMaskType", CurrentMaskIndex);
+		}
+	}
+	
+	switch (CurrentMaskIndex)
+	{
+	case 0:
+		NextMask = EMaskType::Red;
+		break;
+	case 1:
+		NextMask = EMaskType::Yellow;
+		break;
+	case 2:
+		NextMask = EMaskType::Blue;
+		break;
+	}
+	
+	DynamicMaskMaterial->SetScalarParameterValue(TEXT("MaskState"), 2-CurrentMaskIndex);
+	
+	if (GEngine)
+		GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Cyan, TEXT("가면 교체_ChangeMask "));
+	
 }
 
 

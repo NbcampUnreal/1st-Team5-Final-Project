@@ -5,19 +5,20 @@
 #include "CoreMinimal.h"
 #include "PayRock/AbilitySystem/Abilities/BaseDamageGameplayAbility.h"
 #include "PayRock/Enemy/MiddleBoss/Doggebi/DoggebiCharacter.h"
-#include "GA_Doggebi_HawlingAbility.generated.h"
+#include "GA_Doggebi_MaskChange.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class PAYROCK_API UGA_Doggebi_HawlingAbility : public UBaseDamageGameplayAbility
+class PAYROCK_API UGA_Doggebi_MaskChange : public UBaseDamageGameplayAbility
 {
 	GENERATED_BODY()
 
+	
 public:
 	
-	UGA_Doggebi_HawlingAbility();
+	UGA_Doggebi_MaskChange();
 
 	virtual void ActivateAbility(
 		const FGameplayAbilitySpecHandle Handle,
@@ -25,6 +26,7 @@ public:
 		const FGameplayAbilityActivationInfo ActivationInfo,
 		const FGameplayEventData* TriggerEventData) override;
 
+	void RandomMaskChange();
 	
 	UPROPERTY()
 	ADoggebiCharacter* Doggebi;
