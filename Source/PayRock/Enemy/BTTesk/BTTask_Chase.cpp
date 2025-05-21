@@ -4,6 +4,7 @@
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Navigation/PathFollowingComponent.h"
+#include "PayRock/Enemy/SpecialEnemy/Kappa/KappaMonster.h"
 
 UBTTask_Chase::UBTTask_Chase()
 {
@@ -46,15 +47,34 @@ void UBTTask_Chase::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemor
 {
 	Super::TickTask(OwnerComp, NodeMemory, DeltaSeconds);
 
-	if (UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent())
+	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
+	AAIController* AICon = OwnerComp.GetAIOwner();
+	APawn* AIPawn = AICon ? AICon->GetPawn() : nullptr;
+
+	if (!BB || !AICon || !AIPawn) return;
+
+	AActor* Target = Cast<AActor>(BB->GetValueAsObject("TargetActor"));
+	if (!Target) return;
+
+	
+	if (AKappaMonster* Kappa = Cast<AKappaMonster>(AIPawn))
+	{
+		const float Distance = FVector::Dist(Kappa->GetActorLocation(), Target->GetActorLocation());
+
+		if (Distance > 300.f)
+		{
+			AICon->StopMovement();
+			FinishLatentTask(OwnerComp, EBTNodeResult::Aborted);
+			return;
+		}
+	}
+	else
 	{
 		if (BB->GetValueAsBool("bIsBeingWatched"))
 		{
-			if (AAIController* AICon = OwnerComp.GetAIOwner())
-			{
-				AICon->StopMovement();
-			}
+			AICon->StopMovement();
 			FinishLatentTask(OwnerComp, EBTNodeResult::Aborted);
+			return;
 		}
 	}
 }

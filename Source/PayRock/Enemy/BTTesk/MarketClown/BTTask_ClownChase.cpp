@@ -15,9 +15,6 @@ UBTTask_ClownChase::UBTTask_ClownChase()
 	bNotifyTick = true;
 	bNotifyTaskFinished = true;
 	bCreateNodeInstance = true;
-
-	Speed = 600.f;
-	TargetRadius = 100.f;
 }
 
 EBTNodeResult::Type UBTTask_ClownChase::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
@@ -36,30 +33,7 @@ EBTNodeResult::Type UBTTask_ClownChase::ExecuteTask(UBehaviorTreeComponent& Owne
 
 	AActor* Target = Cast<AActor>(BB->GetValueAsObject("TargetActor"));
 	if (!Target || !Target->IsValidLowLevelFast()) return EBTNodeResult::Failed;
-
 	
-	if (AMarketClownMonster* Clown = Cast<AMarketClownMonster>(Pawn))
-	{
-		switch (Clown->CurrentMask)
-		{
-		case ETalMaskType::Yangban:
-		case ETalMaskType::Baekjeong:
-			TargetRadius = 100.f;
-			Speed = 600.f;
-			break;
-		case ETalMaskType::Bune:
-			TargetRadius = 400.f;
-			Speed = 500.f;
-			break;
-		case ETalMaskType::Imae:
-			TargetRadius = 400.f;
-			Speed = 550.f;
-			break;
-		default:
-			TargetRadius = 200.f;
-			break;
-		}
-	}
 	
 	if (ACharacter* Character = Cast<ACharacter>(Pawn))
 	{
@@ -89,47 +63,7 @@ void UBTTask_ClownChase::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Node
 	LookAtRot.Pitch = 0.f;
 	LookAtRot.Roll = 0.f;
 	AIPawn->SetActorRotation(FMath::RInterpTo(CurrentRot, LookAtRot, DeltaSeconds, 5.f));
-
-	if (AMarketClownMonster* Clown = Cast<AMarketClownMonster>(AIPawn))
-	{
-		bool bIsFleeing = false;
-
-		if (Clown->CurrentMask == ETalMaskType::Bune || Clown->CurrentMask == ETalMaskType::Imae)
-		{
-			const float DesiredMinDistance = 250.f;
-
-			if (Distance < DesiredMinDistance)
-			{
-				if (UCharacterMovementComponent* Move = Clown->GetCharacterMovement())
-				{
-					Move->MaxWalkSpeed = 200.f;
-				}
-
-				const FVector FleeDir = (AI_Loc - Target_Loc).GetSafeNormal();
-				const FVector FleeLocation = AI_Loc + FleeDir * 300.f;
-
-				CachedAICon->MoveToLocation(FleeLocation, 5.f);
-				return;
-			}
-			else
-			{
-				if (UCharacterMovementComponent* Move = Clown->GetCharacterMovement())
-				{
-					switch (Clown->CurrentMask)
-					{
-					case ETalMaskType::Bune:
-						Move->MaxWalkSpeed = 400.f;
-						break;
-					case ETalMaskType::Imae:
-						Move->MaxWalkSpeed = 600.f;
-						break;
-					default:
-						break;
-					}
-				}
-			}
-		}
-	}
+	
 	if (Distance <= TargetRadius)
 	{
 		CachedAICon->StopMovement();

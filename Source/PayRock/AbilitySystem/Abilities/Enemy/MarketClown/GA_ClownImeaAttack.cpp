@@ -25,7 +25,7 @@ void UGA_ClownImeaAttack::ActivateAbility(
 		SafeEndAbility(true);
 		return;
 	}
-	
+
 	if (AAIController* AICon = Cast<AAIController>(Boss->GetController()))
 	{
 		if (UBlackboardComponent* BB = AICon->GetBlackboardComponent())
@@ -37,25 +37,13 @@ void UGA_ClownImeaAttack::ActivateAbility(
 			}
 		}
 	}
-	
-	AActor* Target = Cast<AActor>(Boss->GetBlackboardTarget());
-	if (Target)
-	{
-		FVector DashDir = (Target->GetActorLocation() - Boss->GetActorLocation()).GetSafeNormal();
-		DashDir.Z = 0.f;
-		
-		const float DashPower = 1200.f;
-		
-		Boss->AddMovementInput(DashDir, DashPower);
-	}
-	
+
 	UAbilitySystemComponent* ASC = Boss->GetAbilitySystemComponent();
 	if (!ASC || !WeaponAttackAbility)
 	{
 		SafeEndAbility(true);
 		return;
 	}
-
 	
 	ASC->AbilityEndedCallbacks.AddUObject(this, &UGA_ClownImeaAttack::OnWeaponAbilityEnded);
 	const bool bSuccess = ASC->TryActivateAbilityByClass(WeaponAttackAbility);
@@ -70,7 +58,7 @@ void UGA_ClownImeaAttack::OnWeaponAbilityEnded(UGameplayAbility* Ability)
 {
 	AMarketClownMonster* Boss = Cast<AMarketClownMonster>(GetAvatarActorFromActorInfo());
 	if (!Boss) return;
-
+	
 	UAnimMontage* RoarMontage = Boss->GetRoarMontage();
 	UAnimInstance* Anim = Boss->GetMesh()->GetAnimInstance();
 
@@ -90,8 +78,6 @@ void UGA_ClownImeaAttack::OnWeaponAbilityEnded(UGameplayAbility* Ability)
 		SafeEndAbility(false);
 	}
 }
-
-
 
 void UGA_ClownImeaAttack::SafeEndAbility(bool bWasCancelled)
 {

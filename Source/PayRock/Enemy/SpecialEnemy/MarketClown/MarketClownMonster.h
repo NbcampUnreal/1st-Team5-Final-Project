@@ -81,9 +81,9 @@ protected:
 	TSubclassOf<UGameplayEffect> StrengthOverrideEffect;
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MaskMovement", meta = (AllowPrivateAccess = "true"))
-	float YangbanSpeed = 400.0f;
+	float YangbanSpeed = 500.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MaskMovement", meta = (AllowPrivateAccess = "true"))
-	float ImaeSpeed = 600.0f;
+	float ImaeSpeed = 800.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MaskMovement", meta = (AllowPrivateAccess = "true"))
 	float BaekjeSpeed = 500.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MaskMovement", meta = (AllowPrivateAccess = "true"))

@@ -33,8 +33,8 @@ private:
 	AActor* CachedTarget;
 
 	UPROPERTY(EditAnywhere, Category = "Chase")
-	float Speed;
+	float Speed = 600.f;
 
 	UPROPERTY(EditAnywhere, Category = "Chase")
-	float TargetRadius;
+	float TargetRadius = 100.f;
 };

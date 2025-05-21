@@ -35,8 +35,6 @@ EBTNodeResult::Type UBTTask_Attack::ExecuteTask(UBehaviorTreeComponent& OwnerCom
 
 	if (ASC->TryActivateAbilityByClass(AttackAbility))
 	{
-		ASC->TryActivateAbilityByClass(WeaponCollisionAbility);
-
 		if (UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent())
 		{
 			BB->SetValueAsBool(FName("bIsBusy"), true);

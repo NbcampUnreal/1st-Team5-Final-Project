@@ -48,11 +48,11 @@ void UGA_ClownBuneAttack::ActivateAbility(
 
 	const float Distance = FVector::Dist(Boss->GetActorLocation(), Target->GetActorLocation());
 
-	if (Distance > 250.f)
+	if (Distance > 400.f)
 	{
 		FAIMoveRequest MoveReq;
 		MoveReq.SetGoalActor(Target);
-		MoveReq.SetAcceptanceRadius(200.f);
+		MoveReq.SetAcceptanceRadius(300.f);
 
 		FNavPathSharedPtr NavPath;
 		FPathFollowingRequestResult MoveResult = AICon->MoveTo(MoveReq, &NavPath);
@@ -106,10 +106,43 @@ void UGA_ClownBuneAttack::TryActivateAttackAbility(AMarketClownMonster* Boss)
 		SafeEndAbility(true);
 		return;
 	}
+	
+	if (AAIController* AICon = Cast<AAIController>(Boss->GetController()))
+	{
+		if (UBlackboardComponent* BB = AICon->GetBlackboardComponent())
+		{
+			AActor* Target = Cast<AActor>(BB->GetValueAsObject(FName("TargetActor")));
+			if (Target)
+			{
+				FVector BossLoc = Boss->GetActorLocation();
+				FVector TargetLoc = Target->GetActorLocation();
+
+				FRotator LookAtRot = (TargetLoc - BossLoc).Rotation();
+				LookAtRot.Pitch = 0.f;
+				LookAtRot.Roll = 0.f;
+
+				Boss->SetActorRotation(LookAtRot);
+			}
+		}
+	}
 
 	const bool bSuccess = ASC->TryActivateAbilityByClass(WeaponCollisionAbility);
-	SafeEndAbility(!bSuccess);  
+	
+	if (bSuccess)
+	{
+		if (AAIController* AICon = Cast<AAIController>(Boss->GetController()))
+		{
+			if (UBlackboardComponent* BB = AICon->GetBlackboardComponent())
+			{
+				BB->SetValueAsBool(FName("bIsFlee"), true);
+			}
+		}
+	}
+
+	SafeEndAbility(!bSuccess);
 }
+
+
 
 void UGA_ClownBuneAttack::SafeEndAbility(bool bWasCancelled)
 {
