@@ -26,6 +26,7 @@ public:
 		const FGameplayAbilityActivationInfo ActivationInfo,
 		const FGameplayEventData* TriggerEventData) override;
 
+	UFUNCTION(BlueprintCallable)
 	void RandomMaskChange();
 	
 	UPROPERTY()

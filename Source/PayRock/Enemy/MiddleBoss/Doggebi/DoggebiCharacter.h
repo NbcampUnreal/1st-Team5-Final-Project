@@ -16,8 +16,8 @@ enum class EMaskType : uint8
 {
 
 	Red     UMETA(DisplayName = "Red"),
-	Blue    UMETA(DisplayName = "Blue"),
-	Yellow  UMETA(DisplayName = "Yellow")
+	Yellow    UMETA(DisplayName = "Yellow"),
+	Blue  UMETA(DisplayName = "Blue")
 };
 
 

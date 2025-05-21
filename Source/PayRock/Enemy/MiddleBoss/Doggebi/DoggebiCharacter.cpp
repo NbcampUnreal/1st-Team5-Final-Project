@@ -40,6 +40,8 @@ void ADoggebiCharacter::BeginPlay()
 		if (DynamicMaskMaterial)
 		{
 			Mask->SetMaterial(7, DynamicMaskMaterial);
+			
+			DynamicMaskMaterial->SetScalarParameterValue(TEXT("MaskState"), 1.5f);
 		}
 	}
 	
