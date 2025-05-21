@@ -55,28 +55,14 @@ void UBTTask_Chase::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemor
 
 	AActor* Target = Cast<AActor>(BB->GetValueAsObject("TargetActor"));
 	if (!Target) return;
-
 	
-	if (AKappaMonster* Kappa = Cast<AKappaMonster>(AIPawn))
+	if (BB->GetValueAsBool("bIsBeingWatched"))
 	{
-		const float Distance = FVector::Dist(Kappa->GetActorLocation(), Target->GetActorLocation());
-
-		if (Distance > 300.f)
-		{
-			AICon->StopMovement();
-			FinishLatentTask(OwnerComp, EBTNodeResult::Aborted);
-			return;
-		}
+		AICon->StopMovement();
+		FinishLatentTask(OwnerComp, EBTNodeResult::Aborted);
+		return;
 	}
-	else
-	{
-		if (BB->GetValueAsBool("bIsBeingWatched"))
-		{
-			AICon->StopMovement();
-			FinishLatentTask(OwnerComp, EBTNodeResult::Aborted);
-			return;
-		}
-	}
+	
 }
 
 void UBTTask_Chase::OnMoveCompleted(FAIRequestID RequestID, EPathFollowingResult::Type Result)

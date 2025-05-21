@@ -20,16 +20,14 @@ AMarketClownMonster::AMarketClownMonster()
 
 	WeaponCollision = CreateDefaultSubobject<USphereComponent>(TEXT("WeaponCollision"));
 	WeaponCollision->SetupAttachment(Weapon, CollisionSocketName);
-
 	WeaponCollision->InitSphereRadius(30.0f);
 	WeaponCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	WeaponCollision->SetCollisionObjectType(ECC_WorldDynamic);
 	WeaponCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
 	WeaponCollision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 	WeaponCollision->SetGenerateOverlapEvents(true);
-	
+
 	CurrentMask = ETalMaskType::Yangban;
-	
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 	AIControllerClass = AMarketClownMonsterController::StaticClass();
 }
@@ -37,11 +35,9 @@ AMarketClownMonster::AMarketClownMonster()
 void AMarketClownMonster::BeginPlay()
 {
 	Super::BeginPlay();
+	
 
-	if (SplitLevel == 0)
-	{
-		MaxSplitCount = FMath::RandRange(2, 4);
-	}
+	bIsDead = false;
 	
 	AttackMontages.SetNum(4);
 	ApplyMaskBehavior(CurrentMask);
@@ -115,19 +111,18 @@ void AMarketClownMonster::SplitOnDeath()
 	if (!GetWorld()) return;
 
 	TArray<ETalMaskType> MaskPool = {
-		ETalMaskType::Yangban,
-		ETalMaskType::Imae,
-		ETalMaskType::Baekjeong,
-		ETalMaskType::Bune
+		ETalMaskType::Yangban, ETalMaskType::Imae,
+		ETalMaskType::Baekjeong, ETalMaskType::Bune
 	};
 
 	FVector Origin = GetActorLocation();
 	FVector RightOffset = GetActorRightVector() * 150.f;
 	FVector LeftSpawn = Origin - RightOffset;
 	FVector RightSpawn = Origin + RightOffset;
-
 	FRotator SpawnRotation = GetActorRotation();
 	TSubclassOf<AMarketClownMonster> CloneClass = GetClass();
+
+	UClass* AnimClass = GetMesh()->GetAnimInstance() ? GetMesh()->GetAnimInstance()->GetClass() : nullptr;
 
 	for (int i = 0; i < 2; ++i)
 	{
@@ -136,21 +131,22 @@ void AMarketClownMonster::SplitOnDeath()
 		FTransform SpawnTransform = FTransform(SpawnRotation, SpawnLoc);
 
 		AMarketClownMonster* Clone = GetWorld()->SpawnActorDeferred<AMarketClownMonster>(
-			CloneClass,
-			SpawnTransform,
-			nullptr,
-			nullptr,
-			ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn
-		);
+			CloneClass, SpawnTransform, nullptr, nullptr,
+			ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
 
 		if (Clone)
 		{
+			Clone->bIsClone = true;
+			Clone->SplitLevel = SplitLevel + 1;
+			if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
+			{
+				Clone->GetMesh()->SetAnimInstanceClass(AnimInstance->GetClass());
+			}
 			Clone->ApplyMaskBehavior(RandomMask);
 			Clone->InitAbilityActorInfo();
-			Clone->BindToTagChange();
 			Clone->AddCharacterAbilities();
+			Clone->ApplySplitLevelAttributes(Clone->SplitLevel);
 			
-			Clone->ApplySplitLevelAttributes(SplitLevel + 1);
 
 			UGameplayStatics::FinishSpawningActor(Clone, SpawnTransform);
 
@@ -166,10 +162,7 @@ void AMarketClownMonster::SplitOnDeath()
 				if (CloneController->GetBlackboardComponent())
 				{
 					CloneController->RunBehaviorTree(CloneController->GetBehaviorTree());
-				}
-
-				if (UBlackboardComponent* BB = CloneController->GetBlackboardComponent())
-				{
+					UBlackboardComponent* BB = CloneController->GetBlackboardComponent();
 					if (AActor* Target = GetBlackboardTarget())
 					{
 						BB->SetValueAsObject("TargetActor", Target);
@@ -189,27 +182,45 @@ void AMarketClownMonster::SplitOnDeath()
 void AMarketClownMonster::ApplySplitLevelAttributes(int32 InLevel)
 {
 	SplitLevel = InLevel;
-
-	const float Scale = FMath::Clamp(1.f - (SplitLevel * 0.2f), 0.3f, 1.0f);
-	const float InitialStrength = 10.0f;
-	const float NewStrength = InitialStrength * Scale;
+	
+	const float ScaledStrength = FMath::Clamp(10.f - (SplitLevel * 2.5f), 1.f, 10.f);
 
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
-	if (ASC && StrengthOverrideEffect)
-	{
-		FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(StrengthOverrideEffect, 1.f, ASC->MakeEffectContext());
+	if (!ASC) return;
 
-		if (SpecHandle.IsValid())
+	if (GE_ClonePrimaryInit)
+	{
+		FGameplayEffectSpecHandle PrimarySpec = ASC->MakeOutgoingSpec(GE_ClonePrimaryInit, 1.f, ASC->MakeEffectContext());
+		if (PrimarySpec.IsValid())
 		{
-			SpecHandle.Data->SetSetByCallerMagnitude(
+			PrimarySpec.Data->SetSetByCallerMagnitude(
 				FGameplayTag::RequestGameplayTag(FName("Attributes.Primary.Strength")),
-				NewStrength
+				ScaledStrength
 			);
 
-			ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data);
+			ASC->ApplyGameplayEffectSpecToSelf(*PrimarySpec.Data);
+		}
+	}
+	
+	if (GE_CloneSecondaryInit)
+	{
+		FGameplayEffectSpecHandle SecondarySpec = ASC->MakeOutgoingSpec(GE_CloneSecondaryInit, 1.f, ASC->MakeEffectContext());
+		if (SecondarySpec.IsValid())
+		{
+			ASC->ApplyGameplayEffectSpecToSelf(*SecondarySpec.Data);
+		}
+	}
+	
+	if (GE_CloneVitalInit)
+	{
+		FGameplayEffectSpecHandle VitalSpec = ASC->MakeOutgoingSpec(GE_CloneVitalInit, 1.f, ASC->MakeEffectContext());
+		if (VitalSpec.IsValid())
+		{
+			ASC->ApplyGameplayEffectSpecToSelf(*VitalSpec.Data);
 		}
 	}
 }
+
 
 void AMarketClownMonster::Die()
 {

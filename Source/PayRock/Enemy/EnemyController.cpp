@@ -55,7 +55,8 @@ void AEnemyController::OnPossess(APawn* InPawn)
 
 	AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(InPawn);
 	if (!Enemy || !DefaultBehaviorTree) return;
-
+	
+	
 	Enemy->InitAbilityActorInfo();
 	Enemy->InitializeDefaultAttributes();
 	Enemy->AddCharacterAbilities();

@@ -30,6 +30,9 @@ public:
 	virtual void InitAbilityActorInfo() override;
 	virtual void AddCharacterAbilities() override;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Split", meta = (AllowPrivateAccess = "true"))
+	int32 SplitLevel = 0;
+	bool bIsClone = false;
 protected:
 	virtual void Die() override;
 

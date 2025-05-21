@@ -14,11 +14,15 @@ void AMarketClownMonsterController::OnPossess(APawn* InPawn)
 	
 	AMarketClownMonster* Clown = Cast<AMarketClownMonster>(InPawn);
 	if (!Clown || !DefaultBehaviorTree) return;
-	
+
 	Clown->InitAbilityActorInfo();
 	Clown->InitializeDefaultAttributes();
 	Clown->AddCharacterAbilities();
-
+	
+	if (Clown->bIsClone)
+	{
+		Clown->ApplySplitLevelAttributes(Clown->SplitLevel);
+	}
 
 	UBlackboardComponent* BBComponent = nullptr;
 	if (UseBlackboard(DefaultBehaviorTree->BlackboardAsset, BBComponent))

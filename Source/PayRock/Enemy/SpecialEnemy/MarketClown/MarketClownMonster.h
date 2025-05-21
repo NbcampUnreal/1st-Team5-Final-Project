@@ -42,9 +42,13 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mask")
 	ETalMaskType CurrentMask;
-
 	
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Split", meta = (AllowPrivateAccess = "true"))
+	int32 MaxSplitCount = 4;
+
+
+	
 protected:
 
 	virtual void Die() override;
@@ -76,9 +80,13 @@ protected:
 	
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	FName CollisionSocketName = FName("CollisionSocket");
-	
+
 	UPROPERTY(EditDefaultsOnly, Category = "GAS")
-	TSubclassOf<UGameplayEffect> StrengthOverrideEffect;
+	TSubclassOf<UGameplayEffect> GE_ClonePrimaryInit;
+	UPROPERTY(EditDefaultsOnly, Category = "GAS")
+	TSubclassOf<UGameplayEffect> GE_CloneSecondaryInit;
+	UPROPERTY(EditDefaultsOnly, Category = "GAS")
+	TSubclassOf<UGameplayEffect> GE_CloneVitalInit;
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MaskMovement", meta = (AllowPrivateAccess = "true"))
 	float YangbanSpeed = 500.0f;
@@ -88,10 +96,5 @@ private:
 	float BaekjeSpeed = 500.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MaskMovement", meta = (AllowPrivateAccess = "true"))
 	float BuneSpeed = 400.0f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Split", meta = (AllowPrivateAccess = "true"))
-	int32 SplitLevel = 0;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Split", meta = (AllowPrivateAccess = "true"))
-	int32 MaxSplitCount = 2;
+	
 };
