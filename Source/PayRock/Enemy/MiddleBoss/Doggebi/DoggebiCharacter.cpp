@@ -28,6 +28,7 @@ void ADoggebiCharacter::BeginPlay()
 
 	AttachWeaponChangeSocket(WeaponSocketName);
 	
+	Mask->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, MaskSocketName);
 	if (Mask)
 	{
 		UMaterialInterface* BaseMat = Mask->GetMaterial(7);
