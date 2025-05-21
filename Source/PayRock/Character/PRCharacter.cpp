@@ -51,7 +51,10 @@ APRCharacter::APRCharacter()
     CameraInterpSpeed = 10.f;
 
     RightHandCollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("RightHandCollision"));
-    LeftHandCollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("LeftHandCollision"));
+    LeftHandCollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("LefttHandCollision"));
+    Weapon2 = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Weapon2"));
+    Weapon2->SetupAttachment(GetMesh(), Weapon2SocketName);
+    Weapon2->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     BlessingComponent = CreateDefaultSubobject<UBlessingComponent>(TEXT("BlessingComponent"));
 
     NormalSpeed = 350.0f;
