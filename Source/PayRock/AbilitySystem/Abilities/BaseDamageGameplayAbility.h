@@ -29,8 +29,8 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TArray<TObjectPtr<UAnimMontage>> MontageArray;
-
-	UPROPERTY(BlueprintReadOnly)
+	
+	UPROPERTY(BlueprintReadWrite)
 	int32 MontageIndex;
 
 	UPROPERTY(BlueprintReadOnly)

@@ -9,6 +9,11 @@ void UBaseWeaponAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle
                                          const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
                                          const FGameplayEventData* TriggerEventData)
 {
+	if (GetWorld() && !GetWorld()->bIsTearingDown)
+	{
+		GetWorld()->GetTimerManager().ClearTimer(ComboTimerHandle);
+	}
+	
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
 	bHit = false;
@@ -21,6 +26,23 @@ void UBaseWeaponAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 			BindCallbackToCollision();
 		}
 	}
+}
+
+void UBaseWeaponAbility::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
+{
+	if (GetWorld() && !GetWorld()->bIsTearingDown)
+	{
+		GetWorld()->GetTimerManager().SetTimer(
+			ComboTimerHandle,
+			this,
+			&UBaseWeaponAbility::ResetCombo,
+			ComboTimeLimit,
+			false
+		);
+	}
+	
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
 void UBaseWeaponAbility::ToggleCollision(bool bShouldEnable)
