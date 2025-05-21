@@ -466,7 +466,18 @@ void APRCharacter::ServerStopSprint_Implementation()
 
 void APRCharacter::ServerRequestFootstep_Implementation(FVector Location, USoundBase* Sound)
 {
-    MulticastPlayFootstep(Location, Sound);
+    if (IsLocallyControlled()) return;
+
+    UGameplayStatics::PlaySoundAtLocation(
+        this,
+        Sound,
+        Location,
+        FRotator::ZeroRotator,
+        1.0f,
+        1.0f,
+        0.0f,
+        FootstepAttenuation
+    );
 }
 
 void APRCharacter::MulticastPlayFootstep_Implementation(FVector Location, USoundBase* Sound)
@@ -517,6 +528,8 @@ void APRCharacter::ServerRequestLandingSound_Implementation(FVector Location, US
 
 void APRCharacter::MulticastPlayLandingSound_Implementation(FVector Location, USoundBase* Sound)
 {
+    if (IsLocallyControlled()) return;
+
     UGameplayStatics::PlaySoundAtLocation(
         this,
         Sound,
