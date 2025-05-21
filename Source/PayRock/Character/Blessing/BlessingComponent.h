@@ -42,12 +42,17 @@ public:
 	FOnActiveBlessingChanged OnActiveBlessingChange;
 	FOnPassiveBlessingChanged OnPassiveBlessingChange;
 
+protected:
+	virtual void BeginPlay() override;
+	
 private:
 	UAbilitySystemComponent* GetAbilitySystemComponent();
 
 private:
 	UPROPERTY()
 	UAbilitySystemComponent* CachedAbilitySystemComponent;
+	UPROPERTY(EditDefaultsOnly, Category = "Blessing")
+	TArray<UBlessingDataAsset*> BlessingsContainer;
 	UPROPERTY()
 	UBlessingDataAsset* EquippedPassiveBlessingData;
 	UPROPERTY()
