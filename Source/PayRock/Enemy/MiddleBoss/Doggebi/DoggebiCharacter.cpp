@@ -19,6 +19,9 @@ ADoggebiCharacter::ADoggebiCharacter()
 	
 	WeaponCollision = CreateDefaultSubobject<UCapsuleComponent>(TEXT("BatCollision"));
 	WeaponCollision->SetupAttachment(Weapon);
+
+	FireCollision = CreateDefaultSubobject<UCapsuleComponent>(TEXT("FireCollision"));
+	FireCollision->SetupAttachment(GetMesh(), MaskSocketName);
 }
 
 void ADoggebiCharacter::BeginPlay()

@@ -79,6 +79,9 @@ public:
 	FName BeforeCombatWeaponSocket = FName("BeforeCombatWeaponSocket");
 
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CollisionComponent")
+	UCapsuleComponent* FireCollision;
+
 	//For Test
 	void CycleMask();
 

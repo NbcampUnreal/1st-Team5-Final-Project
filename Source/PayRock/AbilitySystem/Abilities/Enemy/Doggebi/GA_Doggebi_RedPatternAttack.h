@@ -28,10 +28,10 @@ public:
 	
 protected:
 	UFUNCTION(BlueprintCallable)
-	void BindCallbackToWeaponCollision();
+	void BindCallbackToFireCollision();
 
 	UFUNCTION()
-	void OnWeaponOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+	void OnFireOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
 		int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 	
 	UFUNCTION(BlueprintCallable)
@@ -49,5 +49,7 @@ private:
 
 	UPROPERTY()
 	TSet<AActor*> DamagedActors;
+	
+	FTimerHandle DamageResetTimer;
 
 };
