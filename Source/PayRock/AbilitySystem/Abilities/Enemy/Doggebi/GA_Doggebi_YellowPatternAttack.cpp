@@ -4,7 +4,7 @@
 #include "GA_Doggebi_YellowPatternAttack.h"
 
 #include "AIController.h"
-#include "GA_EnemyNormalAttack.h"
+#include "GA_Doggebi_YellowPatternAttack.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Components/CapsuleComponent.h"
 
@@ -24,9 +24,9 @@ void UGA_Doggebi_YellowPatternAttack::ActivateAbility(const FGameplayAbilitySpec
 
 	
 	Doggebi = Cast<ADoggebiCharacter>(ActorInfo->AvatarActor.Get());
-	if (!Avatar) return;
+	if (!Doggebi) return;
 
-	if (AAIController* AICon = Cast<AAIController>(Avatar->GetController()))
+	if (AAIController* AICon = Cast<AAIController>(Doggebi->GetController()))
 	{
 		if (UBlackboardComponent* BB = AICon->GetBlackboardComponent())
 		{
@@ -54,7 +54,7 @@ void UGA_Doggebi_YellowPatternAttack::OnWeaponOverlap(UPrimitiveComponent* Overl
 	{
 		if (DamagedActors.Contains(OtherActor)) return;
 
-		CauseDamage(OtherActor);
+		//CauseDamage(OtherActor);
 
 		DamagedActors.Add(OtherActor);
 	}
@@ -76,6 +76,14 @@ void UGA_Doggebi_YellowPatternAttack::EndAttackBlackboardState()
 
 	if (Doggebi)
 	{
+		
+		if (AAIController* AICon = Cast<AAIController>(Doggebi->GetController()))
+		{
+			if (UBlackboardComponent* BB = AICon->GetBlackboardComponent())
+			{
+				BB->SetValueAsBool("bIsAttacking", false);
+			}
+		}
 		Doggebi->WeaponCollision->OnComponentBeginOverlap.RemoveDynamic(this, &UGA_Doggebi_YellowPatternAttack::UGA_Doggebi_YellowPatternAttack::OnWeaponOverlap);
 	}
 

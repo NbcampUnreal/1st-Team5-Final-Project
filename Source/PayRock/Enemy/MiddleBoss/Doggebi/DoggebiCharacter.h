@@ -3,13 +3,23 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "EMaskType.h"
 #include "PayRock/Enemy/EnemyCharacter.h"
 #include "DoggebiCharacter.generated.h"
 
 /**
  * 
  */
+
+UENUM(BlueprintType)
+enum class EMaskType : uint8
+{
+
+	Red     UMETA(DisplayName = "Red"),
+	Blue    UMETA(DisplayName = "Blue"),
+	Yellow  UMETA(DisplayName = "Yellow")
+};
+
+
 UCLASS()
 class PAYROCK_API ADoggebiCharacter : public AEnemyCharacter
 {
@@ -20,16 +30,19 @@ public:
 	ADoggebiCharacter();
 
 	virtual void BeginPlay() override;
-
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Pattern")
-	EMaskType CurrentMask;
-
-	void AttachWeaponChangeSocket(FName NewSocketName);
-
+	EMaskType CurrentMask = EMaskType::Red;
+	
+	
 	//이거는 GA애서 playmontage해서 변경해주는거로 하자.
 	void ChangeMask(EMaskType NewMask);
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mask")
+	EMaskType CurrentMaskType;
 
-
+	void AttachWeaponChangeSocket(FName NewSocketName);
+	
 	void TryExecutePattern();
 
 	UPROPERTY(EditDefaultsOnly, Category = "Ability")
@@ -60,5 +73,12 @@ public:
 	FName MaskSocketName = FName("MaskSocket");
 	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "Mesh")
 	FName BeforeCombatWeaponSocket = FName("BeforeCombatWeaponSocket");
+
+
+	//For Test
+	void CycleMask();
+
+	FTimerHandle MaskChangeTimer;
+	int32 CurrentMaskIndex = 0;
 	
 };
