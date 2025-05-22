@@ -52,6 +52,9 @@ APRCharacter::APRCharacter()
 
     RightHandCollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("RightHandCollision"));
     LeftHandCollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("LefttHandCollision"));
+    Weapon2 = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Weapon2"));
+    Weapon2->SetupAttachment(GetMesh(), Weapon2SocketName);
+    Weapon2->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     BlessingComponent = CreateDefaultSubobject<UBlessingComponent>(TEXT("BlessingComponent"));
 
     NormalSpeed = 350.0f;
@@ -525,6 +528,8 @@ void APRCharacter::ServerRequestLandingSound_Implementation(FVector Location, US
 
 void APRCharacter::MulticastPlayLandingSound_Implementation(FVector Location, USoundBase* Sound)
 {
+    if (IsLocallyControlled()) return;
+
     UGameplayStatics::PlaySoundAtLocation(
         this,
         Sound,

@@ -16,7 +16,8 @@ enum class EWeaponType : uint8
 	SsanggeomL    UMETA(DisplayName = "SsanggeomL"),
 	SsanggeomR    UMETA(DisplayName = "SsanggeomR"),
 	Ssangsudo    UMETA(DisplayName = "Ssangsudo"),
-	Woldo    UMETA(DisplayName = "Woldo")
+	Woldo    UMETA(DisplayName = "Woldo"),
+	Duengpae UMETA(DisplayName = "Duengpae")
 };
 
 UCLASS()
