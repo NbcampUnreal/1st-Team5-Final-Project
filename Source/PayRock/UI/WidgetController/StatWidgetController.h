@@ -31,4 +31,6 @@ public:
 	
 	UPROPERTY()
 	TArray<FGameplayAttribute> Attributes;
+	UPROPERTY()
+	TArray<FString> AttributeNames;
 };
