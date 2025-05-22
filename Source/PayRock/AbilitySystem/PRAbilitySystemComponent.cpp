@@ -29,9 +29,9 @@ void UPRAbilitySystemComponent::AddCharacterPassiveAbilities(
 }
 
 FGameplayAbilitySpecHandle UPRAbilitySystemComponent::AddAbility(
-	TSubclassOf<UGameplayAbility> AbilityClass, bool bIsPassive)
+	TSubclassOf<UGameplayAbility> AbilityClass, bool bIsPassive, int32 AbilityLevel)
 {
-	FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(AbilityClass, 1);
+	FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(AbilityClass, AbilityLevel);
 	if (const UBaseGameplayAbility* BaseAbility = Cast<UBaseGameplayAbility>(AbilitySpec.Ability))
 	{
 		AbilitySpec.GetDynamicSpecSourceTags().AddTag(BaseAbility->StartupInputTag);

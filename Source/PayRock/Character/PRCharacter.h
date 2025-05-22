@@ -68,6 +68,10 @@ public:
 	USphereComponent* LeftHandCollisionComp;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CollisionComponent")
 	USphereComponent* RightHandCollisionComp;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+	USkeletalMeshComponent* Weapon2;
+	UPROPERTY(EditAnywhere, Category = "Weapon")
+	FName Weapon2SocketName = FName("Weapon2Socket");
 
 	// Move Speed Property
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
@@ -90,6 +94,9 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Abilities")
 	TSubclassOf<UGameplayAbility> GA_UseHealItemClass;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Blessing")
+	class UBlessingComponent* BlessingComponent;
 
 	// Mouse Sensitivity
 	UPROPERTY(EditAnywhere, Category = "Input")
