@@ -49,8 +49,8 @@ protected:
 	TObjectPtr<APlayerState> PlayerState;
 
 	UPROPERTY(BlueprintReadOnly, Category = "WidgetController")
-	TObjectPtr<class UAbilitySystemComponent> AbilitySystemComponent;
+	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 
 	UPROPERTY(BlueprintReadOnly, Category = "WidgetController")
-	TObjectPtr<class UAttributeSet> AttributeSet;
+	TObjectPtr<UAttributeSet> AttributeSet;
 };
