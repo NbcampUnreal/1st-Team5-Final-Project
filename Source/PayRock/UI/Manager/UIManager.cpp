@@ -32,7 +32,7 @@ void UUIManager::ShowWidget(EWidgetCategory Category)
 }
 
 void UUIManager::HideWidget(EWidgetCategory Category)
-
+{
 	UUserWidget* Widget = FindWidget(Category);
 	if (!Widget) return;
 	Widget->SetVisibility(ESlateVisibility::Collapsed);
