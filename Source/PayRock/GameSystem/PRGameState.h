@@ -28,18 +28,6 @@ class PAYROCK_API APRGameState : public AGameState, public IPRIGameState
 	GENERATED_BODY()
 public:
 
-	int32 GetMinimumRequirePlayers();
-
-	int32 GetCurrentAmountOfPlayers();
-
-	int32 GetMatchStartCountDown();
-
-	int32 GetMatchDurationSeconds();
-
-	int32 GetExtractionActivationTime();
-
-	int32 GetRemainingTime();
-	
 protected:
 	///////////////매치 시작 전 ////////////////////////////////////////////
 	UPROPERTY(BlueprintReadWrite, ReplicatedUsing = OnRep_MinimumRequirePlayers, EditAnywhere, Category = "MatchFlow|Players")

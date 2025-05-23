@@ -19,7 +19,7 @@ public:
 	void AddCharacterAbilities(const TArray<TSubclassOf<UGameplayAbility>>& StartupAbilities);
 	void AddCharacterPassiveAbilities(const TArray<TSubclassOf<UGameplayAbility>>& StartupPassiveAbilities);
 	UFUNCTION(BlueprintCallable)
-	FGameplayAbilitySpecHandle AddAbility(TSubclassOf<UGameplayAbility> AbilityClass, bool bIsPassive = false, int32 AbilityLevel = 1);
+	FGameplayAbilitySpecHandle AddAbility(TSubclassOf<UGameplayAbility> AbilityClass, bool bIsPassive = false);
 	UFUNCTION(BlueprintCallable)
 	void RemoveAbility(const FGameplayAbilitySpecHandle& AbilitySpecHandle);
 

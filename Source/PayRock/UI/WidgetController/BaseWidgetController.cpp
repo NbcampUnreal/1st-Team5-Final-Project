@@ -1,6 +1,6 @@
 // PayRockGames
 
-#include "BaseWidgetController.h"
+#include "PayRock/UI/WidgetController/BaseWidgetController.h"
 
 void UBaseWidgetController::SetWidgetControllerParams(const FWidgetControllerParams& WCParams)
 {

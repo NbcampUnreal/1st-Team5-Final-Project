@@ -12,36 +12,6 @@
 #include "PayRock/Character/BaseCharacter.h"
 
 
-int32 APRGameState::GetMinimumRequirePlayers()
-{
-	return MinimumRequirePlayers;
-}
-
-int32 APRGameState::GetCurrentAmountOfPlayers()
-{
-	return CurrentAmountOfPlayers;
-}
-
-int32 APRGameState::GetMatchStartCountDown()
-{
-	return MatchStart_CountDown;
-}
-
-int32 APRGameState::GetMatchDurationSeconds()
-{
-	return MatchDurationSeconds;
-}
-
-int32 APRGameState::GetExtractionActivationTime()
-{
-	return ExtractionActivationTime;
-}
-
-int32 APRGameState::GetRemainingTime()
-{
-	return RemainingMatchTime;
-}
-
 APRGameState::APRGameState()
 {
 	MinimumRequirePlayers = 2;  // 매치 시작시 필요한 플레이어 수

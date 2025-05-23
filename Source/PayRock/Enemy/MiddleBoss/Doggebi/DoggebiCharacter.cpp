@@ -4,6 +4,7 @@
 #include "DoggebiCharacter.h"
 
 #include "DoggebiController.h"
+#include "Components/CapsuleComponent.h"
 
 ADoggebiCharacter::ADoggebiCharacter()
 {
@@ -13,6 +14,10 @@ ADoggebiCharacter::ADoggebiCharacter()
 	Mask = CreateDefaultSubobject<USkeletalMeshComponent>("Mask");
 	Mask->SetupAttachment(GetMesh(), MaskSocketName);
 	Mask->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	
+	WeaponCollision = CreateDefaultSubobject<UCapsuleComponent>(TEXT("RightHandCollision"));
+	WeaponCollision->SetupAttachment(Weapon);
 }
 
 void ADoggebiCharacter::BeginPlay()
