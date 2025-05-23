@@ -24,9 +24,9 @@ protected:
 	void UpdateStatRow(const FString& StatName, const float& StatValue);
 
 public:
-	UPROPERTY(meta = (BindWidgetOptional))
+	UPROPERTY(meta = (BindWidget))
 	UVerticalBox* PrimaryStatBox;
-	UPROPERTY(meta = (BindWidgetOptional))
+	UPROPERTY(meta = (BindWidget))
 	UScrollBox* SecondaryStatBox;
 	
 private:
