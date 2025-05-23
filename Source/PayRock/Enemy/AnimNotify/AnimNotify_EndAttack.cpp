@@ -16,7 +16,6 @@ void UAnimNotify_EndAttack::Notify(USkeletalMeshComponent* MeshComp, UAnimSequen
 			if (UBlackboardComponent* BB = AICon->GetBlackboardComponent())
 			{
 				BB->SetValueAsBool("bIsAttacking", false);
-				BB->SetValueAsBool("bIsBusy", false);
 			}
 		}
 	}

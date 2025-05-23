@@ -23,6 +23,12 @@ void UBaseWeaponAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 	}
 }
 
+void UBaseWeaponAbility::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
+{
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+}
+
 void UBaseWeaponAbility::ToggleCollision(bool bShouldEnable)
 {
 	for (const auto& CollisionComp : CollisionComponents)

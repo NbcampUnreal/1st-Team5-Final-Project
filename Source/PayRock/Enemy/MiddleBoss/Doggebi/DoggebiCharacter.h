@@ -46,10 +46,6 @@ public:
 
 	void OnPatternEnd();
 
-
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CollisionComponent")
-	UCapsuleComponent* WeaponCollision;
 	
 	UPROPERTY()
 	UMaterialInstanceDynamic* DynamicMaskMaterial;

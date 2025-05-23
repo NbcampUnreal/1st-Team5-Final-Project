@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/SphereComponent.h"
 #include "PayRock/Enemy/EnemyCharacter.h"
 #include "MarketClownMonster.generated.h"
 
@@ -31,70 +30,47 @@ public:
 	void ApplyMaskBehavior(ETalMaskType MaskType);
 	UFUNCTION(BlueprintCallable)
 	void SplitOnDeath();
-	UFUNCTION(BlueprintCallable)
-	void ApplySplitLevelAttributes(int32 InLevel);
+	void InitSplitLevel(int32 InLevel);
 	
 	UAnimMontage* GetCurrentMaskAttackMontage() const;
-	UAnimMontage* GetRoarMontage() const;
-	
-	UFUNCTION(BlueprintCallable, Category = "AI")
-	AActor* GetBlackboardTarget() const;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mask")
 	ETalMaskType CurrentMask;
-	
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Split", meta = (AllowPrivateAccess = "true"))
-	int32 MaxSplitCount = 4;
-
 
 	
+
 protected:
 
 	virtual void Die() override;
 	
-
-	UPROPERTY(VisibleAnywhere, Category = "Combat")
-	TObjectPtr<USphereComponent> WeaponCollision;
+	UPROPERTY(EditDefaultsOnly, Category = "MaskAttack")
+	TArray<TObjectPtr<UAnimMontage>> MaskAttackMontages;
 
 	UPROPERTY(VisibleAnywhere, Category = "Mask")
 	USkeletalMeshComponent* MaskMesh;
 
-	UPROPERTY(EditAnywhere, Category = "Mask")
+	UPROPERTY(EditDefaultsOnly, Category = "Mask")
 	USkeletalMesh* MaskMesh_Yangban;
 
-	UPROPERTY(EditAnywhere, Category = "Mask")
+	UPROPERTY(EditDefaultsOnly, Category = "Mask")
 	USkeletalMesh* MaskMesh_Imae;
 
-	UPROPERTY(EditAnywhere, Category = "Mask")
+	UPROPERTY(EditDefaultsOnly, Category = "Mask")
 	USkeletalMesh* MaskMesh_Baekjeong;
 
-	UPROPERTY(EditAnywhere, Category = "Mask")
+	UPROPERTY(EditDefaultsOnly, Category = "Mask")
 	USkeletalMesh* MaskMesh_Bune;
 
-	UPROPERTY(EditAnywhere, Category = "Mask")
-	UAnimMontage* RoarMontage;
-	
-	UPROPERTY(EditAnywhere, Category = "Combat")
-	FName HeadSocketName = FName("HeadSocket");
-	
-	UPROPERTY(EditAnywhere, Category = "Combat")
-	FName CollisionSocketName = FName("CollisionSocket");
-
-	UPROPERTY(EditDefaultsOnly, Category = "GAS")
-	TSubclassOf<UGameplayEffect> GE_ClonePrimaryInit;
-	UPROPERTY(EditDefaultsOnly, Category = "GAS")
-	TSubclassOf<UGameplayEffect> GE_CloneSecondaryInit;
-	UPROPERTY(EditDefaultsOnly, Category = "GAS")
-	TSubclassOf<UGameplayEffect> GE_CloneVitalInit;
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MaskMovement", meta = (AllowPrivateAccess = "true"))
-	float YangbanSpeed = 500.0f;
+	float YangbanSpeed = 400.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MaskMovement", meta = (AllowPrivateAccess = "true"))
-	float ImaeSpeed = 800.0f;
+	float ImaeSpeed = 650.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MaskMovement", meta = (AllowPrivateAccess = "true"))
 	float BaekjeSpeed = 500.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MaskMovement", meta = (AllowPrivateAccess = "true"))
-	float BuneSpeed = 400.0f;
-	
+	float BuneSpeed = 450.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Split", meta = (AllowPrivateAccess = "true"))
+	int32 SplitLevel = 0;
 };
