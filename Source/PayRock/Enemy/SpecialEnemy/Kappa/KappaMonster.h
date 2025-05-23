@@ -24,12 +24,9 @@ protected:
 public:
 	void OnPlayerDetected(AActor* DetectedActor);
 	
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CollisionComponent")
-	USphereComponent* LeftHandCollisionComp;
+	USphereComponent* HeadCollisionComp;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CollisionComponent")
-	USphereComponent* RightHandCollisionComp;
-	
-
+	UPROPERTY(EditDefaultsOnly, Category = "Socket")
+	FName HeadSocketName = TEXT("HeadSocket");
 };

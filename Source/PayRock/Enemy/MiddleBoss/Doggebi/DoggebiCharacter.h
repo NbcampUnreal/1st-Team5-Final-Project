@@ -3,24 +3,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Engine/TargetPoint.h"
+#include "EMaskType.h"
 #include "PayRock/Enemy/EnemyCharacter.h"
 #include "DoggebiCharacter.generated.h"
 
 /**
  * 
  */
-
-UENUM(BlueprintType)
-enum class EMaskType : uint8
-{
-
-	Red     UMETA(DisplayName = "Red"),
-	Yellow    UMETA(DisplayName = "Yellow"),
-	Blue  UMETA(DisplayName = "Blue")
-};
-
-
 UCLASS()
 class PAYROCK_API ADoggebiCharacter : public AEnemyCharacter
 {
@@ -31,23 +20,16 @@ public:
 	ADoggebiCharacter();
 
 	virtual void BeginPlay() override;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Pattern")
-	EMaskType CurrentMask = EMaskType::Red;
-	
-	
-	//이거는 GA애서 playmontage해서 변경해주는거로 하자.
-	UFUNCTION(Blueprintable)
-	void ChangeMask(EMaskType NewMask);
 
-	UFUNCTION(Blueprintable)
-	void RandomChangeMask();
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mask")
-	EMaskType CurrentMaskType;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Pattern")
+	EMaskType CurrentMask;
 
 	void AttachWeaponChangeSocket(FName NewSocketName);
-	
+
+	//이거는 GA애서 playmontage해서 변경해주는거로 하자.
+	void ChangeMask(EMaskType NewMask);
+
+
 	void TryExecutePattern();
 
 	UPROPERTY(EditDefaultsOnly, Category = "Ability")
@@ -64,10 +46,6 @@ public:
 
 	void OnPatternEnd();
 
-
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CollisionComponent")
-	UCapsuleComponent* WeaponCollision;
 	
 	UPROPERTY()
 	UMaterialInstanceDynamic* DynamicMaskMaterial;
@@ -78,18 +56,5 @@ public:
 	FName MaskSocketName = FName("MaskSocket");
 	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "Mesh")
 	FName BeforeCombatWeaponSocket = FName("BeforeCombatWeaponSocket");
-
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CollisionComponent")
-	UCapsuleComponent* FireCollision;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Pattern")
-	TArray<ATargetPoint*> TargetActors;
-
-	//For Test
-	void CycleMask();
-
-	FTimerHandle MaskChangeTimer;
-	int32 CurrentMaskIndex = 0;
 	
 };
