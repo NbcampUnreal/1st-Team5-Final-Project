@@ -193,10 +193,13 @@ public:
 	USoundBase* GetFootstepSoundBySurface(EPhysicalSurface SurfaceType);
 
 	UPROPERTY(EditAnywhere, Category = "Sound")
-	USoundBase* FootstepSound;
+	TArray<USoundBase*> FootstepSounds;
+
+	int32 FootstepSoundIndex = 0; // 순차 재생용 인덱스
 
 	UPROPERTY(EditAnywhere, Category = "Sound")
 	USoundAttenuation* FootstepAttenuation;
+
 
 	// 발소리 사운드 큐
 	UPROPERTY(EditDefaultsOnly, Category = "Footstep")

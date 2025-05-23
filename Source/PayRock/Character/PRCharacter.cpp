@@ -482,12 +482,14 @@ void APRCharacter::ServerRequestFootstep_Implementation(FVector Location, USound
 
 void APRCharacter::MulticastPlayFootstep_Implementation(FVector Location, USoundBase* Sound)
 {
+    float Volume = IsLocallyControlled() ? 0.3f : 1.0f;
+
     UGameplayStatics::PlaySoundAtLocation(
         this,
         Sound,
         Location,
         FRotator::ZeroRotator,
-        1.0f,
+        Volume,
         1.0f,
         0.0f,
         FootstepAttenuation
@@ -496,6 +498,15 @@ void APRCharacter::MulticastPlayFootstep_Implementation(FVector Location, USound
 
 USoundBase* APRCharacter::GetFootstepSoundBySurface(EPhysicalSurface SurfaceType)
 {
+    if (FootstepSounds.Num() > 0)
+    {
+        USoundBase* SoundToPlay = FootstepSounds[FootstepSoundIndex];
+
+        FootstepSoundIndex = (FootstepSoundIndex + 1) % FootstepSounds.Num(); // 순환
+
+        return SoundToPlay;
+    }
+
     return DefaultFootstepSound;
 }
 
@@ -528,14 +539,14 @@ void APRCharacter::ServerRequestLandingSound_Implementation(FVector Location, US
 
 void APRCharacter::MulticastPlayLandingSound_Implementation(FVector Location, USoundBase* Sound)
 {
-    if (IsLocallyControlled()) return;
+    float Volume = IsLocallyControlled() ? 0.3f : 1.0f;
 
     UGameplayStatics::PlaySoundAtLocation(
         this,
         Sound,
         Location,
         FRotator::ZeroRotator,
-        1.0f,
+        Volume,
         1.0f,
         0.0f,
         FootstepAttenuation
