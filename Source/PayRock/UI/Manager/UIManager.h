@@ -27,8 +27,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "UI")
 	UBaseWidgetController* GetBlessingWidgetController(const FWidgetControllerParams& WCParams);
 
-	
-
 private:
 	UUserWidget* InitializeWidget(EWidgetCategory Category);
 	

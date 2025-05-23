@@ -12,7 +12,8 @@ enum class EWidgetCategory : uint8
 {
 	Lobby,
 	Stash,
-	Blessing
+	Blessing,
+	Loading
 };
 
 UCLASS(Blueprintable, BlueprintType)
