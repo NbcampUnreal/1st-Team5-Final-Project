@@ -4,6 +4,7 @@
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Navigation/PathFollowingComponent.h"
+#include "PayRock/Enemy/SpecialEnemy/Kappa/KappaMonster.h"
 
 UBTTask_Chase::UBTTask_Chase()
 {
@@ -18,69 +19,62 @@ EBTNodeResult::Type UBTTask_Chase::ExecuteTask(UBehaviorTreeComponent& OwnerComp
 	CachedOwnerComp = &OwnerComp;
 	CachedAICon = OwnerComp.GetAIOwner();
 
-	if (!CachedAICon || !CachedAICon->IsValidLowLevelFast()) return EBTNodeResult::Failed;
+	if (!CachedAICon) return EBTNodeResult::Failed;
 
 	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
-	if (!BB) return EBTNodeResult::Failed;
-
-	APawn* Pawn = CachedAICon->GetPawn();
-	if (!Pawn || BB->GetValueAsBool("bIsBusy") || BB->GetValueAsBool("bIsAttacking"))
-		return EBTNodeResult::Failed;
+	if (!BB || BB->GetValueAsBool("bIsBusy") || BB->GetValueAsBool("bIsAttacking")) return EBTNodeResult::Failed;
 
 	AActor* Target = Cast<AActor>(BB->GetValueAsObject("TargetActor"));
-	if (!Target || !Target->IsValidLowLevelFast()) return EBTNodeResult::Failed;
+	if (!Target) return EBTNodeResult::Failed;
 
-	if (ACharacter* Character = Cast<ACharacter>(Pawn))
+	if (ACharacter* Character = Cast<ACharacter>(CachedAICon->GetPawn()))
 	{
 		if (UCharacterMovementComponent* Move = Character->GetCharacterMovement())
 		{
-			Move->MaxWalkSpeed = Speed;
+			Move->MaxWalkSpeed = FMath::Max(Speed, 300.f);
 		}
 	}
+
 	
+	CachedAICon->ReceiveMoveCompleted.RemoveDynamic(this, &UBTTask_Chase::OnMoveCompleted);
+	CachedAICon->ReceiveMoveCompleted.AddDynamic(this, &UBTTask_Chase::OnMoveCompleted);
+
 	EPathFollowingRequestResult::Type Result = CachedAICon->MoveToActor(Target, TargetRadius);
-	if (Result == EPathFollowingRequestResult::RequestSuccessful)
-	{
-		if (!CachedAICon->ReceiveMoveCompleted.IsAlreadyBound(this, &UBTTask_Chase::OnMoveCompleted))
-		{
-			CachedAICon->ReceiveMoveCompleted.AddDynamic(this, &UBTTask_Chase::OnMoveCompleted);
-		}
-		return EBTNodeResult::InProgress;
-	}
-
-	return EBTNodeResult::Failed;
-}
-
-void UBTTask_Chase::OnMoveCompleted(FAIRequestID RequestID, EPathFollowingResult::Type Result)
-{
-	if (!CachedAICon || !CachedOwnerComp)
-		return;
-
-	if (CachedAICon->ReceiveMoveCompleted.IsAlreadyBound(this, &UBTTask_Chase::OnMoveCompleted))
-	{
-		CachedAICon->ReceiveMoveCompleted.RemoveDynamic(this, &UBTTask_Chase::OnMoveCompleted);
-	}
-
-	const EBTNodeResult::Type FinalResult =
-		(Result == EPathFollowingResult::Success) ? EBTNodeResult::Succeeded : EBTNodeResult::Failed;
-
-	FinishLatentTask(*CachedOwnerComp, FinalResult);
+	return (Result == EPathFollowingRequestResult::RequestSuccessful) ? EBTNodeResult::InProgress : EBTNodeResult::Failed;
 }
 
 void UBTTask_Chase::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
 	Super::TickTask(OwnerComp, NodeMemory, DeltaSeconds);
-	
 
 	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
 	AAIController* AICon = OwnerComp.GetAIOwner();
+	APawn* AIPawn = AICon ? AICon->GetPawn() : nullptr;
 
-	if (!BB || !AICon) return;
+	if (!BB || !AICon || !AIPawn) return;
 
+	AActor* Target = Cast<AActor>(BB->GetValueAsObject("TargetActor"));
+	if (!Target) return;
+	
 	if (BB->GetValueAsBool("bIsBeingWatched"))
 	{
 		AICon->StopMovement();
 		FinishLatentTask(OwnerComp, EBTNodeResult::Aborted);
+		return;
+	}
+	
+}
+
+void UBTTask_Chase::OnMoveCompleted(FAIRequestID RequestID, EPathFollowingResult::Type Result)
+{
+	if (CachedAICon)
+	{
+		CachedAICon->ReceiveMoveCompleted.RemoveDynamic(this, &UBTTask_Chase::OnMoveCompleted);
+	}
+	if (CachedOwnerComp)
+	{
+		const EBTNodeResult::Type FinalResult = (Result == EPathFollowingResult::Success) ? EBTNodeResult::Succeeded : EBTNodeResult::Failed;
+		FinishLatentTask(*CachedOwnerComp, FinalResult);
 	}
 }
 
