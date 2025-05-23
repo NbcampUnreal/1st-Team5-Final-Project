@@ -21,19 +21,24 @@ public:
 	void HideWidget(EWidgetCategory Category);
 	UFUNCTION(BlueprintCallable, Category = "UI")
 	void RemoveWidget(EWidgetCategory Category);
+	UFUNCTION(BlueprintCallable, Category = "UI")
+	void HideAllWidgets();
+	UFUNCTION(BlueprintCallable, Category = "UI")
+	void RemoveAllWidgets();
 	UFUNCTION(BlueprintPure, Category = "UI")
 	UUserWidget* FindWidget(EWidgetCategory Category);
 
 	UFUNCTION(BlueprintCallable, Category = "UI")
-	UBaseWidgetController* GetBlessingWidgetController(const FWidgetControllerParams& WCParams);
+	UBaseWidgetController* GetWidgetController(const FWidgetControllerParams& WCParams, EWidgetCategory Category);
 
 private:
 	UUserWidget* InitializeWidget(EWidgetCategory Category);
+	void InitializeWidgetController(UUserWidget* Widget, EWidgetCategory Category);
 	
 	UPROPERTY()
 	TMap<EWidgetCategory, UUserWidget*> WidgetMap;
 	UPROPERTY()
-	UWidgetClassData* WidgetClassData;
+	TMap<EWidgetCategory, UBaseWidgetController*> WidgetControllerMap;
 	UPROPERTY()
-	UBaseWidgetController* BlessingWidgetController;
+	UWidgetClassData* WidgetClassData;
 };

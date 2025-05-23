@@ -46,6 +46,22 @@ void UUIManager::RemoveWidget(EWidgetCategory Category)
 	Widget->RemoveFromParent();
 }
 
+void UUIManager::HideAllWidgets()
+{
+	for (uint8 i = 0; i < static_cast<uint8>(EWidgetCategory::MAX); i++)
+	{
+		HideWidget(static_cast<EWidgetCategory>(i));
+	}
+}
+
+void UUIManager::RemoveAllWidgets()
+{
+	for (uint8 i = 0; i < static_cast<uint8>(EWidgetCategory::MAX); i++)
+	{
+		RemoveWidget(static_cast<EWidgetCategory>(i));
+	}
+}
+
 UUserWidget* UUIManager::FindWidget(EWidgetCategory Category)
 {
 	if (UUserWidget** WidgetPtr = WidgetMap.Find(Category))
@@ -77,20 +93,7 @@ UUserWidget* UUIManager::InitializeWidget(EWidgetCategory Category)
 	
 	UUserWidget* Widget = CreateWidget<UUserWidget>(GetGameInstance(), WidgetClass);
 
-	if (Category == EWidgetCategory::Blessing)
-	{
-		if (UBaseUserWidget* BlessingWidget = Cast<UBaseUserWidget>(Widget))
-		{
-			APlayerController* PC = GetGameInstance()->GetFirstLocalPlayerController();
-			APRPlayerState* PS = PC->GetPlayerState<APRPlayerState>();
-			UAbilitySystemComponent* ASC = PS->GetAbilitySystemComponent();
-			UAttributeSet* AS = PS->GetAttributeSet();
-			const FWidgetControllerParams WCParams(PC, PS, ASC, AS);
-			BlessingWidget->SetWidgetController(GetBlessingWidgetController(WCParams));
-
-			BlessingWidgetController->BroadcastInitialValues();
-		}
-	}
+	InitializeWidgetController(Widget, Category);
 
 	if (Widget)
 	{
@@ -101,15 +104,49 @@ UUserWidget* UUIManager::InitializeWidget(EWidgetCategory Category)
 	return Widget;
 }
 
-UBaseWidgetController* UUIManager::GetBlessingWidgetController(const FWidgetControllerParams& WCParams)
+void UUIManager::InitializeWidgetController(UUserWidget* Widget, EWidgetCategory Category)
 {
-	if (BlessingWidgetController == nullptr)
+	if (UBaseUserWidget* BaseUserWidget = Cast<UBaseUserWidget>(Widget))
 	{
-		UClass* LoadedClass = WidgetClassData->BlessingWidgetControllerClass.LoadSynchronous();
-		if (!LoadedClass) return nullptr;
-		BlessingWidgetController = NewObject<UBaseWidgetController>(this, LoadedClass);
-		BlessingWidgetController->SetWidgetControllerParams(WCParams);
-		BlessingWidgetController->BindCallbacksToDependencies();
+		APlayerController* PC = GetGameInstance()->GetFirstLocalPlayerController();
+		APRPlayerState* PS = PC->GetPlayerState<APRPlayerState>();
+		UAbilitySystemComponent* ASC = PS->GetAbilitySystemComponent();
+		UAttributeSet* AS = PS->GetAttributeSet();
+		const FWidgetControllerParams WCParams(PC, PS, ASC, AS);
+		
+		if (UBaseWidgetController* WidgetController = GetWidgetController(WCParams, Category))
+		{
+			BaseUserWidget->SetWidgetController(WidgetController);
+			WidgetController->BroadcastInitialValues();	
+		}
 	}
-	return BlessingWidgetController;
+}
+
+UBaseWidgetController* UUIManager::GetWidgetController(const FWidgetControllerParams& WCParams, EWidgetCategory Category)
+{
+	if (UBaseWidgetController** WidgetControllerPtr = WidgetControllerMap.Find(Category))
+	{
+		// WidgetController in TMap is valid --> return it
+		if (IsValid(*WidgetControllerPtr)) return *WidgetControllerPtr;
+		
+		// WidgetController in TMap is not valid --> remove it from TMap
+		WidgetControllerMap.Remove(Category);
+	}
+	
+	TSoftClassPtr<UBaseWidgetController>* WidgetControllerClassPtr = WidgetClassData->WidgetControllerClassMap.Find(Category);
+	if (!WidgetControllerClassPtr) return nullptr; // valid because widgetcontroller doesn't apply to certain widgets
+	
+	UClass* LoadedClass = WidgetControllerClassPtr->LoadSynchronous();
+	if (!LoadedClass)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Failed to load WidgetControllerClass"));
+		return nullptr;
+	}
+
+	UBaseWidgetController* WidgetController = NewObject<UBaseWidgetController>(this, LoadedClass);
+	WidgetController->SetWidgetControllerParams(WCParams);
+	WidgetController->BindCallbacksToDependencies();
+	WidgetControllerMap.Add(Category, WidgetController);
+
+	return WidgetController;
 }
