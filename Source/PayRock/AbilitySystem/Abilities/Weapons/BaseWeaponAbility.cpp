@@ -1,16 +1,13 @@
 // PayRockGames
 
-
 #include "BaseWeaponAbility.h"
 #include "Components/ShapeComponent.h"
-#include "PayRock/Character/BaseCharacter.h"
+#include "PayRock/Character/PRCharacter.h"
 
 void UBaseWeaponAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
                                          const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
                                          const FGameplayEventData* TriggerEventData)
 {
-	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-
 	bHit = false;
 	if (!CollisionComponents.IsEmpty()) return;
 	if (ABaseCharacter* AvatarCharacter = Cast<ABaseCharacter>(GetAvatarActorFromActorInfo()))
@@ -20,12 +17,21 @@ void UBaseWeaponAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 			GetCollisionComponents(Weapon, CollisionSocketName);
 			BindCallbackToCollision();
 		}
+
+		if (APRCharacter* PlayerCharacter = Cast<APRCharacter>(AvatarCharacter))
+		{
+			UpdateCurrentAttackType(PlayerCharacter);
+		}
 	}
+
+	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 }
 
 void UBaseWeaponAbility::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
+	CurrentAttackType = EAttackType::NormalAttack;
+	
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
@@ -65,7 +71,7 @@ void UBaseWeaponAbility::BindCallbackToCollision()
 }
 
 void UBaseWeaponAbility::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+                                   UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (OtherActor == GetAvatarActorFromActorInfo() || bHit) return;
 	
@@ -76,3 +82,24 @@ void UBaseWeaponAbility::OnOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 	}
 }
 
+void UBaseWeaponAbility::UpdateCurrentAttackType(APRCharacter* PlayerCharacter)
+{
+	UCharacterMovementComponent* MovementComp = PlayerCharacter->GetCharacterMovement();
+
+	if (PlayerCharacter->bIsCrouching)
+	{
+		CurrentAttackType = EAttackType::CrouchAttack;
+		return;
+	}
+
+	if (PlayerCharacter->bIsInAir)
+	{
+		CurrentAttackType = EAttackType::JumpAttack;
+		return;
+	}
+
+	if (PlayerCharacter->bIsSprinting)
+	{
+		CurrentAttackType = EAttackType::DashAttack;
+	}
+}

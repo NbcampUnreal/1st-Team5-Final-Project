@@ -13,7 +13,10 @@ enum class EWidgetCategory : uint8
 	Lobby,
 	Stash,
 	Blessing,
-	Loading
+	Loading,
+	InGameHUD,
+	Stat,
+	MAX
 };
 
 UCLASS(Blueprintable, BlueprintType)
@@ -26,5 +29,5 @@ public:
 	TMap<EWidgetCategory, TSoftClassPtr<UUserWidget>> WidgetClassMap;
 
 	UPROPERTY(EditDefaultsOnly)
-	TSoftClassPtr<UBaseWidgetController> BlessingWidgetControllerClass;
+	TMap<EWidgetCategory, TSoftClassPtr<UBaseWidgetController>> WidgetControllerClassMap;
 };
