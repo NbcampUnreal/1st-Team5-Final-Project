@@ -8,6 +8,7 @@
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "EnhancedInputComponent.h"
+#include "Blessing/BlessingComponent.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Engine/UserDefinedEnum.h"
@@ -51,7 +52,10 @@ APRCharacter::APRCharacter()
 
     RightHandCollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("RightHandCollision"));
     LeftHandCollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("LefttHandCollision"));
-
+    Weapon2 = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Weapon2"));
+    Weapon2->SetupAttachment(GetMesh(), Weapon2SocketName);
+    Weapon2->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    BlessingComponent = CreateDefaultSubobject<UBlessingComponent>(TEXT("BlessingComponent"));
 
     NormalSpeed = 350.0f;
     SprintSpeedMultiplier = 2.0f;
@@ -462,7 +466,18 @@ void APRCharacter::ServerStopSprint_Implementation()
 
 void APRCharacter::ServerRequestFootstep_Implementation(FVector Location, USoundBase* Sound)
 {
-    MulticastPlayFootstep(Location, Sound);
+    if (IsLocallyControlled()) return;
+
+    UGameplayStatics::PlaySoundAtLocation(
+        this,
+        Sound,
+        Location,
+        FRotator::ZeroRotator,
+        1.0f,
+        1.0f,
+        0.0f,
+        FootstepAttenuation
+    );
 }
 
 void APRCharacter::MulticastPlayFootstep_Implementation(FVector Location, USoundBase* Sound)
@@ -513,6 +528,8 @@ void APRCharacter::ServerRequestLandingSound_Implementation(FVector Location, US
 
 void APRCharacter::MulticastPlayLandingSound_Implementation(FVector Location, USoundBase* Sound)
 {
+    if (IsLocallyControlled()) return;
+
     UGameplayStatics::PlaySoundAtLocation(
         this,
         Sound,

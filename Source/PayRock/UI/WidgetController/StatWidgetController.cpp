@@ -1,0 +1,51 @@
+// PayRockGames
+
+#include "StatWidgetController.h"
+#include "AbilitySystemComponent.h"
+#include "PayRock/AbilitySystem/PRAttributeSet.h"
+#include "PayRock/Character/PRCharacter.h"
+
+void UStatWidgetController::BroadcastInitialValues()
+{
+	if (!AbilitySystemComponent || !AttributeSet) return;
+
+	for (const FGameplayAttribute& Attribute : Attributes)
+	{
+		OnAttributeChangeDelegate.Broadcast(Attribute.AttributeName, Attribute.GetNumericValue(AttributeSet));
+	}
+}
+
+void UStatWidgetController::InitializeAttributesArray()
+{
+	if (!Attributes.IsEmpty()) return;
+	
+	UPRAttributeSet* PRAttributeSet = Cast<UPRAttributeSet>(AttributeSet);
+	if (!PRAttributeSet) return;
+
+	UAttributeSet::GetAttributesFromSetClass(UPRAttributeSet::StaticClass(), Attributes);
+
+	// Exclude current health and mana from the list of attributes to bind to
+	Attributes = Attributes.FilterByPredicate([](const FGameplayAttribute& Attribute)
+	{
+		return !(Attribute.AttributeName == FString("Health")
+			|| Attribute.AttributeName == FString("Mana")
+			|| Attribute.AttributeName == FString("BlockChance")
+			|| Attribute.AttributeName == FString("IncomingDamage"));
+	});
+}
+
+void UStatWidgetController::BindCallbacksToDependencies()
+{
+	if (!AbilitySystemComponent || !AttributeSet) return;
+	
+	for (const FGameplayAttribute& Attribute : Attributes)
+	{
+		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(Attribute).AddUObject(
+			this, &UStatWidgetController::BroadcastAttributeChange);
+	}
+}
+
+void UStatWidgetController::BroadcastAttributeChange(const FOnAttributeChangeData& Data)
+{
+	OnAttributeChangeDelegate.Broadcast(Data.Attribute.AttributeName, Data.NewValue);
+}

@@ -55,26 +55,16 @@ void AEnemyController::OnPossess(APawn* InPawn)
 
 	AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(InPawn);
 	if (!Enemy || !DefaultBehaviorTree) return;
-	
-	
-	Enemy->InitAbilityActorInfo();
-	Enemy->InitializeDefaultAttributes();
-	Enemy->AddCharacterAbilities();
-	
-	UBlackboardComponent* BBComponent = nullptr;
-	if (UseBlackboard(DefaultBehaviorTree->BlackboardAsset, BBComponent))
-	{
-		BlackboardComponent = BBComponent;
-		
-		RunBehaviorTree(DefaultBehaviorTree);
 
-		if (Enemy && BlackboardComponent)
-		{
-			BlackboardComponent->SetValueAsVector(FName("StartPosition"), Enemy->GetActorLocation());
-		}
+
+	UBlackboardComponent* RawBB = BlackboardComponent.Get();
+	if (UseBlackboard(DefaultBehaviorTree->BlackboardAsset, RawBB))
+	{
+		BlackboardComponent = RawBB;
+		RunBehaviorTree(DefaultBehaviorTree);
+		BlackboardComponent->SetValueAsVector(TEXT("StartPosition"), Enemy->GetActorLocation());
 	}
 }
-
 
 void AEnemyController::OnUnPossess()
 {
@@ -119,6 +109,8 @@ void AEnemyController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stim
 
 	if (Stimulus.Type == HearingID)
 	{
+		UE_LOG(LogTemp, Log, TEXT("AI heard sound: %s | Strength: %.2f"), *Actor->GetName(), Stimulus.Strength);
+
 		if (Stimulus.Strength >= LoudnessThreshold)
 		{
 			BlackboardComponent->SetValueAsObject(TEXT("TargetActor"), Actor);
@@ -128,6 +120,7 @@ void AEnemyController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stim
 		{
 			FRotator LookRot = (Stimulus.StimulusLocation - AIPos).Rotation();
 			Enemy->SetActorRotation(FRotator(0.f, LookRot.Yaw, 0.f));
+			UE_LOG(LogTemp, Log, TEXT("AI looks toward weak sound at %s"), *Stimulus.StimulusLocation.ToString());
 		}
 	}
 	else if (Stimulus.Type == SightID || Stimulus.Type == DamageID)

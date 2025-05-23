@@ -8,11 +8,9 @@
 AKappaMonster::AKappaMonster()
 {
 	PrimaryActorTick.bCanEverTick = true;
-	
-	LeftHandCollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("LeftHandCollision"));
-	check(LeftHandCollisionComp);
-	RightHandCollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("RightHandCollision"));
-	check(RightHandCollisionComp);  
+
+	HeadCollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("HeadCollision"));
+	check(HeadCollisionComp);  
 }
 
 void AKappaMonster::BeginPlay()
@@ -21,33 +19,30 @@ void AKappaMonster::BeginPlay()
 
 	if (!GetMesh())
 	{
+		UE_LOG(LogTemp, Error, TEXT("❌ Mesh is NULL in KappaMonster"));
 		return;
 	}
 
-	if (!LeftHandCollisionComp||!RightHandCollisionComp)
+	if (!HeadCollisionComp)
 	{
+		UE_LOG(LogTemp, Error, TEXT("❌ HeadCollisionComp is NULL"));
 		return;
 	}
 	
-	LeftHandCollisionComp->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, LeftHandSocketName);
-	LeftHandCollisionComp->SetRelativeLocation(FVector::ZeroVector);
-	LeftHandCollisionComp->SetSphereRadius(40.f);
-	LeftHandCollisionComp->SetCollisionResponseToAllChannels(ECR_Ignore);
-	LeftHandCollisionComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
-	LeftHandCollisionComp->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Overlap);
-	LeftHandCollisionComp->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
-	LeftHandCollisionComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	LeftHandCollisionComp->SetGenerateOverlapEvents(true);
-
-	RightHandCollisionComp->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, RightHandSocketName);
-	RightHandCollisionComp->SetRelativeLocation(FVector::ZeroVector);
-	RightHandCollisionComp->SetSphereRadius(40.f);
-	RightHandCollisionComp->SetCollisionResponseToAllChannels(ECR_Ignore);
-	RightHandCollisionComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
-	RightHandCollisionComp->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Overlap);
-	RightHandCollisionComp->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
-	RightHandCollisionComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	RightHandCollisionComp->SetGenerateOverlapEvents(true);
+	if (!HeadSocketName.IsNone())
+	{
+		HeadCollisionComp->AttachToComponent(
+			GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, HeadSocketName);
+	}
+	
+	HeadCollisionComp->SetRelativeLocation(FVector::ZeroVector);
+	HeadCollisionComp->SetSphereRadius(40.f);
+	HeadCollisionComp->SetCollisionResponseToAllChannels(ECR_Ignore);
+	HeadCollisionComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+	HeadCollisionComp->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Overlap);
+	HeadCollisionComp->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
+	HeadCollisionComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	HeadCollisionComp->SetGenerateOverlapEvents(true);
 }
 
 
