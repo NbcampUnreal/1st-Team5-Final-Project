@@ -6,11 +6,12 @@
 #include "BaseWidgetController.h"
 #include "BlessingWidgetController.generated.h"
 
-class UBlessingComponent;
-class UBlessingDataAsset;
+// class UBlessingComponent;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnActiveBlessingChange, UBlessingDataAsset*, DataAsset);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPassiveBlessingChange, UBlessingDataAsset*, DataAsset);
+struct FBlessingData;
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnActiveBlessingChange, const FBlessingData&, Blessing);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPassiveBlessingChange, const FBlessingData&, Blessing);
 
 UCLASS()
 class PAYROCK_API UBlessingWidgetController : public UBaseWidgetController
@@ -19,16 +20,12 @@ class PAYROCK_API UBlessingWidgetController : public UBaseWidgetController
 
 public:
 	virtual void BroadcastInitialValues() override;
-	virtual void BindCallbacksToDependencies() override;
+	// virtual void BindCallbacksToDependencies() override;
+
+	void HandleBlessingSelection(const FBlessingData& Blessing);
 	
 private:
-	void InitializeBlessingComponentRef();
-	void LoadBlessingsFromSubsystem();
-
-	UFUNCTION()
-	void BroadcastActiveBlessingChange(UBlessingDataAsset* BlessingDataAsset);
-	UFUNCTION()
-	void BroadcastPassiveBlessingChange(UBlessingDataAsset* BlessingDataAsset);
+	// void InitializeBlessingComponentRef();
 
 public:
 	UPROPERTY(BlueprintAssignable, Category = "Blessing")
@@ -37,9 +34,11 @@ public:
 	FOnPassiveBlessingChange OnPassiveBlessingChange;
 
 	UPROPERTY()
-	TArray<UBlessingDataAsset*> BlessingsContainer;
+	TArray<FBlessingData> BlessingsContainer;
 
+	/*
 private:
 	UPROPERTY()
 	UBlessingComponent* BlessingComponent;
+	*/
 };
