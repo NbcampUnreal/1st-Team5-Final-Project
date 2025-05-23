@@ -1,11 +1,7 @@
-// PayRockGames
-
 #include "GA_ClownAttack.h"
-#include "Animation/AnimInstance.h"
 #include "AbilitySystemComponent.h"
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "PayRock/AbilitySystem/PRAttributeSet.h"
 #include "PayRock/Enemy/SpecialEnemy/MarketClown/MarketClownMonster.h"
 
 UGA_ClownAttack::UGA_ClownAttack()
@@ -31,49 +27,51 @@ void UGA_ClownAttack::ActivateAbility(
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
-
-	UAnimMontage* Montage = Boss->GetCurrentMaskAttackMontage();
-	if (!Montage)
+	
+	if (AAIController* AICon = Cast<AAIController>(Boss->GetController()))
 	{
-		ResetBlackboardAttackState(Boss);
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-		return;
-	}
-
-	UAnimInstance* Anim = Boss->GetMesh()->GetAnimInstance();
-	if (!Anim)
-	{
-		ResetBlackboardAttackState(Boss);
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-		return;
-	}
-
-	float PlayRate = 1.0f;
-	if (const UPRAttributeSet* AS = Cast<UPRAttributeSet>(Boss->GetAttributeSet()))
-	{
-		PlayRate = FMath::Max(AS->GetAttackSpeed(), 0.2f);
-	}
-
-	FOnMontageEnded MontageEndDelegate;
-	MontageEndDelegate.BindUObject(this, &UGA_ClownAttack::OnMontageEnded);
-
-	Anim->Montage_Play(Montage, PlayRate);
-	Anim->Montage_SetEndDelegate(MontageEndDelegate, Montage);
-
-	if (CooldownGameplayEffect)
-	{
-		ApplyCooldown(Handle, ActorInfo, ActivationInfo);
+		if (UBlackboardComponent* BB = AICon->GetBlackboardComponent())
+		{
+			if (BB->GetValueAsBool(FName("bIsAttacking")))
+			{
+				EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+				return;
+			}
+		}
 	}
 	
-}
-
-void UGA_ClownAttack::OnMontageEnded(UAnimMontage* Montage, bool bInterrupted)
-{
-	if (AMarketClownMonster* Boss = Cast<AMarketClownMonster>(GetAvatarActorFromActorInfo()))
+	UAbilitySystemComponent* ASC = Boss->GetAbilitySystemComponent();
+	if (!ASC)
 	{
 		ResetBlackboardAttackState(Boss);
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
 	}
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, bInterrupted);
+
+	TSubclassOf<UGameplayAbility> SelectedAbility = nullptr;
+
+	switch (Boss->CurrentMask)
+	{
+	case ETalMaskType::Yangban:
+		SelectedAbility = WeaponAbility_Yangban;
+		break;
+	case ETalMaskType::Baekjeong:
+		SelectedAbility = WeaponAbility_Baekjeong;
+		break;
+	default:
+		break;
+	}
+
+	if (!SelectedAbility)
+	{
+		ResetBlackboardAttackState(Boss);
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
+	}
+
+	const bool bSuccess = ASC->TryActivateAbilityByClass(SelectedAbility);
+	ResetBlackboardAttackState(Boss);
+	EndAbility(Handle, ActorInfo, ActivationInfo, true, !bSuccess);
 }
 
 void UGA_ClownAttack::ResetBlackboardAttackState(AMarketClownMonster* Boss)
@@ -83,7 +81,6 @@ void UGA_ClownAttack::ResetBlackboardAttackState(AMarketClownMonster* Boss)
 		if (UBlackboardComponent* BB = AICon->GetBlackboardComponent())
 		{
 			BB->SetValueAsBool(FName("bIsBusy"), false);
-			BB->SetValueAsBool(FName("bIsAttacking"), false);
 		}
 	}
 }

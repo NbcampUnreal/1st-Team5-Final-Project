@@ -22,4 +22,8 @@ protected:
 public:
 	UPROPERTY(EditAnywhere, Category = "GAS")
 	TSubclassOf<UGameplayAbility> AttackAbility;
+	UPROPERTY(EditAnywhere, Category = "GAS")
+	TSubclassOf<UGameplayAbility> BuneSpecialAttackAbility;
+	UPROPERTY(EditAnywhere, Category = "GAS")
+	TSubclassOf<UGameplayAbility> ImaeRushAndRoarAbility;
 };
