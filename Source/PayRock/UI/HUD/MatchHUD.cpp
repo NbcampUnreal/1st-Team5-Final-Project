@@ -9,13 +9,25 @@ void UMatchHUD::NativeConstruct()
 {
 	Super::NativeConstruct();
 
+    // ; 바인딩 방식으로 할꺼면 여기서 한번만 세팅
 	BindToGameState();
+
+
+    // ; 초반엔 Getter 에서 1초마다 타이머 만들어서 루프 돌자 
+    UpdateLoop(); // 시작할 때 한 번
+    GetWorld()->GetTimerManager().SetTimer(
+        UpdateTimerHandle,
+        this,
+        &UMatchHUD::UpdateLoop,
+        1.0f,
+        true
+    );
 }
 
 void UMatchHUD::BindToGameState()
 {
-    APRGameState* GS = GetWorld()->GetGameState<APRGameState>();
-    if (!GS) return;
+  /*  APRGameState* GS = GetWorld()->GetGameState<APRGameState>();
+    if (!GS) return;*/
 
    // ;!!! 함수 구현해주세요 
  
@@ -27,7 +39,11 @@ void UMatchHUD::BindToGameState()
     //GS->OnCurrentAmountOfPlayers.AddUObject(this, MatchHUD::UpdateCurrentPlayers);
     //GS->OnMinimumRequirePlayers.AddUObject(this, MatchHUD::UpdateMinimumPlayers);
     //GS->OnMatchStart_CountDown.AddUObject(this, MatchHUD::UpdateCountdown);
-    
+
+    //UpdateCurrentPlayers(GS->GetCurrentAmountOfPlayers());
+    //UpdateMinimumPlayers(GS->GetMinimumRequirePlayers());
+    //UpdateCountdown(GS->GetMatchStartCountDown());
+
     // ? 남은 매칭 시간
     //GS->OnRemainingMatchTime.AddUObject(this, MatchHUD::UpdateRemainingTime);
     //
@@ -76,4 +92,14 @@ void UMatchHUD::UpdateAlivePlayers()
     //int32 AliveCount = GS->GetAlivePlayerCount();
     //if (Text_AlivePlayers)
     //    Text_AlivePlayers->SetText(FText::AsNumber(AliveCount));
+}
+
+void UMatchHUD::UpdateLoop()
+{
+    APRGameState* GS = GetWorld()->GetGameState<APRGameState>();
+    if (!GS) return;
+
+    UpdateCurrentPlayers(GS->GetCurrentAmountOfPlayers());
+    UpdateMinimumPlayers(GS->GetMinimumRequirePlayers());
+    UpdateCountdown(GS->GetMatchStartCountDown());
 }

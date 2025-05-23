@@ -52,4 +52,10 @@ private:
 	void UpdateAlivePlayers();
 
 
+	// 임시 시간마다 Getter로 UI 업데이트 하기 
+private:
+	FTimerHandle UpdateTimerHandle;
+	
+	// ;임시 매칭UI 시간마다 업데이트
+	void UpdateLoop();
 };
