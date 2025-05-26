@@ -12,6 +12,9 @@ class USlider;
 class UButton;
 class USoundMix;
 class USoundClass;
+class UMainMenuUserWidget;
+class UOptionsMenuWidget;
+
 /**
  * 
  */
@@ -48,6 +51,14 @@ protected:
 
     UPROPERTY(EditDefaultsOnly, Category = "Audio")
     USoundClass* SFXSoundClass;
+
+public:
+    // MainMenu 위젯에 대한 참조 (SetVisibility를 위해 필요)
+    UPROPERTY()
+    UMainMenuUserWidget* MainMenuRef;
+
+    UPROPERTY()
+    UOptionsMenuWidget* OptionsMenuRef;
 
     UFUNCTION()
     void OnApplyClicked();

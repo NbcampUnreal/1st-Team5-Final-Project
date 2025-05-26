@@ -4,6 +4,8 @@
 //#include "UI/Widget/AudioSettingsWidget.h"
 #include "AudioSettingsWidget.h"
 #include "BaseUserWidget.h"
+#include "MainMenuUserWidget.h"
+#include "OptionsMenuWidget.h"
 
 #include "Components/Slider.h"
 #include "Components/Button.h"
@@ -19,12 +21,29 @@ void UAudioSettingsWidget::OnApplyClicked()
 
 void UAudioSettingsWidget::OnBackClicked()
 {
-    // 다시 메인 메뉴로 
+    // MainMenu 다시 보여주기
+    if (MainMenuRef)  //; 체크 
+    {
+        MainMenuRef->SetVisibility(ESlateVisibility::Visible);
 
-    RemoveFromParent(); // 단순 닫기
+        APlayerController* PC = GetWorld()->GetFirstPlayerController();
+        if (PC)
+        {
+            //; 인풋모드 변경 
+            FInputModeUIOnly InputMode;
+            InputMode.SetWidgetToFocus(MainMenuRef->TakeWidget());
+            InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+            PC->SetInputMode(InputMode);
+            PC->bShowMouseCursor = true;
+        }
 
-    // 또는 이벤트 디스패치
-    // OnBackRequested(); ← Blueprint에서 연결해서 다음 화면 전환 처리
+
+        //  이제는 직접 참조해서 숨기기 -> 구조가 switcher 구조라서..
+        if (OptionsMenuRef)
+        {
+            OptionsMenuRef->SetVisibility(ESlateVisibility::Hidden);
+        }
+    }
 }
 
 void UAudioSettingsWidget::ApplyAudioSettings()
