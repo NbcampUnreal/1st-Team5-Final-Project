@@ -6,9 +6,7 @@
 #include "BehaviorTree/Tasks/BTTask_BlackboardBase.h"
 #include "BTTask_BossAttack.generated.h"
 
-/**
- * 
- */
+
 UCLASS()
 class PAYROCK_API UBTTask_BossAttack : public UBTTask_BlackboardBase
 {

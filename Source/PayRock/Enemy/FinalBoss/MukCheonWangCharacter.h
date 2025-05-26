@@ -36,6 +36,8 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Boss Phase")
 	EBossPhase CurrentPhase;
 
+	TArray<AActor*> GetDetectedActors() {return  DetectedActors;}
+
 protected:
 	UPROPERTY(VisibleAnywhere, Category = "AI")
 	TObjectPtr<UAIPerceptionComponent> AIPerception;
