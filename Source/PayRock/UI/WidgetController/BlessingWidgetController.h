@@ -20,7 +20,7 @@ class PAYROCK_API UBlessingWidgetController : public UBaseWidgetController
 
 public:
 	virtual void BroadcastInitialValues() override;
-	// virtual void BindCallbacksToDependencies() override;
+	virtual void BindCallbacksToDependencies() override;
 
 	void HandleBlessingSelection(const FBlessingData& Blessing);
 	

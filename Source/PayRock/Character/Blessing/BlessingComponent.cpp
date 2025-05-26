@@ -52,19 +52,19 @@ void UBlessingComponent::Server_AddBlessing_Implementation(const FBlessingData& 
 	}
 	AcquiredBlessings.Add(Blessing);
 
-	// If listen server, manually call OnRep
-	if (ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner()))
-	{
-		if (OwnerCharacter->IsLocallyControlled())
-		{
-			OnRep_AcquiredBlessings();
-		}
-	}
-
 	UE_LOG(LogTemp, Warning, TEXT("Blessing %s added (Server)"), *Blessing.BlessingName.ToString());
+
+	// If listen server, manually call OnRep
+	// if (ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner()))
+	// {
+	// 	if (OwnerCharacter->IsLocallyControlled())
+	// 	{
+	Client_SaveAddedBlessing(Blessing);
+	// }
+	// }
 }
 
-void UBlessingComponent::OnRep_AcquiredBlessings()
+void UBlessingComponent::Client_SaveAddedBlessing_Implementation(const FBlessingData& Blessing)
 {
 	if (ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner()))
 	{
@@ -72,7 +72,10 @@ void UBlessingComponent::OnRep_AcquiredBlessings()
 		{
 			if (USaveDataSubsystem* SaveDataSystem = GetWorld()->GetGameInstance()->GetSubsystem<USaveDataSubsystem>())
 			{
-				if (AcquiredBlessings.Num() > 0)
+				SaveDataSystem->SaveBlessing(Blessing);
+				UE_LOG(LogTemp, Warning, TEXT("Blessing %s saved to subsystem"),
+						*Blessing.BlessingName.ToString());
+				/*if (AcquiredBlessings.Num() > 0)
 				{
 					FBlessingData LastBlessing = AcquiredBlessings.Last();
 					SaveDataSystem->SaveBlessing(LastBlessing);
@@ -81,7 +84,7 @@ void UBlessingComponent::OnRep_AcquiredBlessings()
 						*LastBlessing.BlessingName.ToString());
 
 					Client_BroadcastBlessingAcquired(LastBlessing);
-				}
+				}*/
 			}
 			else
 			{

@@ -32,8 +32,10 @@ public:
 	UFUNCTION(Server, Reliable, Category = "Blessing")
 	void Server_UnequipPassiveBlessing();
 
-	UFUNCTION(Server, Reliable, Category = "Blessing")
+	UFUNCTION(BlueprintCallable, Server, Reliable, Category = "Blessing")
 	void Server_AddBlessing(const FBlessingData& Blessing);
+	UFUNCTION(Client, Reliable, Category = "Blessing")
+	void Client_SaveAddedBlessing(const FBlessingData& Blessing);
 	
 	UFUNCTION(Client, Reliable, Category = "Blessing")
 	void Client_BroadcastActiveBlessing(const FBlessingData& Blessing);
@@ -55,15 +57,12 @@ protected:
 
 	
 private:
-	UFUNCTION()
-	void OnRep_AcquiredBlessings();
-	
 	UAbilitySystemComponent* GetAbilitySystemComponent();
 
 private:
 	UPROPERTY()
 	UAbilitySystemComponent* CachedAbilitySystemComponent;
-	UPROPERTY(EditDefaultsOnly, ReplicatedUsing = OnRep_AcquiredBlessings, Category = "Blessing")
+	UPROPERTY(EditDefaultsOnly, Replicated, Category = "Blessing")
 	TArray<FBlessingData> AcquiredBlessings;
 	UPROPERTY()
 	FBlessingData EquippedPassiveBlessingData;
