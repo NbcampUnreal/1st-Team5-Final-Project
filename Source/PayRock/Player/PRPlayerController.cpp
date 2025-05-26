@@ -13,7 +13,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "PayRock/Character/PRCharacter.h"
-
+#include "PayRock/UI/Widget/BaseUserWidget.h"
 APRPlayerController::APRPlayerController()
 {
 	bReplicates = true;
@@ -28,6 +28,17 @@ void APRPlayerController::BeginPlay()
 		ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
 	{
 		Subsystem->AddMappingContext(PlayerIMC, 0);
+	}
+}
+
+void APRPlayerController::SetupInputComponent()
+{
+	Super::SetupInputComponent();
+
+	if (UEnhancedInputComponent* EIComp = Cast<UEnhancedInputComponent>(InputComponent))
+	{
+		// 한번 눌렀을 때만 발동 하게! 
+		EIComp->BindAction(ToggleMenuAction, ETriggerEvent::Started, this, &APRPlayerController::ToggleSettingsMenu);
 	}
 }
 
@@ -203,3 +214,38 @@ FString APRPlayerController::GetNetModeAsString() const
 	}
 }
 
+
+
+void APRPlayerController::ToggleSettingsMenu()
+{
+	/*
+	이 함수는 ESC 키가 눌릴 때마다,
+	설정창을 만들어서 띄우거나,
+	이미 떠 있으면 지우고 게임 모드로 복귀하는 토글 로직입니다.
+	*/
+	if (!SettingsMenuWidgetClass) return;
+
+	if (!bIsSettingsMenuOpen)
+	{
+		// ; UUserWidget -> UUserBaseWidget 으로 바꿔야 함 ?
+		SettingsMenuWidget = CreateWidget<UBaseUserWidget>(this, SettingsMenuWidgetClass);
+		if (SettingsMenuWidget)
+		{
+			SettingsMenuWidget->AddToViewport();
+			SetInputMode(FInputModeGameAndUI()); // 요거만 바꾸면 잘 닫힙니다!
+			SetShowMouseCursor(true);
+			bIsSettingsMenuOpen = true;
+		}
+	}
+	else
+	{
+		if (SettingsMenuWidget && SettingsMenuWidget->IsInViewport())
+		{
+			SettingsMenuWidget->RemoveFromParent();
+			SettingsMenuWidget = nullptr;
+		}
+		SetInputMode(FInputModeGameOnly());
+		SetShowMouseCursor(false);
+		bIsSettingsMenuOpen = false;
+	}
+}
