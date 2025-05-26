@@ -14,7 +14,7 @@
 
 AEnemyCharacter::AEnemyCharacter()
 {
-	GetMesh()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
+	GetMesh()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
 
 	AbilitySystemComponent = CreateDefaultSubobject<UPRAbilitySystemComponent>("AbilitySystemComponent");
 	AbilitySystemComponent->SetIsReplicated(true);
@@ -35,27 +35,36 @@ void AEnemyCharacter::ToggleWeaponCollision(bool bEnable)
 void AEnemyCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	InitAbilityActorInfo();
-	InitializeDefaultAttributes();
-	BindToTagChange();
-	AddCharacterAbilities();
 }
 
 void AEnemyCharacter::InitAbilityActorInfo()
 {
 	AbilitySystemComponent->InitAbilityActorInfo(this, this);
+	
+	if (AttributeSet)
+	{
+		AbilitySystemComponent->AddAttributeSetSubobject(Cast<UPRAttributeSet>(AttributeSet));
+	}
+	
+	BindToTagChange();
+	
 	Cast<UPRAbilitySystemComponent>(AbilitySystemComponent)->OnAbilityActorInfoInitialized();
 }
 
 void AEnemyCharacter::AddCharacterAbilities()
 {
 	if (!HasAuthority() || !AbilitySystemComponent)
+	{
+		HasAuthority(), AbilitySystemComponent != nullptr;
 		return;
+	}
 
 	for (TSubclassOf<UGameplayAbility>& StartupAbility : DefaultAbilities)
 	{
-		AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(StartupAbility, 1, INDEX_NONE, this));
+		if (StartupAbility)
+		{
+			AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(StartupAbility, 1, INDEX_NONE, this));
+		}
 	}
 }
 

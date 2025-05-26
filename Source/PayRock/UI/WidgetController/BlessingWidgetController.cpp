@@ -7,16 +7,23 @@
 void UBlessingWidgetController::BroadcastInitialValues()
 {
 	USaveDataSubsystem* SaveSystem = GetWorld()->GetGameInstance()->GetSubsystem<USaveDataSubsystem>();
-	if (!SaveSystem) { UE_LOG(LogTemp, Warning, TEXT("SaveDataSubSystem nullptr")); return; }
+	if (!SaveSystem) { UE_LOG(LogTemp, Warning, TEXT("SaveDataSubSystem nullptr (BlessingWC)")); return; }
+	HandleBlessingSelection(SaveSystem->GetEquippedActiveBlessing());
+	HandleBlessingSelection(SaveSystem->GetEquippedPassiveBlessing());
+}
+
+void UBlessingWidgetController::BindCallbacksToDependencies()
+{
+	Super::BindCallbacksToDependencies();
+
+	USaveDataSubsystem* SaveSystem = GetWorld()->GetGameInstance()->GetSubsystem<USaveDataSubsystem>();
+	if (!SaveSystem) { UE_LOG(LogTemp, Warning, TEXT("SaveDataSubSystem nullptr (BlessingWC)")); return; }
 
 	BlessingsContainer.Empty();
 	for (const FBlessingData& Blessing : SaveSystem->GetBlessingsContainer())
 	{
 		BlessingsContainer.Add(Blessing);
 	}
-
-	HandleBlessingSelection(SaveSystem->GetEquippedActiveBlessing());
-	HandleBlessingSelection(SaveSystem->GetEquippedPassiveBlessing());
 }
 
 void UBlessingWidgetController::HandleBlessingSelection(const FBlessingData& Blessing)
