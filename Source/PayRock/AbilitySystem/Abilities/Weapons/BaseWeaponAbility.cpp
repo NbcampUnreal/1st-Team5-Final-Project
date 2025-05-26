@@ -9,13 +9,16 @@ void UBaseWeaponAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle
                                          const FGameplayEventData* TriggerEventData)
 {
 	bHit = false;
-	if (!CollisionComponents.IsEmpty()) return;
+	
 	if (ABaseCharacter* AvatarCharacter = Cast<ABaseCharacter>(GetAvatarActorFromActorInfo()))
 	{
-		if (USkeletalMeshComponent* Weapon = AvatarCharacter->GetWeapon())
+		if (CollisionComponents.IsEmpty())
 		{
-			GetCollisionComponents(Weapon, CollisionSocketName);
-			BindCallbackToCollision();
+			if (USkeletalMeshComponent* Weapon = AvatarCharacter->GetWeapon())
+			{
+				GetCollisionComponents(Weapon, CollisionSocketName);
+				BindCallbackToCollision();
+			}
 		}
 
 		if (APRCharacter* PlayerCharacter = Cast<APRCharacter>(AvatarCharacter))
@@ -23,6 +26,7 @@ void UBaseWeaponAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 			UpdateCurrentAttackType(PlayerCharacter);
 		}
 	}
+		
 
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 }

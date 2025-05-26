@@ -28,7 +28,15 @@ void UEquippedBlessingWidget::UpdateActiveBlessing(const FBlessingData& Blessing
 
 	if (ActiveBlessingImage)
 	{
-		ActiveBlessingImage->SetBrushFromTexture(Blessing.Icon);
+		if (Blessing.Icon)
+		{
+			ActiveBlessingImage->SetBrushFromTexture(Blessing.Icon);
+		}
+		else
+		{
+			// Unequipped icon
+			ActiveBlessingImage->SetBrushFromTexture(UnequippedIcon);
+		}
 	}
 
 	if (ActiveBlessingName)
@@ -56,7 +64,14 @@ void UEquippedBlessingWidget::UpdatePassiveBlessing(const FBlessingData& Blessin
 
 	if (PassiveBlessingImage)
 	{
-		PassiveBlessingImage->SetBrushFromTexture(Blessing.Icon);
+		if (Blessing.Icon)
+		{
+			PassiveBlessingImage->SetBrushFromTexture(Blessing.Icon);
+		}
+		else
+		{
+			PassiveBlessingImage->SetBrushFromTexture(UnequippedIcon);
+		}
 	}
 
 	if (PassiveBlessingName)
@@ -72,12 +87,20 @@ void UEquippedBlessingWidget::UpdatePassiveBlessing(const FBlessingData& Blessin
 
 void UEquippedBlessingWidget::OnActiveRemoveClicked()
 {
-	if (!IsValid(ActiveBlessingBox)) return;
-	ActiveBlessingBox->SetVisibility(ESlateVisibility::Hidden);
+	if (UBlessingWidgetController* WC = Cast<UBlessingWidgetController>(WidgetController))
+	{
+		FBlessingData EmptyData;
+		EmptyData.BlessingType = EBlessingType::Active;
+		WC->HandleBlessingSelection(EmptyData);
+	}
 }
 
 void UEquippedBlessingWidget::OnPassiveRemoveClicked()
 {
-	if (!IsValid(PassiveBlessingBox)) return;
-	PassiveBlessingBox->SetVisibility(ESlateVisibility::Hidden);
+	if (UBlessingWidgetController* WC = Cast<UBlessingWidgetController>(WidgetController))
+	{
+		FBlessingData EmptyData;
+		EmptyData.BlessingType = EBlessingType::Passive;
+		WC->HandleBlessingSelection(EmptyData);
+	}
 }

@@ -37,10 +37,6 @@ void UBlessingComponent::BeginPlay()
 	
 	Server_EquipActiveBlessing(SaveDataSystem->GetEquippedActiveBlessing());
 	Server_EquipPassiveBlessing(SaveDataSystem->GetEquippedPassiveBlessing());
-
-	//TEST
-	Server_EquipActiveBlessing(TestActiveBlessing);
-	Server_EquipPassiveBlessing(TestPassiveBlessing);
 }
 
 void UBlessingComponent::Server_AddBlessing_Implementation(const FBlessingData& Blessing)

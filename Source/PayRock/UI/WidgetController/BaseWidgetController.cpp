@@ -1,6 +1,7 @@
 // PayRockGames
 
 #include "BaseWidgetController.h"
+#include "AbilitySystemComponent.h"
 
 void UBaseWidgetController::SetWidgetControllerParams(const FWidgetControllerParams& WCParams)
 {
@@ -8,6 +9,11 @@ void UBaseWidgetController::SetWidgetControllerParams(const FWidgetControllerPar
 	PlayerState = WCParams.PlayerState;
 	AbilitySystemComponent = WCParams.AbilitySystemComponent;
 	AttributeSet = WCParams.AttributeSet;
+}
+
+bool UBaseWidgetController::IsAbilitySystemValid() const
+{
+	return IsValid(AbilitySystemComponent) && IsValid(AttributeSet);
 }
 
 void UBaseWidgetController::BroadcastInitialValues()

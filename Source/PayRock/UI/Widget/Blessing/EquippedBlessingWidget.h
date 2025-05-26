@@ -53,5 +53,7 @@ private:
 	UTextBlock* PenaltyDescription;
 	UPROPERTY(meta = (BindWidget))
 	UButton* ActiveRemoveButton;
-	
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess))
+	UTexture2D* UnequippedIcon;
 };

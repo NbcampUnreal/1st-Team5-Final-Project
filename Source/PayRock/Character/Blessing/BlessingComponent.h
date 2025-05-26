@@ -71,12 +71,4 @@ private:
 
 	FActiveGameplayEffectHandle PassiveBlessingHandle;
 	FGameplayAbilitySpecHandle ActiveBlessingHandle;
-
-	/**
-	 * TEST
-	 */
-	UPROPERTY(EditDefaultsOnly, Category = "Blessing")
-	FBlessingData TestActiveBlessing;
-	UPROPERTY(EditDefaultsOnly, Category = "Blessing")
-	FBlessingData TestPassiveBlessing;
 };
