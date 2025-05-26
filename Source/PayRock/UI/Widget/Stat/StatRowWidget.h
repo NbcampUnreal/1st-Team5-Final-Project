@@ -18,8 +18,8 @@ public:
 	void SetStatValue(const float& Value);
 
 protected:
-	UPROPERTY(meta = (BindWidget))
+	UPROPERTY(meta = (BindWidgetOptional))
 	UTextBlock* StatName;
-	UPROPERTY(meta = (BindWidget))
+	UPROPERTY(meta = (BindWidgetOptional))
 	UTextBlock* StatValue;
 };

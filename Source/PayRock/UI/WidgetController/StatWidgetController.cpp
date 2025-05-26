@@ -8,7 +8,7 @@
 void UStatWidgetController::BroadcastInitialValues()
 {
 	if (!AbilitySystemComponent || !AttributeSet) return;
-	
+
 	for (const FGameplayAttribute& Attribute : Attributes)
 	{
 		OnAttributeChangeDelegate.Broadcast(Attribute.AttributeName, Attribute.GetNumericValue(AttributeSet));
@@ -17,36 +17,27 @@ void UStatWidgetController::BroadcastInitialValues()
 
 void UStatWidgetController::InitializeAttributesArray()
 {
-	if (Attributes.IsEmpty())
+	if (!Attributes.IsEmpty()) return;
+	
+	UPRAttributeSet* PRAttributeSet = Cast<UPRAttributeSet>(AttributeSet);
+	if (!PRAttributeSet) return;
+
+	UAttributeSet::GetAttributesFromSetClass(UPRAttributeSet::StaticClass(), Attributes);
+
+	// Exclude current health and mana from the list of attributes to bind to
+	Attributes = Attributes.FilterByPredicate([](const FGameplayAttribute& Attribute)
 	{
-		UPRAttributeSet* PRAttributeSet = Cast<UPRAttributeSet>(AttributeSet);
-		if (!PRAttributeSet) return;
-
-		AbilitySystemComponent->GetAllAttributes(Attributes);
-
-		// Exclude irrelevant attributes from the list of attributes to bind to
-		Attributes = Attributes.FilterByPredicate([](const FGameplayAttribute& Attribute)
-		{
-			return !(Attribute.AttributeName == FString("Health")
-				|| Attribute.AttributeName == FString("Mana")
-				|| Attribute.AttributeName == FString("BlockChance")
-				|| Attribute.AttributeName == FString("IncomingDamage"));
-		});
-	}
-
-	if (AttributeNames.IsEmpty())
-	{
-		for (const auto& Attribute : Attributes)
-		{
-			AttributeNames.Add(Attribute.AttributeName);
-		}
-	}
+		return !(Attribute.AttributeName == FString("Health")
+			|| Attribute.AttributeName == FString("Mana")
+			|| Attribute.AttributeName == FString("BlockChance")
+			|| Attribute.AttributeName == FString("IncomingDamage"));
+	});
 }
 
 void UStatWidgetController::BindCallbacksToDependencies()
 {
 	if (!AbilitySystemComponent || !AttributeSet) return;
-	InitializeAttributesArray();
+	
 	for (const FGameplayAttribute& Attribute : Attributes)
 	{
 		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(Attribute).AddUObject(

@@ -10,6 +10,7 @@ UStatWidgetController* AStatHUD::GetStatWidgetController(const FWidgetController
 	{
 		StatWidgetController = NewObject<UStatWidgetController>(this, StatWidgetControllerClass);
 		StatWidgetController->SetWidgetControllerParams(WCParams);
+		StatWidgetController->InitializeAttributesArray();
 		StatWidgetController->BindCallbacksToDependencies();
 		return StatWidgetController;
 	}

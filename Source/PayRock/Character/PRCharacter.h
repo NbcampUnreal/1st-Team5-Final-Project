@@ -193,13 +193,10 @@ public:
 	USoundBase* GetFootstepSoundBySurface(EPhysicalSurface SurfaceType);
 
 	UPROPERTY(EditAnywhere, Category = "Sound")
-	TArray<USoundBase*> FootstepSounds;
-
-	int32 FootstepSoundIndex = 0; // 순차 재생용 인덱스
+	USoundBase* FootstepSound;
 
 	UPROPERTY(EditAnywhere, Category = "Sound")
 	USoundAttenuation* FootstepAttenuation;
-
 
 	// 발소리 사운드 큐
 	UPROPERTY(EditDefaultsOnly, Category = "Footstep")
@@ -218,25 +215,6 @@ public:
 	USoundBase* GetLandingSoundBySurface(EPhysicalSurface SurfaceType);
 
 	void Landed(const FHitResult& Hit);
-
-	// 루트모션
-	UFUNCTION(Server, Reliable)
-	void ServerSetMovementMode_None();
-
-	UFUNCTION(Client, Reliable)
-	void ClientSetMovementMode_None();
-
-	UFUNCTION(Server, Reliable)
-	void ServerSetMovementMode_Walking();
-
-	UFUNCTION(Client, Reliable)
-	void ClientSetMovementMode_Walking();
-
-	// MovementMode를 서버/클라이언트 모두에서 설정하는 유틸 함수
-	void SetMovementMode_All(EMovementMode NewMode);
-
-	UFUNCTION(Server, Reliable)
-	void ServerSetMovementMode(EMovementMode NewMode);
 
 protected:
 	virtual void BeginPlay() override;

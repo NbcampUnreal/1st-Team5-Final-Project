@@ -6,16 +6,6 @@
 #include "PayRock/AbilitySystem/Abilities/BaseDamageGameplayAbility.h"
 #include "BaseWeaponAbility.generated.h"
 
-class APRCharacter;
-
-UENUM(BlueprintType)
-enum class EAttackType : uint8
-{
-	NormalAttack = 0,
-	DashAttack,
-	JumpAttack,
-	CrouchAttack
-};
 
 UCLASS()
 class PAYROCK_API UBaseWeaponAbility : public UBaseDamageGameplayAbility
@@ -35,7 +25,6 @@ protected:
 	
 	void GetCollisionComponents(USkeletalMeshComponent* WeaponMesh, const FName& SocketName);
 	void BindCallbackToCollision();
-	void UpdateCurrentAttackType(APRCharacter* PlayerCharacter);
 
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
@@ -47,17 +36,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	float ComboTimeLimit = 0.3f;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TArray<TObjectPtr<UAnimMontage>> EndingMontageArray;
-
-	UPROPERTY(BlueprintReadOnly)
-	EAttackType CurrentAttackType = EAttackType::NormalAttack;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TObjectPtr<UAnimMontage> DashAttackMontage;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TObjectPtr<UAnimMontage> JumpAttackMontage;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TObjectPtr<UAnimMontage> CrouchAttackMontage;
 
 	bool bHit = false;
 };

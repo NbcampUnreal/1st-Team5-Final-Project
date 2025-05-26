@@ -1,6 +1,0 @@
-// PayRockGames
-
-
-#include "BlessingData.h"
-
-

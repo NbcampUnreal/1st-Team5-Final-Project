@@ -2,6 +2,7 @@
 
 
 #include "StatContainerWidget.h"
+#include "AttributeSet.h"
 #include "StatRowWidget.h"
 #include "Components/ScrollBox.h"
 #include "Components/VerticalBox.h"
@@ -21,17 +22,17 @@ void UStatContainerWidget::InitializeStatRows()
 	UStatWidgetController* StatWidgetController = Cast<UStatWidgetController>(WidgetController);
 	if (!StatWidgetController) return;
 	
-	for (const FString& AttributeName : StatWidgetController->AttributeNames)
+	for (const auto& Attribute : StatWidgetController->Attributes)
 	{
 		UStatRowWidget* StatRowWidget = Cast<UStatRowWidget>(
 			CreateWidget<UUserWidget>(this, StatRowWidgetClass)
 			);
-		StatRowWidget->SetStatName(AttributeName);
+		StatRowWidget->SetStatName(Attribute.AttributeName);
 		
 		/*
 		 * TODO: This is STUPID!!! Separate Primary / Secondary using GameplayTag?
 		 */
-		if (PrimaryStatNames.Contains(AttributeName))
+		if (PrimaryStatNames.Contains(Attribute.AttributeName))
 		{
 			PrimaryStatBox->AddChildToVerticalBox(StatRowWidget);
 		}
@@ -40,7 +41,7 @@ void UStatContainerWidget::InitializeStatRows()
 			SecondaryStatBox->AddChild(StatRowWidget);
 		}
 		
-		StatNameRowMap.Add(AttributeName, StatRowWidget);
+		StatNameRowMap.Add(Attribute.AttributeName, StatRowWidget);
 	}
 }
 
