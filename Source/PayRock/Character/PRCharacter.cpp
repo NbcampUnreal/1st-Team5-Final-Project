@@ -482,12 +482,14 @@ void APRCharacter::ServerRequestFootstep_Implementation(FVector Location, USound
 
 void APRCharacter::MulticastPlayFootstep_Implementation(FVector Location, USoundBase* Sound)
 {
+    float Volume = IsLocallyControlled() ? 0.3f : 1.0f;
+
     UGameplayStatics::PlaySoundAtLocation(
         this,
         Sound,
         Location,
         FRotator::ZeroRotator,
-        1.0f,
+        Volume,
         1.0f,
         0.0f,
         FootstepAttenuation
@@ -496,6 +498,15 @@ void APRCharacter::MulticastPlayFootstep_Implementation(FVector Location, USound
 
 USoundBase* APRCharacter::GetFootstepSoundBySurface(EPhysicalSurface SurfaceType)
 {
+    if (FootstepSounds.Num() > 0)
+    {
+        USoundBase* SoundToPlay = FootstepSounds[FootstepSoundIndex];
+
+        FootstepSoundIndex = (FootstepSoundIndex + 1) % FootstepSounds.Num(); // 순환
+
+        return SoundToPlay;
+    }
+
     return DefaultFootstepSound;
 }
 
@@ -528,14 +539,14 @@ void APRCharacter::ServerRequestLandingSound_Implementation(FVector Location, US
 
 void APRCharacter::MulticastPlayLandingSound_Implementation(FVector Location, USoundBase* Sound)
 {
-    if (IsLocallyControlled()) return;
+    float Volume = IsLocallyControlled() ? 0.3f : 1.0f;
 
     UGameplayStatics::PlaySoundAtLocation(
         this,
         Sound,
         Location,
         FRotator::ZeroRotator,
-        1.0f,
+        Volume,
         1.0f,
         0.0f,
         FootstepAttenuation
@@ -545,6 +556,43 @@ void APRCharacter::MulticastPlayLandingSound_Implementation(FVector Location, US
 USoundBase* APRCharacter::GetLandingSoundBySurface(EPhysicalSurface SurfaceType)
 {
     return DefaultLandSound;
+}
+
+void APRCharacter::ServerSetMovementMode_None_Implementation()
+{
+    GetCharacterMovement()->SetMovementMode(MOVE_None);
+}
+
+void APRCharacter::ClientSetMovementMode_None_Implementation()
+{
+    GetCharacterMovement()->SetMovementMode(MOVE_None);
+}
+
+void APRCharacter::ServerSetMovementMode_Walking_Implementation()
+{
+    GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+}
+
+void APRCharacter::ClientSetMovementMode_Walking_Implementation()
+{
+    GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+}
+
+void APRCharacter::SetMovementMode_All(EMovementMode NewMode)
+{
+    if (HasAuthority())
+    {
+        GetCharacterMovement()->SetMovementMode(NewMode);
+    }
+    else
+    {
+        ServerSetMovementMode(NewMode);
+    }
+}
+
+void APRCharacter::ServerSetMovementMode_Implementation(EMovementMode NewMode)
+{
+    GetCharacterMovement()->SetMovementMode(NewMode);
 }
 
 void APRCharacter::StartCrouch(const FInputActionValue& value)
@@ -809,6 +857,39 @@ void APRCharacter::Tick(float DeltaSeconds)
             }
         }
     }
+    // 루트모션 디버깅
+    //FString NetRoleString;
+    //switch (GetLocalRole())
+    //{
+    //case ROLE_Authority: NetRoleString = TEXT("Authority"); break;
+    //case ROLE_AutonomousProxy: NetRoleString = TEXT("AutonomousProxy"); break;
+    //case ROLE_SimulatedProxy: NetRoleString = TEXT("SimulatedProxy"); break;
+    //default: NetRoleString = TEXT("Unknown"); break;
+    //}
+
+    //UE_LOG(LogTemp, Log, TEXT("[RootMotion Debug] (%s) 위치: %s | 이동 모드: %d | 속도: %.2f"),
+    //    *NetRoleString,
+    //    *GetActorLocation().ToString(),
+    //    static_cast<int32>(GetCharacterMovement()->MovementMode),
+    //    GetVelocity().Size());
+
+    //if (UAnimInstance* AnimInst = GetMesh()->GetAnimInstance())
+    //{
+    //    if (UAnimMontage* ActiveMontage = AnimInst->GetCurrentActiveMontage())
+    //    {
+    //        UE_LOG(LogTemp, Log, TEXT("[RootMotion Debug] 재생 중 몽타주: %s"),
+    //            *ActiveMontage->GetName());
+
+    //        if (AnimInst->GetRootMotionMontageInstance())
+    //        {
+    //            UE_LOG(LogTemp, Warning, TEXT("[RootMotion Debug] 루트모션 몽타주 ACTIVE"));
+    //        }
+    //        else
+    //        {
+    //            UE_LOG(LogTemp, Warning, TEXT("[RootMotion Debug] 루트모션 몽타주 INACTIVE"));
+    //        }
+    //    }
+    //}
 }
 
 void APRCharacter::Die(/*const FHitResult& HitResult*/)

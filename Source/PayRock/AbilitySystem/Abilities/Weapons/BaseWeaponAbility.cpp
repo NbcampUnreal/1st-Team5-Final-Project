@@ -1,16 +1,14 @@
-// PayRockGames
-
+﻿// PayRockGames
 
 #include "BaseWeaponAbility.h"
 #include "Components/ShapeComponent.h"
-#include "PayRock/Character/BaseCharacter.h"
+#include "PayRock/Character/PRCharacter.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 void UBaseWeaponAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
                                          const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
                                          const FGameplayEventData* TriggerEventData)
 {
-	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-
 	bHit = false;
 	if (!CollisionComponents.IsEmpty()) return;
 	if (ABaseCharacter* AvatarCharacter = Cast<ABaseCharacter>(GetAvatarActorFromActorInfo()))
@@ -20,14 +18,50 @@ void UBaseWeaponAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 			GetCollisionComponents(Weapon, CollisionSocketName);
 			BindCallbackToCollision();
 		}
+
+		if (APRCharacter* PlayerCharacter = Cast<APRCharacter>(AvatarCharacter))
+		{
+			UpdateCurrentAttackType(PlayerCharacter);
+
+			if (CurrentAttackType == EAttackType::DashAttack)
+			{
+				PlayerCharacter->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+
+				// 로그
+				/*UE_LOG(LogTemp, Warning, TEXT("[ActivateAbility] Server & Client에 MOVE_None 적용 요청됨"));*/
+
+				// 입력 잠금
+				if (APlayerController* PC = Cast<APlayerController>(PlayerCharacter->GetController()))
+				{
+					PC->SetIgnoreMoveInput(true);
+				}
+			}
+		}
 	}
+
+	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 }
 
 void UBaseWeaponAbility::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
+	CurrentAttackType = EAttackType::NormalAttack;
+
+	if (APRCharacter* PlayerCharacter = Cast<APRCharacter>(GetAvatarActorFromActorInfo()))
+	{
+		PlayerCharacter->SetMovementMode_All(MOVE_Walking);
+
+		/*UE_LOG(LogTemp, Warning, TEXT("[EndAbility] MOVE_Walking 복구 RPC 호출"));*/
+
+		if (APlayerController* PC = Cast<APlayerController>(PlayerCharacter->GetController()))
+		{
+			PC->SetIgnoreMoveInput(false);
+		}
+	}
+
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
+
 
 void UBaseWeaponAbility::ToggleCollision(bool bShouldEnable)
 {
@@ -65,7 +99,7 @@ void UBaseWeaponAbility::BindCallbackToCollision()
 }
 
 void UBaseWeaponAbility::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+                                   UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (OtherActor == GetAvatarActorFromActorInfo() || bHit) return;
 	
@@ -76,3 +110,24 @@ void UBaseWeaponAbility::OnOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 	}
 }
 
+void UBaseWeaponAbility::UpdateCurrentAttackType(APRCharacter* PlayerCharacter)
+{
+	UCharacterMovementComponent* MovementComp = PlayerCharacter->GetCharacterMovement();
+
+	if (PlayerCharacter->bIsCrouching)
+	{
+		CurrentAttackType = EAttackType::CrouchAttack;
+		return;
+	}
+
+	if (PlayerCharacter->bIsInAir)
+	{
+		CurrentAttackType = EAttackType::JumpAttack;
+		return;
+	}
+
+	if (PlayerCharacter->bIsSprinting)
+	{
+		CurrentAttackType = EAttackType::DashAttack;
+	}
+}

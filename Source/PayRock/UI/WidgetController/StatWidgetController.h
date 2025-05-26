@@ -17,12 +17,12 @@ class PAYROCK_API UStatWidgetController : public UBaseWidgetController
 	GENERATED_BODY()
 
 public:
+	
 	virtual void BroadcastInitialValues() override;
 	virtual void BindCallbacksToDependencies() override;
 
-	void InitializeAttributesArray();
-
 private:
+	void InitializeAttributesArray();
 	void BroadcastAttributeChange(const FOnAttributeChangeData& Data);
 
 public:
@@ -31,4 +31,6 @@ public:
 	
 	UPROPERTY()
 	TArray<FGameplayAttribute> Attributes;
+	UPROPERTY()
+	TArray<FString> AttributeNames;
 };

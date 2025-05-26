@@ -39,6 +39,7 @@ public:
 	void ForceDeath();
 	UFUNCTION(BlueprintImplementableEvent)
 	void SpawnLootContainer();
+
 	void InitializeDefaultAttributes() const;
 	
 protected:
