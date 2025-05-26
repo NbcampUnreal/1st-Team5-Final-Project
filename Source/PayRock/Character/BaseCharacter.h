@@ -40,6 +40,8 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void SpawnLootContainer();
 
+	void InitializeDefaultAttributes() const;
+	
 protected:
 	virtual void BeginPlay() override;
 	virtual FVector GetCombatSocketLocation_Implementation(const FGameplayTag& SocketTag) override;
@@ -47,7 +49,6 @@ protected:
 	virtual void InitAbilityActorInfo();
 	virtual void AddCharacterAbilities();
 	void ApplyEffectToSelf(const TSubclassOf<UGameplayEffect>& EffectClass, const float& EffectLevel) const;
-	void InitializeDefaultAttributes() const;
 	void BindToTagChange();
 
 protected:

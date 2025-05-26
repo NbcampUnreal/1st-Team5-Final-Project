@@ -19,10 +19,6 @@ EBTNodeResult::Type UBTTask_NormalAttack::ExecuteTask(UBehaviorTreeComponent& Ow
 	AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(AICon ? AICon->GetPawn() : nullptr);
 	if (!Enemy || !AttackAbility) return EBTNodeResult::Failed;
 	
-	if (AICon)
-	{
-		AICon->StopMovement();
-	}
 	UAbilitySystemComponent* ASC = Enemy->GetAbilitySystemComponent();
 	if (!ASC) return EBTNodeResult::Failed;
 

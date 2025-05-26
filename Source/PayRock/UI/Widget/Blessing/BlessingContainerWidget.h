@@ -15,8 +15,7 @@ class PAYROCK_API UBlessingContainerWidget : public UBaseUserWidget
 
 protected:
 	virtual void OnWidgetControllerSet() override;
-	
-	
+
 private:
 	void InitializeBlessingRows();
 
@@ -24,4 +23,7 @@ private:
 	UScrollBox* PassiveBlessingBox;
 	UPROPERTY(meta = (BindWidget))
 	UScrollBox* ActiveBlessingBox;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Blessing")
+	TSubclassOf<UUserWidget> BlessingRowWidgetClass;
 };

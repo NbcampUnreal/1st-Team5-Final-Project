@@ -37,10 +37,10 @@ struct FBlessingData
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blessing")
 	FText BlessingName = FText::GetEmpty();
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blessing")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (MultiLine = true), Category = "Blessing")
 	FText BlessingDescription = FText::GetEmpty();
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blessing")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (MultiLine = true), Category = "Blessing")
 	FText PenaltyDescription = FText::GetEmpty();
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blessing")
