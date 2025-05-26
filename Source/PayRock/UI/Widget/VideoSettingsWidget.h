@@ -37,8 +37,8 @@ protected:
     UPROPERTY(meta = (BindWidget))
     UButton* ApplyButton;
 
-    /* 뒤로 가기 버튼 */
-    UPROPERTY(meta = (BindWidget))
+    /* 뒤로 가기 버튼 -> 인게임에서 재사용 하기에 옵셔널*/
+    UPROPERTY(meta = (BindWidgetOptional))
     UButton* BackButton;
 
 public:

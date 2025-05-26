@@ -34,9 +34,11 @@ protected:
     USlider* SFXVolumeSlider;
 
     UPROPERTY(meta = (BindWidget))
+    
     UButton* ApplyButton;
 
-    UPROPERTY(meta = (BindWidget))
+    /* 뒤로 가기 버튼 -> 인게임에서 재사용 하기에 옵셔널*/
+    UPROPERTY(meta = (BindWidgetOptional))
     UButton* BackButton;
 
     /** 에디터에서 설정 가능한 사운드 에셋들 */
