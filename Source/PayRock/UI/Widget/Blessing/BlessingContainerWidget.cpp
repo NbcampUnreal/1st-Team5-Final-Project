@@ -19,7 +19,9 @@ void UBlessingContainerWidget::InitializeBlessingRows()
 	
 	for (auto Blessing : BlessingWidgetController->BlessingsContainer)
 	{
-		UBlessingRowWidget* RowWidget = CreateWidget<UBlessingRowWidget>(this);
+		UUserWidget* Widget = CreateWidget<UUserWidget>(this, BlessingRowWidgetClass);
+		UBlessingRowWidget* RowWidget = Cast<UBlessingRowWidget>(Widget);
+		if (!RowWidget) return;
 
 		switch (Blessing.BlessingType)
 		{
