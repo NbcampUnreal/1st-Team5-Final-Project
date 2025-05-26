@@ -16,9 +16,7 @@ public:
 protected:
 	UPROPERTY(EditAnywhere, Category = "GAS")
 	TSubclassOf<class UGameplayAbility> AttackAbility;
-
-	UPROPERTY(EditAnywhere, Category = "GAS")
-	TSubclassOf<class UGameplayAbility> WeaponCollisionAbility;
+	
 
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 };
