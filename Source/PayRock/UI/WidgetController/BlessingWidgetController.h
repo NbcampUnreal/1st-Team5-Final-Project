@@ -25,6 +25,8 @@ public:
 	void HandleBlessingSelection(const FBlessingData& Blessing);
 	
 private:
+	UFUNCTION()
+	void InitializeBlessingContainer(const TArray<FBlessingData>& Blessings);
 	// void InitializeBlessingComponentRef();
 
 public:

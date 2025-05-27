@@ -133,10 +133,17 @@ void UPRAttributeSet::HandleIncomingDamage(const FEffectProperties& Props, const
 	const float LocalIncomingDamage = GetIncomingDamage();
 	SetIncomingDamage(0.f);
 	const float CalculatedDamage = GetCalculatedDamage(LocalIncomingDamage, Props);
-	if (LocalIncomingDamage > 0.f)
+	if (CalculatedDamage > 0.f)
 	{
 		float NewHealth = FMath::Clamp(GetHealth() - CalculatedDamage, 0.f, GetMaxHealth());
 
+		// Invincible Buff (e.g. YiSunSin Blessing)
+		if (NewHealth <= 0.f &&
+			GetOwningAbilitySystemComponent()->HasMatchingGameplayTag(FPRGameplayTags::Get().Status_Buff_Invincible))
+		{
+			NewHealth = 1.f;
+		}
+		
 		FOnAttributeChangeData AttributeChangeData;
 		AttributeChangeData.Attribute = GetHealthAttribute();
 		AttributeChangeData.GEModData = &Data;
