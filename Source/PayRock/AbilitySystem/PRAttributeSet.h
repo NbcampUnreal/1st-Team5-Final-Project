@@ -51,7 +51,7 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
-
+	
 	/* Primary Attributes */
 	UFUNCTION()
 	void OnRep_Strength(const FGameplayAttributeData& OldStrength) const;
@@ -103,6 +103,9 @@ public:
 	void OnRep_LootQualityModifier(const FGameplayAttributeData& OldLootQualityModifier) const;
 	UFUNCTION()
 	void OnRep_CarryWeight(const FGameplayAttributeData& OldCarryWeight) const;
+	
+	UFUNCTION()
+	void OnRep_BonusDamage(const FGameplayAttributeData& OldBonusDamage) const;
 
 	/* Vital Attributes */
 	UFUNCTION()
@@ -193,6 +196,10 @@ public:
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_CarryWeight, Category = "SecondaryAttributes")
 	FGameplayAttributeData CarryWeight;
 	ATTRIBUTE_ACCESSORS(UPRAttributeSet, CarryWeight);
+
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_BonusDamage, Category = "SecondaryAttributes")
+	FGameplayAttributeData BonusDamage;
+	ATTRIBUTE_ACCESSORS(UPRAttributeSet, BonusDamage);
 	
 	/*
 	 * Vital Attributes
@@ -210,4 +217,11 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "MetaAttributes")
 	FGameplayAttributeData IncomingDamage;
 	ATTRIBUTE_ACCESSORS(UPRAttributeSet, IncomingDamage);
+
+private:
+	UPROPERTY()
+	mutable float HealthRatio = 1.f;
+
+	UPROPERTY()
+	mutable float ManaRatio = 1.f;
 };

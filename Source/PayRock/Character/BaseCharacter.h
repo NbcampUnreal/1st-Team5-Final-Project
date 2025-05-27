@@ -40,7 +40,11 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void SpawnLootContainer();
 
-	void InitializeDefaultAttributes() const;
+	UFUNCTION(BlueprintCallable)
+	void ApplySecondaryAttributeInitEffect();
+	
+	void InitializeDefaultAttributes();
+	bool bAreAttributesInitialized = false;
 	
 protected:
 	virtual void BeginPlay() override;
