@@ -26,7 +26,7 @@ void UConditionalEffectAbility::ActivateAbility(const FGameplayAbilitySpecHandle
 		MaxAttributeDelegateHandle = ASC->GetGameplayAttributeValueChangeDelegate(MaxAttribute)
 			.AddUObject(this, &UConditionalEffectAbility::EvaluateAndApplyOrRemoveEffect);
 	}
-	
+
 	EvaluateAndApplyOrRemoveEffect(FOnAttributeChangeData());
 }
 
@@ -56,7 +56,7 @@ void UConditionalEffectAbility::EndAbility(const FGameplayAbilitySpecHandle Hand
 
 		if (ABaseCharacter* Character = Cast<ABaseCharacter>(GetAbilitySystemComponentFromActorInfo()->GetAvatarActor()))
 		{
-			Character->ApplySecondaryAttributeInitEffect();
+			Character->RecalculateSecondaryAttributes();
 		}
 	}
 }
@@ -68,36 +68,47 @@ void UConditionalEffectAbility::EvaluateAndApplyOrRemoveEffect(const FOnAttribut
 	const UAttributeSet* AS = ASC->GetAttributeSet(UPRAttributeSet::StaticClass());
 	if (!AS) return;
 	
-	float Current = CurrentAttribute.GetNumericValue(AS);
-	float Max = MaxAttribute.GetNumericValue(AS);
+	const float Current = CurrentAttribute.GetNumericValue(AS);
+	const float Max = MaxAttribute.GetNumericValue(AS);
 
-	if (DoesConditionPass(Current, Max))
+	const bool bDoesConditionPass = DoesConditionPass(Current, Max);
+
+	if (bDoesConditionPass != bDidConditionPass)
 	{
-		if (!ActiveEffectHandle.IsValid())
+		bDidConditionPass = bDoesConditionPass;
+		
+		if (bDoesConditionPass)
 		{
-			FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(ConditionalEffect, GetAbilityLevel());
-			ActiveEffectHandle = ApplyGameplayEffectSpecToOwner(
-				GetCurrentAbilitySpecHandle(),
-				GetCurrentActorInfo(),
-				GetCurrentActivationInfo(),
-				SpecHandle);
-
-			if (ABaseCharacter* Character = Cast<ABaseCharacter>(GetAbilitySystemComponentFromActorInfo()->GetAvatarActor()))
+			if (!ActiveEffectHandle.IsValid())
 			{
-				Character->ApplySecondaryAttributeInitEffect();
+				FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(ConditionalEffect, GetAbilityLevel());
+				ActiveEffectHandle = ApplyGameplayEffectSpecToOwner(
+					GetCurrentAbilitySpecHandle(),
+					GetCurrentActorInfo(),
+					GetCurrentActivationInfo(),
+					SpecHandle);
+				UE_LOG(LogTemp, Warning, TEXT("ConditionalEffect was applied"))
+			
+				if (ABaseCharacter* Character = Cast<ABaseCharacter>(GetAbilitySystemComponentFromActorInfo()->GetAvatarActor()))
+				{
+					Character->RecalculateSecondaryAttributes();
+					UE_LOG(LogTemp, Warning, TEXT("Recalculated Secondary Attributes"))
+				}
 			}
 		}
-	}
-	else
-	{
-		if (ActiveEffectHandle.IsValid())
+		else
 		{
-			ASC->RemoveActiveGameplayEffect(ActiveEffectHandle);
-			ActiveEffectHandle.Invalidate();
-
-			if (ABaseCharacter* Character = Cast<ABaseCharacter>(GetAbilitySystemComponentFromActorInfo()->GetAvatarActor()))
+			if (ActiveEffectHandle.IsValid())
 			{
-				Character->ApplySecondaryAttributeInitEffect();
+				ASC->RemoveActiveGameplayEffect(ActiveEffectHandle);
+				ActiveEffectHandle.Invalidate();
+				UE_LOG(LogTemp, Warning, TEXT("ConditionalEffect was removed"))
+
+				if (ABaseCharacter* Character = Cast<ABaseCharacter>(GetAbilitySystemComponentFromActorInfo()->GetAvatarActor()))
+				{
+					Character->RecalculateSecondaryAttributes();
+					UE_LOG(LogTemp, Warning, TEXT("Recalculated Secondary Attributes"))
+				}
 			}
 		}
 	}
@@ -106,17 +117,19 @@ void UConditionalEffectAbility::EvaluateAndApplyOrRemoveEffect(const FOnAttribut
 bool UConditionalEffectAbility::DoesConditionPass(float Current, float Max) const
 {
 	const float Threshold = ThresholdPercent.GetValueAtLevel(GetAbilityLevel()) / 100.f * Max;
+	const float Buffer = 0.01f * Max;
+	
 
 	switch (ComparisonType)
 	{
 	case EAttributeComparisonType::LessThan:
-		return Current < Threshold;
+		return Current < Threshold - Buffer;
 	case EAttributeComparisonType::LessThanOrEqual:
-		return Current <= Threshold;
+		return Current <= Threshold - Buffer;
 	case EAttributeComparisonType::GreaterThan:
-		return Current > Threshold;
+		return Current > Threshold + Buffer;
 	case EAttributeComparisonType::GreaterThanOrEqual:
-		return Current >= Threshold;
+		return Current >= Threshold + Buffer;
 	default:
 		return false;
 	}

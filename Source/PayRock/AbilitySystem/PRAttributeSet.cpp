@@ -25,7 +25,7 @@ void UPRAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 
 	/* Secondary Attributes */
 	DOREPLIFETIME_CONDITION_NOTIFY(UPRAttributeSet, Armor, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UPRAttributeSet, BlockChance, COND_None, REPNOTIFY_Always);
+	// DOREPLIFETIME_CONDITION_NOTIFY(UPRAttributeSet, BlockChance, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UPRAttributeSet, CriticalResistance, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UPRAttributeSet, DebuffResistance, COND_None, REPNOTIFY_Always);
 
@@ -77,12 +77,12 @@ void UPRAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
 	{
 		SetHealth(FMath::Clamp(GetHealth(), 0.f, GetMaxHealth()));
 
-		const float HealthCurrent = GetHealth();
+		/*const float HealthCurrent = GetHealth();
 		const float HealthBase = GetOwningAbilitySystemComponent()->GetNumericAttributeBase(GetHealthAttribute());
 		UE_LOG(LogTemp, Warning, TEXT(
 			"after --> AvatarActor: %s / Amount: %f / Health(Current): %f / GetHealth(Base): %f"),
 			*GetOwningAbilitySystemComponent()->GetAvatarActor()->GetName(),
-			Data.EvaluatedData.Magnitude, HealthCurrent, HealthBase);
+			Data.EvaluatedData.Magnitude, HealthCurrent, HealthBase);*/
 	}
 	else if (Data.EvaluatedData.Attribute == GetManaAttribute())
 	{
@@ -91,34 +91,6 @@ void UPRAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
 	else if (Data.EvaluatedData.Attribute == GetIncomingDamageAttribute())
 	{
 		HandleIncomingDamage(Props, Data);
-	}
-	else if (Data.EvaluatedData.Attribute == GetMaxHealthAttribute())
-	{
-		if (ABaseCharacter* Character = Cast<ABaseCharacter>(Props.TargetCharacter))
-		{
-			if (Character->bAreAttributesInitialized)
-			{
-				float NewHealth = HealthRatio * GetMaxHealth();
-				if (!FMath::IsNearlyEqual(GetHealth(), NewHealth))
-				{
-					SetHealth(FMath::Clamp(NewHealth, 0.f, GetMaxHealth()));
-				}
-			}
-		}
-	}
-	else if (Data.EvaluatedData.Attribute == GetMaxManaAttribute())
-	{
-		if (ABaseCharacter* Character = Cast<ABaseCharacter>(Props.SourceAvatarActor))
-		{
-			if (Character->bAreAttributesInitialized)
-			{
-				float NewMana = ManaRatio * GetMaxMana();
-				if (!FMath::IsNearlyEqual(GetMana(), NewMana))
-				{
-					SetMana(FMath::Clamp(NewMana, 0.f, GetMaxMana()));
-				}
-			}
-		}
 	}
 }
 
@@ -147,12 +119,12 @@ void UPRAttributeSet::HandleIncomingDamage(const FEffectProperties& Props, const
 		SetHealth(NewHealth);
 		Props.TargetASC->GetGameplayAttributeValueChangeDelegate(GetHealthAttribute()).Broadcast(AttributeChangeData);
 
-		const float HealthCurrent = GetHealth();
+		/*const float HealthCurrent = GetHealth();
 		const float HealthBase = GetOwningAbilitySystemComponent()->GetNumericAttributeBase(GetHealthAttribute());
 		UE_LOG(LogTemp, Warning, TEXT(
 			"AvatarActor: %s / IncomingDamage: %f / Health(Current): %f / GetHealth(Base): %f"),
 			*GetOwningAbilitySystemComponent()->GetAvatarActor()->GetName(),
-			LocalIncomingDamage, HealthCurrent, HealthBase);
+			LocalIncomingDamage, HealthCurrent, HealthBase);*/
 
 		// Activate Hit React
 		FGameplayTagContainer TagContainer;
@@ -283,10 +255,10 @@ void UPRAttributeSet::OnRep_Armor(const FGameplayAttributeData& OldArmor) const
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UPRAttributeSet, Armor, OldArmor);
 }
 
-void UPRAttributeSet::OnRep_BlockChance(const FGameplayAttributeData& OldBlockChance) const
+/*void UPRAttributeSet::OnRep_BlockChance(const FGameplayAttributeData& OldBlockChance) const
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UPRAttributeSet, BlockChance, OldBlockChance);
-}
+}*/
 
 void UPRAttributeSet::OnRep_CriticalResistance(const FGameplayAttributeData& OldCriticalResistance) const
 {

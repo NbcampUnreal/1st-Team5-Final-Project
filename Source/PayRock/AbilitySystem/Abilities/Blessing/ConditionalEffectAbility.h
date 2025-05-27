@@ -50,5 +50,5 @@ private:
 
 	FActiveGameplayEffectHandle ActiveEffectHandle;
 
-	
+	bool bDidConditionPass = false;
 };
