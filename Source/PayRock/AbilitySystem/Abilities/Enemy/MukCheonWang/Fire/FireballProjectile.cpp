@@ -11,7 +11,7 @@
 
 AFireballProjectile::AFireballProjectile()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 	bReplicates = true;
 
 	CollisionComponent = CreateDefaultSubobject<USphereComponent>(TEXT("Sphere"));
@@ -29,6 +29,7 @@ AFireballProjectile::AFireballProjectile()
 	ProjectileMovement->ProjectileGravityScale = 0.f;
 	ProjectileMovement->InitialSpeed = 1200.f;
 	ProjectileMovement->MaxSpeed = 1200.f;
+	ProjectileMovement->SetActive(false);
 
 	NiagaraComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NiagaraComponent"));
 	NiagaraComponent->SetupAttachment(RootComponent);
@@ -38,12 +39,27 @@ void AFireballProjectile::BeginPlay()
 {
 	Super::BeginPlay();
 	SetLifeSpan(5.f);
-	SetReplicateMovement(true);
 
 	CollisionComponent->OnComponentBeginOverlap.AddDynamic(this, &AFireballProjectile::OnSphereOverlap);
 	CollisionComponent->OnComponentHit.AddDynamic(this, &AFireballProjectile::OnHit);
+	
+	GetWorld()->GetTimerManager().SetTimer(LaunchDelayHandle, [this]()
+	{
+		SetReplicateMovement(true);
+		LaunchToTargetPlayer();
+	}, FireRate, false);
+}
 
-	LaunchToTargetPlayer();
+void AFireballProjectile::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+
+	FloatElapsedTime += DeltaTime;
+
+	float OffsetZ = FMath::Sin(FloatElapsedTime * FloatSpeed) * FloatHeight * DeltaTime;
+	AddActorWorldOffset(FVector(0.f, 0.f, OffsetZ));
+	
 }
 
 void AFireballProjectile::LaunchToTargetPlayer()
@@ -57,10 +73,13 @@ void AFireballProjectile::LaunchToTargetPlayer()
 	AActor* Target = Targets[FMath::RandRange(0, Targets.Num() - 1)];
 	if (!Target) return;
 
-	FVector TargetLocation = Target->GetActorLocation() + FVector(0, 0, 5.f);
-	FVector LaunchVelocity = (TargetLocation - GetActorLocation()).GetSafeNormal() * ProjectileMovement->InitialSpeed;
+	FVector TargetLocation = Target->GetActorLocation() + FVector(0, 0, 0);
+	LaunchVelocity = (TargetLocation - GetActorLocation()).GetSafeNormal() * ProjectileMovement->InitialSpeed;
+
 	ProjectileMovement->Velocity = LaunchVelocity;
+	ProjectileMovement->SetActive(true);
 }
+
 
 void AFireballProjectile::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
                                           UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -113,4 +132,10 @@ void AFireballProjectile::HandleImpact(bool bSpawnDOT)
 	}
 
 	Destroy();
+}
+
+void AFireballProjectile::EnableReplication()
+{
+	SetReplicateMovement(true);
+	LaunchToTargetPlayer();
 }

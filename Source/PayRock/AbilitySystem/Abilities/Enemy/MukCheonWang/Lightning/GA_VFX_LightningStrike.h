@@ -33,13 +33,23 @@ protected:
 	float AuraDelayTime = 0.8f;
 	
 	FTimerHandle AuraDelayTimerHandle;
+	FTimerHandle LightningChainTimer;
 	
 	UFUNCTION()
 	void SpawnLightningAfterAura();
-	
+	void SpawnNextLightning();
+
 	FGameplayAbilitySpecHandle CurrentSpecHandle;
 	FGameplayAbilityActorInfo* CurrentActorInfo = nullptr;
 	FGameplayAbilityActivationInfo CurrentActivationInfo;
+
+	int32 NumLightningToSpawn = 0;
+	int32 SpawnedLightningCount = 0;
+	FVector LightningCenter;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Timing")
+	float LightningSpawnDelay = 0.3f;
+	
 	UPROPERTY()
 	TObjectPtr<AActor> AvatarActor;
 };

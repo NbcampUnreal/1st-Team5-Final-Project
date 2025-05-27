@@ -1,7 +1,6 @@
 ﻿#include "StoneSpikeActor.h"
 #include "Components/CapsuleComponent.h"
 #include "NiagaraComponent.h"
-#include "Components/TimelineComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 
@@ -18,51 +17,33 @@ AStoneSpikeActor::AStoneSpikeActor()
     VFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("VFX"));
     VFX->SetupAttachment(RootComponent);
 
-    MoveTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("MoveTimeline"));
-
     Collision->OnComponentBeginOverlap.AddDynamic(this, &AStoneSpikeActor::OnSpikeOverlap);
+    
+    BaseSpeed = 500.f;
 }
 
 void AStoneSpikeActor::BeginPlay()
 {
     Super::BeginPlay();
-
-    StartLocation = GetActorLocation();
-
-    if (TargetActor)
-    {
-        FVector Direction = (TargetActor->GetActorLocation() - StartLocation).GetSafeNormal();
-        EndLocation = StartLocation + Direction * TravelDistance;
-        SetActorRotation(Direction.Rotation());
-    }
-    else
-    {
-        EndLocation = StartLocation + GetActorForwardVector() * TravelDistance;
-    }
-
-    if (MoveCurve)
-    {
-        FOnTimelineFloat UpdateDelegate;
-        UpdateDelegate.BindUFunction(this, FName("OnTimelineUpdate"));
-
-        MoveTimeline->AddInterpFloat(MoveCurve, UpdateDelegate);
-        MoveTimeline->SetLooping(false);
-        MoveTimeline->SetTimelineLength(TravelDuration);
-        MoveTimeline->PlayFromStart();
-    }
-
-    SetLifeSpan(TravelDuration + 1.0f);
+    SetLifeSpan(15.f);
 }
 
-void AStoneSpikeActor::OnTimelineUpdate(float Value)
+void AStoneSpikeActor::Tick(float DeltaTime)
 {
-    FVector NewLocation = FMath::Lerp(StartLocation, EndLocation, Value);
-    SetActorLocation(NewLocation);
+    Super::Tick(DeltaTime);
+
+    if (!TargetActor) return;
+
+    FVector Direction = (TargetActor->GetActorLocation() - GetActorLocation()).GetSafeNormal();
+    FVector DeltaMove = Direction * BaseSpeed * DeltaTime;
+
+    SetActorLocation(GetActorLocation() + DeltaMove);
+    SetActorRotation(Direction.Rotation());
+    
 }
 
 void AStoneSpikeActor::OnSpikeOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-                                      UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
-                                      const FHitResult& SweepResult)
+    UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
     if (!InstigatorAbility || !OtherActor) return;
 
@@ -77,12 +58,6 @@ void AStoneSpikeActor::OnSpikeOverlap(UPrimitiveComponent* OverlappedComp, AActo
     }
 
     Destroy();
-}
-
-void AStoneSpikeActor::Tick(float DeltaTime)
-{
-    Super::Tick(DeltaTime);
-    if (MoveTimeline) MoveTimeline->TickComponent(DeltaTime, ELevelTick::LEVELTICK_TimeOnly, nullptr);
 }
 
 void AStoneSpikeActor::SetInstigatorAbility(UBaseDamageGameplayAbility* InAbility)

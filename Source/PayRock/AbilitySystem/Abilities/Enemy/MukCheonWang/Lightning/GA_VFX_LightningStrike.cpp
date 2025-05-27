@@ -46,11 +46,10 @@ void UGA_VFX_LightningStrike::ActivateAbility(
 		);
 	}
 }
-
 void UGA_VFX_LightningStrike::SpawnLightningAfterAura()
 {
 	GetWorld()->GetTimerManager().ClearTimer(AuraDelayTimerHandle);
-	
+
 	AMukCheonWangCharacter* Boss = Cast<AMukCheonWangCharacter>(AvatarActor);
 	if (!Boss || !LightningClass || Boss->GetDetectedActors().Num() == 0)
 	{
@@ -64,19 +63,53 @@ void UGA_VFX_LightningStrike::SpawnLightningAfterAura()
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 		return;
 	}
+	
+	const FVector PredictedLocation = Target->GetActorLocation() + Target->GetVelocity() * PredictDelay;
+	LightningCenter = FVector(PredictedLocation.X, PredictedLocation.Y, Target->GetActorLocation().Z);
 
-	FVector PredictedLoc = Target->GetActorLocation() + Target->GetVelocity() * PredictDelay;
+	NumLightningToSpawn = FMath::RandRange(2, 4);
+	SpawnedLightningCount = 0;
+
+	SpawnNextLightning();
+}
+
+void UGA_VFX_LightningStrike::SpawnNextLightning()
+{
+	if (SpawnedLightningCount >= NumLightningToSpawn)
+	{
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+		return;
+	}
+
+	AMukCheonWangCharacter* Boss = Cast<AMukCheonWangCharacter>(AvatarActor);
+	if (!Boss || !LightningClass) return;
+	
+	const FVector Offset2D = FVector(
+		FMath::FRandRange(-200.f, 200.f),
+		FMath::FRandRange(-200.f, 200.f),
+		0.f
+	);
+
+	FVector SpawnLoc = LightningCenter + Offset2D;
 
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = Boss;
 
 	ALightningStrikeActor* Lightning = Boss->GetWorld()->SpawnActor<ALightningStrikeActor>(
-		LightningClass, PredictedLoc, FRotator::ZeroRotator, SpawnParams);
+		LightningClass, SpawnLoc, FRotator::ZeroRotator, SpawnParams);
 
 	if (Lightning)
 	{
 		Lightning->SetInstigatorAbility(this);
 	}
 
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+	SpawnedLightningCount++;
+
+	GetWorld()->GetTimerManager().SetTimer(
+		LightningChainTimer,
+		this,
+		&UGA_VFX_LightningStrike::SpawnNextLightning,
+		LightningSpawnDelay,
+		false
+	);
 }

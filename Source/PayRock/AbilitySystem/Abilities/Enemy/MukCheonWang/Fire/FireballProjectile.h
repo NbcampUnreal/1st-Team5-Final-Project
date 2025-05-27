@@ -23,15 +23,18 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-	
-	UPROPERTY(VisibleAnywhere)
+	virtual void Tick(float DeltaTime) override;
+
+
+	UPROPERTY(VisibleAnywhere, Category = "Components")
 	TObjectPtr<USphereComponent> CollisionComponent;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Category = "Components")
 	TObjectPtr<UProjectileMovementComponent> ProjectileMovement;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Category = "Components")
 	TObjectPtr<UNiagaraComponent> NiagaraComponent;
+
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Damage")
 	TSubclassOf<UGameplayEffect> DamageEffectClass;
@@ -42,7 +45,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Damage")
 	float DamageAmount = 50.f;
 
-
+	
 	UPROPERTY(EditDefaultsOnly, Category = "DOT")
 	TSubclassOf<AFireDOTArea> DOTAreaClass;
 
@@ -50,13 +53,42 @@ protected:
 	float SpawnHeightOffset = 50.f;
 
 	
+	UPROPERTY(EditDefaultsOnly, Category = "Timer")
+	float FireRate = 1.0f;
+
+	
+	float FloatElapsedTime = 0.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "FloatEffect")
+	float FloatDuration = 1.5f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "FloatEffect")
+	float FloatHeight = 60.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "FloatEffect")
+	float FloatSpeed = 6.f;
+	
+	
+	UPROPERTY()
+	FVector LaunchVelocity;
+
+	UPROPERTY()
 	bool bHit = false;
 
+	UPROPERTY()
+	FTimerHandle LaunchDelayHandle;
 
+	
+	UFUNCTION()
 	void LaunchToTargetPlayer();
+
+	UFUNCTION()
 	void HandleImpact(bool bSpawnDOT);
 
+	UFUNCTION()
+	void EnableReplication();
 
+	
 	UFUNCTION()
 	void OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 						 UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);

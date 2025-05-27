@@ -25,8 +25,7 @@ protected:
 
 	FVector InitialLocation;
 	FVector Direction;
-
-	// Params
+	
 	UPROPERTY(EditDefaultsOnly)
 	float LifeDuration = 1.5f;
 

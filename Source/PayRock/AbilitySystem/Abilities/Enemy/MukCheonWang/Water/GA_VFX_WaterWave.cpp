@@ -44,7 +44,22 @@ void UGA_VFX_WaterWave::ActivateAbility(
 void UGA_VFX_WaterWave::SpawnWaterWaveAfterAura()
 {
 	GetWorld()->GetTimerManager().ClearTimer(AuraDelayTimerHandle);
+
+	if (!AvatarActor || !WaveClass)
+	{
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+		return;
+	}
 	
+	NumWavesToSpawn = FMath::RandRange(1, 3);
+	SpawnedWaveCount = 0;
+
+	
+	SpawnNextWave();
+}
+
+void UGA_VFX_WaterWave::SpawnNextWave()
+{
 	if (!AvatarActor || !WaveClass)
 	{
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
@@ -52,7 +67,7 @@ void UGA_VFX_WaterWave::SpawnWaterWaveAfterAura()
 	}
 
 	FVector SpawnLoc = AvatarActor->GetActorLocation();
-	FRotator SpawnRot = bWaveAlongX ? FRotator(0, 0, 0) : FRotator(0, 90, 0);
+	FRotator SpawnRot = AvatarActor->GetActorRotation();
 
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = AvatarActor;
@@ -63,5 +78,21 @@ void UGA_VFX_WaterWave::SpawnWaterWaveAfterAura()
 		Wave->SetActorScale3D(WaveScale);
 	}
 
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+	SpawnedWaveCount++;
+
+	if (SpawnedWaveCount < NumWavesToSpawn)
+	{
+		
+		GetWorld()->GetTimerManager().SetTimer(
+			WaveChainTimer,
+			this,
+			&UGA_VFX_WaterWave::SpawnNextWave,
+			WaveSpawnDelay,
+			false
+		);
+	}
+	else
+	{
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+	}
 }

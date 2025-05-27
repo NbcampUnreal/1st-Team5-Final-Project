@@ -26,7 +26,7 @@ void UGA_VFX_Fireball::ActivateAbility(
 
 	
 	GetWorld()->GetTimerManager().SetTimer(
-		AuraDelayTimerHandle, this, &UGA_VFX_Fireball::StartFireballSequence, 1.5f, false);
+		AuraDelayTimerHandle, this, &UGA_VFX_Fireball::StartFireballSequence, AuraDelayTime, false);
 }
 
 
@@ -65,21 +65,34 @@ void UGA_VFX_Fireball::SpawnNextFireball()
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 		return;
 	}
+	
+	FVector Origin = Caster->GetActorLocation();
+	FVector Forward = Caster->GetActorForwardVector();
+	FVector Right = Caster->GetActorRightVector();
+
+
+	const float ForwardOffset = FMath::FRandRange(MinForwardOffset, MaxForwardOffset);
+	const float SideOffset = FMath::FRandRange(-SideOffsetRange, SideOffsetRange);
+	const float ZOffset = VerticalOffset;
+
+	FVector SpawnLocation = Origin + (Forward * ForwardOffset) + (Right * SideOffset);
+	SpawnLocation.Z += ZOffset;
 
 	
-	FVector SpawnLocation = Caster->GetActorLocation() + FVector(0, 0, 180.f);
-	SpawnLocation += FVector(FMath::FRandRange(-50.f, 50.f), FMath::FRandRange(-50.f, 50.f), 0.f);
-
 	FRotator SpawnRotation = FRotator::ZeroRotator;
-
 	FActorSpawnParameters Params;
 	Params.Owner = Caster.Get();
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
 	GetWorld()->SpawnActor<AFireballProjectile>(FireballClass, SpawnLocation, SpawnRotation, Params);
 
+	
 	CurrentFireballIndex++;
-
 	GetWorld()->GetTimerManager().SetTimer(
-		FireballSequenceTimerHandle, this, &UGA_VFX_Fireball::SpawnNextFireball, 0.3f, false);
+		FireballSequenceTimerHandle,
+		this,
+		&UGA_VFX_Fireball::SpawnNextFireball,
+		0.3f,
+		false
+	);
 }

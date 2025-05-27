@@ -37,14 +37,22 @@ protected:
 	float AuraDelayTime = 0.8f;
 	
 	FTimerHandle AuraDelayTimerHandle;
+	FTimerHandle WaveChainTimer;
 	
 	UFUNCTION()
 	void SpawnWaterWaveAfterAura();
-	
+	void SpawnNextWave();
+
 	FGameplayAbilitySpecHandle CurrentSpecHandle;
 	FGameplayAbilityActorInfo* CurrentActorInfo = nullptr;
 	FGameplayAbilityActivationInfo CurrentActivationInfo;
+	
+	int32 NumWavesToSpawn = 0;
+	int32 SpawnedWaveCount = 0;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Timing")
+	float WaveSpawnDelay = 0.3f;
+	
 	UPROPERTY()
 	TObjectPtr<AActor> AvatarActor;
 };

@@ -2,6 +2,7 @@
 #include "HealingTreeActor.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "DrawDebugHelpers.h"
 #include "PayRock/Enemy/FinalBoss/MukCheonWangCharacter.h"
 
 UGA_SpawnHealingTrees::UGA_SpawnHealingTrees()
@@ -17,7 +18,7 @@ void UGA_SpawnHealingTrees::ActivateAbility(
 	const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-
+	
 	AvatarActor = GetAvatarActorFromActorInfo();
 	AMukCheonWangCharacter* Boss = Cast<AMukCheonWangCharacter>(AvatarActor);
 	if (!Boss || !TreeClass)
@@ -25,36 +26,14 @@ void UGA_SpawnHealingTrees::ActivateAbility(
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 		return;
 	}
-	
+
 	CurrentSpecHandle = Handle;
 	CurrentActorInfo = const_cast<FGameplayAbilityActorInfo*>(ActorInfo);
 	CurrentActivationInfo = ActivationInfo;
+
 	
-	if (AuraEffect)
-	{
-		UNiagaraFunctionLibrary::SpawnSystemAttached(
-			AuraEffect,
-			Boss->GetRootComponent(),
-			NAME_None,
-			FVector::ZeroVector,
-			FRotator::ZeroRotator,
-			EAttachLocation::KeepRelativeOffset,
-			true
-		);
-	}
-
-	if (AuraDecalClass)
-	{
-		FActorSpawnParameters AuraParams;
-		AuraParams.Owner = Boss;
-
-		Boss->GetWorld()->SpawnActor<AActor>(
-			AuraDecalClass,
-			Boss->GetActorLocation(),
-			FRotator::ZeroRotator,
-			AuraParams
-		);
-	}
+	PlayAuraVFX(Boss);
+	
 	if (UWorld* World = GetWorld())
 	{
 		World->GetTimerManager().SetTimer(
@@ -70,7 +49,7 @@ void UGA_SpawnHealingTrees::ActivateAbility(
 void UGA_SpawnHealingTrees::SpawnTreesAfterAura()
 {
 	GetWorld()->GetTimerManager().ClearTimer(AuraDelayTimerHandle);
-	
+
 	AMukCheonWangCharacter* Boss = Cast<AMukCheonWangCharacter>(AvatarActor);
 	if (!Boss || !TreeClass)
 	{
@@ -80,10 +59,24 @@ void UGA_SpawnHealingTrees::SpawnTreesAfterAura()
 
 	int32 Count = FMath::RandRange(MinSpawnCount, MaxSpawnCount);
 
+	const FVector Forward = Boss->GetActorForwardVector();
+	const FVector Right = Boss->GetActorRightVector();
+	const FVector Origin = Boss->GetActorLocation();
+
+	const float HalfWidth = SpawnAreaWidth * 0.5f;
+
+	const FVector BoxCenter = Origin + Forward * ((MinSpawnDistance + MaxSpawnDistance) * 0.5f);
+	const FVector BoxExtent = FVector((MaxSpawnDistance - MinSpawnDistance) * 0.5f, HalfWidth, 100.f);
+
+	DrawDebugBox(GetWorld(), BoxCenter, BoxExtent, Boss->GetActorRotation().Quaternion(), FColor::Green, false, 3.f);
+
 	for (int32 i = 0; i < Count; ++i)
 	{
-		FVector RandOffset = UKismetMathLibrary::RandomUnitVector() * FMath::FRandRange(300.f, SpawnRadius);
-		FVector SpawnLoc = Boss->GetActorLocation() + RandOffset;
+		const float ForwardOffset = FMath::FRandRange(MinSpawnDistance, MaxSpawnDistance);
+		const float SideOffset = FMath::FRandRange(-HalfWidth, HalfWidth);
+
+		FVector Offset = (Forward * ForwardOffset) + (Right * SideOffset);
+		FVector SpawnLoc = Origin + Offset;
 		SpawnLoc.Z += 50.f;
 
 		FActorSpawnParameters Params;
@@ -97,6 +90,7 @@ void UGA_SpawnHealingTrees::SpawnTreesAfterAura()
 			Tree->SetBoss(Boss);
 		}
 	}
+
 
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }

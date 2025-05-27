@@ -28,11 +28,13 @@ protected:
 	
 	void SpawnNextFireball();
 
-protected:
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Timing")
+	float AuraDelayTime = 0.8f;
+	
 	UPROPERTY(EditDefaultsOnly, Category = "Fire")
 	TSubclassOf<AFireballProjectile> FireballClass;
 	
-
 	FTimerHandle AuraDelayTimerHandle;
 	FTimerHandle FireballSequenceTimerHandle;
 	
@@ -41,4 +43,16 @@ protected:
 
 	TWeakObjectPtr<AMukCheonWangCharacter> Caster;
 	TArray<TWeakObjectPtr<AActor>> DetectedTargets;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Fireball|SpawnArea")
+	float MinForwardOffset = 300.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Fireball|SpawnArea")
+	float MaxForwardOffset = 800.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Fireball|SpawnArea")
+	float SideOffsetRange = 200.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Fireball|SpawnArea")
+	float VerticalOffset = 180.f;
 };

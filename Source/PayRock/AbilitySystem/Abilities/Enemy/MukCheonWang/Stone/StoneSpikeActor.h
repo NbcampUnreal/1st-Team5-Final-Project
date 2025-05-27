@@ -18,28 +18,40 @@ class PAYROCK_API AStoneSpikeActor : public AActor
 
 public:
 	AStoneSpikeActor();
+	
+protected:
+	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 
+	UFUNCTION()
+	void OnSpikeOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+						UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
+						const FHitResult& SweepResult);
+
+public:
 	void SetInstigatorAbility(UBaseDamageGameplayAbility* InAbility);
 	void SetTarget(AActor* InTarget);
 
-protected:
-	virtual void BeginPlay() override;
+private:
+	UPROPERTY(VisibleAnywhere)
+	UCapsuleComponent* Collision;
 
 	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<UCapsuleComponent> Collision;
+	UNiagaraComponent* VFX;
 
-	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<UNiagaraComponent> VFX;
+	UPROPERTY(EditDefaultsOnly, Category = "Movement")
+	UCurveFloat* SpeedCurve;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Stone")
-	TObjectPtr<UCurveFloat> MoveCurve;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Stone")
+	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 	float TravelDistance = 500.f;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Stone")
-	float TravelDuration = 2.f;
+	UPROPERTY(EditDefaultsOnly, Category = "Movement")
+	float TravelDuration = 2.0f;
+
+	float ElapsedTime = 0.f;
+
+	TObjectPtr<AActor> TargetActor;
+	TObjectPtr<UBaseDamageGameplayAbility> InstigatorAbility;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Damage")
 	TSubclassOf<UGameplayEffect> DamageEffectClass;
@@ -50,26 +62,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Damage")
 	float Damage = 10.f;
 
-private:
-	FVector StartLocation;
-	FVector EndLocation;
-
-	FTimerHandle DestroyHandle;
-
-	UPROPERTY()
-	TObjectPtr<UBaseDamageGameplayAbility> InstigatorAbility;
-
-	UPROPERTY()
-	TObjectPtr<UTimelineComponent> MoveTimeline;
-
-	UPROPERTY()
-	TObjectPtr<AActor> TargetActor;
-
-	UFUNCTION()
-	void OnTimelineUpdate(float Value);
-
-	UFUNCTION()
-	void OnSpikeOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-						UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
-						const FHitResult& SweepResult);
+	UPROPERTY(EditDefaultsOnly, Category = "Movement")
+	float BaseSpeed = 500.f;
 };

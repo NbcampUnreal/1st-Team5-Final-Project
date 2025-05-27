@@ -4,6 +4,7 @@
 #include "BaseDamageGameplayAbility.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
+#include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "PayRock/AbilitySystem/PRAttributeSet.h"
 
@@ -50,7 +51,7 @@ void UBaseDamageGameplayAbility::PlayAuraVFX(AActor* TargetActor)
 {
 	if (AuraEffect && TargetActor)
 	{
-		UNiagaraFunctionLibrary::SpawnSystemAttached(
+		UNiagaraComponent* NiagaraComp = UNiagaraFunctionLibrary::SpawnSystemAttached(
 			AuraEffect,
 			TargetActor->GetRootComponent(),
 			NAME_None,
@@ -59,5 +60,43 @@ void UBaseDamageGameplayAbility::PlayAuraVFX(AActor* TargetActor)
 			EAttachLocation::KeepRelativeOffset,
 			true
 		);
+
+		if (NiagaraComp)
+		{
+			FTimerHandle DestroyHandle;
+			FTimerDelegate DestroyDelegate = FTimerDelegate::CreateLambda([NiagaraComp]()
+			{
+				NiagaraComp->DestroyComponent();
+			});
+
+			TargetActor->GetWorldTimerManager().SetTimer(
+				DestroyHandle,
+				DestroyDelegate,
+				AuraRate,
+				false
+			);
+		}
+	}
+
+	if (AuraDecalClass && TargetActor && TargetActor->GetWorld())
+	{
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = TargetActor;
+
+		const FVector SpawnLocation = TargetActor->GetActorLocation();
+		const FRotator SpawnRotation = FRotator::ZeroRotator;
+
+		AActor* AuraDecal = TargetActor->GetWorld()->SpawnActor<AActor>(
+			AuraDecalClass,
+			SpawnLocation,
+			SpawnRotation,
+			SpawnParams
+		);
+
+		if (AuraDecal)
+		{
+			AuraDecal->AttachToActor(TargetActor, FAttachmentTransformRules::KeepWorldTransform);
+			// 자동 파괴는 액터 클래스 내부에서 관리
+		}
 	}
 }
