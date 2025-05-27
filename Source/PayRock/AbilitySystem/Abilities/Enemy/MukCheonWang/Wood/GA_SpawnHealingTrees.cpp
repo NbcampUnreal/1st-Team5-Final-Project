@@ -6,7 +6,7 @@
 
 UGA_SpawnHealingTrees::UGA_SpawnHealingTrees()
 {
-	AbilityTags.AddTag(FGameplayTag::RequestGameplayTag("Event.Montage.Boss.Tree"));
+	AbilityTags.AddTag(FGameplayTag::RequestGameplayTag("Event.Montage.Boss.Wood"));
 	ActivationOwnedTags.AddTag(FGameplayTag::RequestGameplayTag("Boss.State.Attacking"));
 }
 

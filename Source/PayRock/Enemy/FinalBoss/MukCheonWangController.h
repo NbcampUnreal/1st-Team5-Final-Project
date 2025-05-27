@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AIController.h"
+#include "PayRock/Enemy/EnemyController.h"
 #include "MukCheonWangController.generated.h"
 
 UCLASS()

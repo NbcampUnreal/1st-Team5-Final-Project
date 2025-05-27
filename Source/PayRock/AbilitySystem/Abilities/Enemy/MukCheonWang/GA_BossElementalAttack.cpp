@@ -13,10 +13,9 @@
 UGA_BossElementalAttack::UGA_BossElementalAttack()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-
-	AbilityTags.AddTag(FGameplayTag::RequestGameplayTag("Ability.Boss.ElementalAttack"));
-	ActivationOwnedTags.AddTag(FGameplayTag::RequestGameplayTag("State.Attacking"));
-	BlockAbilitiesWithTag.AddTag(FGameplayTag::RequestGameplayTag("State.Attacking"));
+	
+	ActivationOwnedTags.AddTag(FGameplayTag::RequestGameplayTag("Boss.State.Attacking"));
+	BlockAbilitiesWithTag.AddTag(FGameplayTag::RequestGameplayTag("Boss.State.Attacking"));
 }
 
 void UGA_BossElementalAttack::ActivateAbility(

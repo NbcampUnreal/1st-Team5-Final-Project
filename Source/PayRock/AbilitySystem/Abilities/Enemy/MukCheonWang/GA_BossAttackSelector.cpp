@@ -10,7 +10,7 @@ UGA_BossAttackSelector::UGA_BossAttackSelector()
 
 	AbilityTags.AddTag(FGameplayTag::RequestGameplayTag("Event.Montage.Boss.Selector"));
 	
-	ActivationOwnedTags.AddTag(FGameplayTag::RequestGameplayTag("State.Attacking"));
+	ActivationOwnedTags.AddTag(FGameplayTag::RequestGameplayTag("Boss.State.Attacking"));
 }
 
 void UGA_BossAttackSelector::ActivateAbility(
