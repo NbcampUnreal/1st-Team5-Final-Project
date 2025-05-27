@@ -16,7 +16,7 @@ public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
 	UFUNCTION(BlueprintCallable, Category = "UI")
-	void ShowWidget(EWidgetCategory Category);
+	UUserWidget* ShowWidget(EWidgetCategory Category);
 	UFUNCTION(BlueprintCallable, Category = "UI")
 	void HideWidget(EWidgetCategory Category);
 	UFUNCTION(BlueprintCallable, Category = "UI")
@@ -25,6 +25,8 @@ public:
 	void HideAllWidgets();
 	UFUNCTION(BlueprintCallable, Category = "UI")
 	void RemoveAllWidgets();
+	UFUNCTION(BlueprintCallable, Category = "UI")
+	void RemoveAllWidgetsInLobby();
 	UFUNCTION(BlueprintPure, Category = "UI")
 	UUserWidget* FindWidget(EWidgetCategory Category);
 

@@ -38,6 +38,7 @@ class PAYROCK_API UBaseWidgetController : public UObject
 public:
 	UFUNCTION(BlueprintCallable)
 	void SetWidgetControllerParams(const FWidgetControllerParams& WCParams);
+	bool IsAbilitySystemValid() const;
 	virtual void BroadcastInitialValues();
 	virtual void BindCallbacksToDependencies();
 
