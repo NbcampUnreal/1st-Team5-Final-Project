@@ -133,9 +133,16 @@ void ABaseCharacter::ApplyEffectToSelf(const TSubclassOf<UGameplayEffect>& Effec
 	AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 }
 
-void ABaseCharacter::InitializeDefaultAttributes() const
+void ABaseCharacter::InitializeDefaultAttributes()
 {
 	ApplyEffectToSelf(InitPrimaryAttributeEffect, 1.f);
 	ApplyEffectToSelf(InitSecondaryAttributeEffect, 1.f);
 	ApplyEffectToSelf(InitVitalAttributeEffect, 1.f);
+	bAreAttributesInitialized = true;
 }
+
+void ABaseCharacter::ApplySecondaryAttributeInitEffect()
+{
+	ApplyEffectToSelf(InitSecondaryAttributeEffect, 1.f);
+}
+
