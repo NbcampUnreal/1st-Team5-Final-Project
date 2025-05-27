@@ -232,8 +232,8 @@ void APRPlayerController::ToggleSettingsMenu()
 		if (SettingsMenuWidget)
 		{
 			SettingsMenuWidget->AddToViewport();
-			/*SetInputMode(FInputModeGameAndUI());*/ // 요거만 바꾸면 잘 닫힙니다!
-			SetInputMode(FInputModeUIOnly()); // 현재는 UI 만 켜지게 
+			SetInputMode(FInputModeGameAndUI()); // 요거만 바꾸면 잘 닫힙니다!
+			//SetInputMode(FInputModeUIOnly()); // 현재는 UI 만 켜지게 
 			SetShowMouseCursor(true);
 			bIsSettingsMenuOpen = true;
 		}
@@ -245,7 +245,8 @@ void APRPlayerController::ToggleSettingsMenu()
 			SettingsMenuWidget->RemoveFromParent();
 			SettingsMenuWidget = nullptr;
 		}
-		SetInputMode(FInputModeUIOnly()); // UI 만 켜지게 
+		SetInputMode(FInputModeGameAndUI());
+		//SetInputMode(FInputModeUIOnly()); // UI 만 켜지게 
 		SetShowMouseCursor(false);
 		bIsSettingsMenuOpen = false;
 	}
