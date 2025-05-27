@@ -24,12 +24,27 @@ protected:
 		const FGameplayAbilityActivationInfo ActivationInfo,
 		const FGameplayEventData* TriggerEventData) override;
 	
-	UPROPERTY(EditDefaultsOnly, Category = "Wave")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wave")
 	TSubclassOf<AWaterWave> WaveClass;
 	
-	UPROPERTY(EditDefaultsOnly, Category = "Wave")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wave")
+	FVector WaveScale = FVector(1.0f, 1.0f, 1.0f);
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wave")
 	bool bWaveAlongX = true;
 	
-	UPROPERTY(EditDefaultsOnly, Category = "Wave")
-	FVector WaveScale = FVector(1.f, 10.f, 1.f);
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Timing")
+	float AuraDelayTime = 0.8f;
+	
+	FTimerHandle AuraDelayTimerHandle;
+	
+	UFUNCTION()
+	void SpawnWaterWaveAfterAura();
+	
+	FGameplayAbilitySpecHandle CurrentSpecHandle;
+	FGameplayAbilityActorInfo* CurrentActorInfo = nullptr;
+	FGameplayAbilityActivationInfo CurrentActivationInfo;
+
+	UPROPERTY()
+	TObjectPtr<AActor> AvatarActor;
 };

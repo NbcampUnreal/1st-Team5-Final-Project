@@ -22,10 +22,24 @@ protected:
 		const FGameplayAbilityActorInfo* ActorInfo,
 		const FGameplayAbilityActivationInfo ActivationInfo,
 		const FGameplayEventData* TriggerEventData) override;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Lightning")
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Lightning")
 	TSubclassOf<ALightningStrikeActor> LightningClass;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Lightning")
-	float PredictDelay = 1.5f;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Lightning")
+	float PredictDelay = 0.8f;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Timing")
+	float AuraDelayTime = 0.8f;
+	
+	FTimerHandle AuraDelayTimerHandle;
+	
+	UFUNCTION()
+	void SpawnLightningAfterAura();
+	
+	FGameplayAbilitySpecHandle CurrentSpecHandle;
+	FGameplayAbilityActorInfo* CurrentActorInfo = nullptr;
+	FGameplayAbilityActivationInfo CurrentActivationInfo;
+	UPROPERTY()
+	TObjectPtr<AActor> AvatarActor;
 };

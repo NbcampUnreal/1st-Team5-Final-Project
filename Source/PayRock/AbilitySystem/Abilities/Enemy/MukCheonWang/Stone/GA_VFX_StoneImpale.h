@@ -20,12 +20,28 @@ protected:
 		const FGameplayAbilityActivationInfo ActivationInfo,
 		const FGameplayEventData* TriggerEventData) override;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Stone")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stone")
 	TSubclassOf<AStoneSpikeActor> StoneSpikeClass;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Stone")
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stone")
 	float SpawnDistance = 300.f;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Stone")
-	float AngleOffset = 15.f; 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Timing")
+	float AuraDelayTime = 0.8f;
+
+
+	FTimerHandle AuraDelayTimerHandle;
+
+
+	UFUNCTION()
+	void SpawnStoneSpikesAfterAura();
+
+
+	FGameplayAbilitySpecHandle CurrentSpecHandle;
+	FGameplayAbilityActorInfo* CurrentActorInfo = nullptr;
+	FGameplayAbilityActivationInfo CurrentActivationInfo;
+
+	UPROPERTY()
+	TObjectPtr<AActor> AvatarActor;
 };

@@ -4,6 +4,7 @@
 #include "BaseDamageGameplayAbility.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
+#include "NiagaraFunctionLibrary.h"
 #include "PayRock/AbilitySystem/PRAttributeSet.h"
 
 void UBaseDamageGameplayAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
@@ -42,5 +43,33 @@ void UBaseDamageGameplayAbility::CauseDamage(AActor* TargetActor /*, const FHitR
 			DamageEffectSpecHandle, DamageTypeTag, ScaledDamage);
 		GetAbilitySystemComponentFromActorInfo()->ApplyGameplayEffectSpecToTarget(
 			*DamageEffectSpecHandle.Data.Get(), TargetASC);
+	}
+}
+
+void UBaseDamageGameplayAbility::PlayAuraVFX(AActor* TargetActor)
+{
+	if (AuraEffect && TargetActor)
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAttached(
+			AuraEffect,
+			TargetActor->GetRootComponent(),
+			NAME_None,
+			FVector::ZeroVector,
+			FRotator::ZeroRotator,
+			EAttachLocation::KeepRelativeOffset,
+			true
+		);
+	}
+
+	if (AuraDecalClass && TargetActor->GetWorld())
+	{
+		FActorSpawnParameters Params;
+		Params.Owner = TargetActor;
+		TargetActor->GetWorld()->SpawnActor<AActor>(
+			AuraDecalClass,
+			TargetActor->GetActorLocation(),
+			FRotator::ZeroRotator,
+			Params
+		);
 	}
 }

@@ -16,14 +16,33 @@ class PAYROCK_API UGA_VFX_Fireball : public UBaseDamageGameplayAbility
 public:
 	UGA_VFX_Fireball();
 
-protected:
 	virtual void ActivateAbility(
 		const FGameplayAbilitySpecHandle Handle,
 		const FGameplayAbilityActorInfo* ActorInfo,
 		const FGameplayAbilityActivationInfo ActivationInfo,
-		const FGameplayEventData* TriggerEventData) override;
+		const FGameplayEventData* TriggerEventData
+	) override;
 
+protected:
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Projectile")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Fireball")
 	TSubclassOf<AFireballProjectile> FireballClass;
+
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Timing")
+	float AuraDelayTime = 0.8f;
+
+
+	FTimerHandle AuraDelayTimerHandle;
+
+	
+	UFUNCTION()
+	void SpawnFireballAfterAura();
+	
+	FGameplayAbilitySpecHandle CurrentSpecHandle;
+	const FGameplayAbilityActorInfo* CurrentActorInfo = nullptr;
+	FGameplayAbilityActivationInfo CurrentActivationInfo;
+
+	UPROPERTY()
+	TObjectPtr<AActor> AvatarActor;
 };

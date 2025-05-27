@@ -24,19 +24,38 @@ protected:
 		const FGameplayAbilityActivationInfo ActivationInfo,
 		const FGameplayEventData* TriggerEventData) override;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Tree")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Tree")
 	TSubclassOf<AHealingTreeActor> TreeClass;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Tree")
+	int32 MinSpawnCount = 2;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Tree")
-	int32 MinSpawnCount = 3;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Tree")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Tree")
 	int32 MaxSpawnCount = 4;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Tree")
-	float SpawnRadius = 1000.f;
-
 	
-
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Tree")
+	float SpawnRadius = 600.f;
 	
+	UPROPERTY(EditDefaultsOnly, Category = "VFX")
+	TObjectPtr<UNiagaraSystem> AuraEffect;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "VFX")
+	TSubclassOf<AActor> AuraDecalClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Timing")
+	float AuraDelayTime = 0.8f;
+
+	FTimerHandle AuraDelayTimerHandle;
+
+
+	UFUNCTION()
+	void SpawnTreesAfterAura();
+
+
+	FGameplayAbilitySpecHandle CurrentSpecHandle;
+	FGameplayAbilityActorInfo* CurrentActorInfo = nullptr;
+	FGameplayAbilityActivationInfo CurrentActivationInfo;
+
+	UPROPERTY()
+	TObjectPtr<AActor> AvatarActor;
 };

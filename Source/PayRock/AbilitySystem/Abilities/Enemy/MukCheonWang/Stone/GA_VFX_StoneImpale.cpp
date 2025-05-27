@@ -1,13 +1,12 @@
-﻿// PayRockGames
-
-
-#include "GA_VFX_StoneImpale.h"
+﻿#include "GA_VFX_StoneImpale.h"
+#include "StoneSpikeActor.h"
+#include "NiagaraFunctionLibrary.h"
 #include "PayRock/Enemy/FinalBoss/MukCheonWangCharacter.h"
 
 UGA_VFX_StoneImpale::UGA_VFX_StoneImpale()
 {
 	AbilityTags.AddTag(FGameplayTag::RequestGameplayTag("Event.Montage.Boss.Stone"));
-	ActivationOwnedTags.AddTag(FGameplayTag::RequestGameplayTag("State.Attacking"));
+	ActivationOwnedTags.AddTag(FGameplayTag::RequestGameplayTag("Boss.State.Attacking"));
 }
 
 void UGA_VFX_StoneImpale::ActivateAbility(
@@ -18,11 +17,40 @@ void UGA_VFX_StoneImpale::ActivateAbility(
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	AActor* Avatar = GetAvatarActorFromActorInfo();
-	AMukCheonWangCharacter* Boss = Cast<AMukCheonWangCharacter>(Avatar);
+	AvatarActor = GetAvatarActorFromActorInfo();
+	AMukCheonWangCharacter* Boss = Cast<AMukCheonWangCharacter>(AvatarActor);
 	if (!Boss || !StoneSpikeClass)
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+		return;
+	}
+	
+	CurrentSpecHandle = Handle;
+	CurrentActorInfo = const_cast<FGameplayAbilityActorInfo*>(ActorInfo);
+	CurrentActivationInfo = ActivationInfo;
+	
+	PlayAuraVFX(AvatarActor);
+	
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().SetTimer(
+			AuraDelayTimerHandle,
+			this,
+			&UGA_VFX_StoneImpale::SpawnStoneSpikesAfterAura,
+			AuraDelayTime,
+			false
+		);
+	}
+}
+
+void UGA_VFX_StoneImpale::SpawnStoneSpikesAfterAura()
+{
+	GetWorld()->GetTimerManager().ClearTimer(AuraDelayTimerHandle);
+	
+	AMukCheonWangCharacter* Boss = Cast<AMukCheonWangCharacter>(AvatarActor);
+	if (!Boss || !StoneSpikeClass)
+	{
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 		return;
 	}
 
@@ -49,5 +77,5 @@ void UGA_VFX_StoneImpale::ActivateAbility(
 		}
 	}
 
-	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }

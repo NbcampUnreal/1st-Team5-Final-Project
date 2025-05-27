@@ -9,22 +9,22 @@
 
 UBTTask_BossChase::UBTTask_BossChase()
 {
-	NodeName = "Base Attack";
+	NodeName = "Boss Chase";
 }
 
 EBTNodeResult::Type UBTTask_BossChase::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	AAIController* AICon = OwnerComp.GetAIOwner();
-	AMukCheonWangCharacter* Boss = Cast<AMukCheonWangCharacter>(AICon->GetPawn());
-	if (!Boss || Boss->CurrentPhase != EBossPhase::Phase3)
-	{
-		return EBTNodeResult::Failed;
-	}
+	AMukCheonWangCharacter* Boss = Cast<AMukCheonWangCharacter>(AICon ? AICon->GetPawn() : nullptr);
+	if (!Boss) return EBTNodeResult::Failed;
 
 	AActor* Target = Cast<AActor>(OwnerComp.GetBlackboardComponent()->GetValueAsObject("TargetActor"));
 	if (!Target) return EBTNodeResult::Failed;
-
-	AICon->MoveToActor(Target, 100.f, true);
+	
+	if (Boss->CurrentPhase == EBossPhase::Phase3)
+	{
+		AICon->MoveToActor(Target, 100.f, true);
+	}
 	
 	return EBTNodeResult::Succeeded;
 }

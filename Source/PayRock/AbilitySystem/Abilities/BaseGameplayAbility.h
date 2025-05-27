@@ -20,9 +20,5 @@ protected:
 	float GetManaCost(float InLevel = 1.f) const;
 	float GetCooldown(float InLevel = 1.f) const;
 
-	UPROPERTY(EditDefaultsOnly, Category = "VFX")
-	TObjectPtr<UNiagaraSystem> AuraEffect;
 
-	UPROPERTY(EditDefaultsOnly, Category = "VFX")
-	TSubclassOf<AActor> AuraDecalClass;
 };

@@ -1,12 +1,13 @@
 ﻿#include "GA_VFX_LightningStrike.h"
 #include "LightningStrikeActor.h"
+#include "NiagaraFunctionLibrary.h"
 #include "PayRock/Enemy/FinalBoss/MukCheonWangCharacter.h"
 #include "Kismet/KismetMathLibrary.h"
 
 UGA_VFX_LightningStrike::UGA_VFX_LightningStrike()
 {
 	AbilityTags.AddTag(FGameplayTag::RequestGameplayTag("Event.Montage.Boss.Lightning"));
-	ActivationOwnedTags.AddTag(FGameplayTag::RequestGameplayTag("State.Attacking"));
+	ActivationOwnedTags.AddTag(FGameplayTag::RequestGameplayTag("Boss.State.Attacking"));
 }
 
 void UGA_VFX_LightningStrike::ActivateAbility(
@@ -17,8 +18,8 @@ void UGA_VFX_LightningStrike::ActivateAbility(
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	AActor* Avatar = GetAvatarActorFromActorInfo();
-	AMukCheonWangCharacter* Boss = Cast<AMukCheonWangCharacter>(Avatar);
+	AvatarActor = GetAvatarActorFromActorInfo();
+	AMukCheonWangCharacter* Boss = Cast<AMukCheonWangCharacter>(AvatarActor);
 	if (!Boss || !LightningClass || Boss->GetDetectedActors().Num() == 0)
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
@@ -26,23 +27,56 @@ void UGA_VFX_LightningStrike::ActivateAbility(
 	}
 
 	
-	AActor* Target = Boss->GetDetectedActors()[FMath::RandRange(0, Boss->GetDetectedActors().Num() - 1)];
-	if (!Target) return;
+	CurrentSpecHandle = Handle;
+	CurrentActorInfo = const_cast<FGameplayAbilityActorInfo*>(ActorInfo);
+	CurrentActivationInfo = ActivationInfo;
 
 	
+	PlayAuraVFX(AvatarActor);
+
+
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().SetTimer(
+			AuraDelayTimerHandle,
+			this,
+			&UGA_VFX_LightningStrike::SpawnLightningAfterAura,
+			AuraDelayTime,
+			false
+		);
+	}
+}
+
+void UGA_VFX_LightningStrike::SpawnLightningAfterAura()
+{
+	GetWorld()->GetTimerManager().ClearTimer(AuraDelayTimerHandle);
+	
+	AMukCheonWangCharacter* Boss = Cast<AMukCheonWangCharacter>(AvatarActor);
+	if (!Boss || !LightningClass || Boss->GetDetectedActors().Num() == 0)
+	{
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+		return;
+	}
+
+	AActor* Target = Boss->GetDetectedActors()[FMath::RandRange(0, Boss->GetDetectedActors().Num() - 1)];
+	if (!Target)
+	{
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+		return;
+	}
+
 	FVector PredictedLoc = Target->GetActorLocation() + Target->GetVelocity() * PredictDelay;
 
-	
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = Boss;
+
 	ALightningStrikeActor* Lightning = Boss->GetWorld()->SpawnActor<ALightningStrikeActor>(
 		LightningClass, PredictedLoc, FRotator::ZeroRotator, SpawnParams);
 
-	
 	if (Lightning)
 	{
 		Lightning->SetInstigatorAbility(this);
 	}
 
-	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }

@@ -3,26 +3,41 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PayRock/AbilitySystem/Abilities/BaseGameplayAbility.h"
+#include "Abilities/GameplayAbility.h"
+#include "GameplayTagContainer.h"
 #include "GA_BossAttackSelector.generated.h"
 
-/**
- * 
- */
-UCLASS()
-class PAYROCK_API UGA_BossAttackSelector : public UBaseGameplayAbility
+
+USTRUCT(BlueprintType)
+struct FWeightedAttackTag
 {
 	GENERATED_BODY()
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
+	FGameplayTag AttackTag;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
+	float Weight = 1.0f;
+};
+
+
+UCLASS()
+class PAYROCK_API UGA_BossAttackSelector : public UGameplayAbility
+{
+	GENERATED_BODY()
+
 public:
 	UGA_BossAttackSelector();
 
-protected:
 	virtual void ActivateAbility(
 		const FGameplayAbilitySpecHandle Handle,
 		const FGameplayAbilityActorInfo* ActorInfo,
 		const FGameplayAbilityActivationInfo ActivationInfo,
 		const FGameplayEventData* TriggerEventData) override;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Boss Attack")
-	TArray<FGameplayTag> AttackTags;
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attack")
+	TArray<FWeightedAttackTag> WeightedAttackTags;
+	
+	float GetBossHealthRatio() const;
 };
