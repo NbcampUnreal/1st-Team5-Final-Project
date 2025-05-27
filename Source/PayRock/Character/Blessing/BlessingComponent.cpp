@@ -127,7 +127,7 @@ void UBlessingComponent::Server_EquipPassiveBlessing_Implementation(const FBless
 
 	if (ABaseCharacter* Character = Cast<ABaseCharacter>(GetOwner()))
 	{
-		Character->ApplySecondaryAttributeInitEffect();
+		Character->RecalculateSecondaryAttributes();
 	}
 }
 

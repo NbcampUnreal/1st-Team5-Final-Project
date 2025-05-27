@@ -21,7 +21,7 @@ void UBaseBlessingAbility::ApplyBlessingEffect()
 		// Recalculate secondary attributes in case primary attributes were changed by the GE
 		if (ABaseCharacter* Character = Cast<ABaseCharacter>(GetAvatarActorFromActorInfo()))
 		{
-			Character->ApplySecondaryAttributeInitEffect();
+			Character->RecalculateSecondaryAttributes();
 		}
 	
 		auto OnEffectRemoved =
@@ -52,7 +52,7 @@ void UBaseBlessingAbility::ApplyPenaltyEffectOrAbility(const FGameplayEffectRemo
 		// Recalculate secondary attributes in case primary attributes were changed by the GE
 		if (ABaseCharacter* Character = Cast<ABaseCharacter>(GetAvatarActorFromActorInfo()))
 		{
-			Character->ApplySecondaryAttributeInitEffect();
+			Character->RecalculateSecondaryAttributes();
 		}
 	}
 
@@ -60,9 +60,10 @@ void UBaseBlessingAbility::ApplyPenaltyEffectOrAbility(const FGameplayEffectRemo
 	{
 		if (UPRAbilitySystemComponent* ASC = Cast<UPRAbilitySystemComponent>(GetAbilitySystemComponentFromActorInfo()))
 		{
-			if (GetAvatarActorFromActorInfo()->HasAuthority())
+			const FGameplayAbilityActivationInfo& ActivationInfo = GetCurrentActivationInfoRef();
+			if (ASC->HasAuthorityOrPredictionKey(&ActivationInfo))
 			{
-				ASC->AddAbility(PenaltyAbilityClass, true, GetAbilityLevel());	
+				ASC->AddAbility(PenaltyAbilityClass, true, GetAbilityLevel());
 			}
 		}
 	}

@@ -69,8 +69,8 @@ public:
 	/* Secondary Attributes */
 	UFUNCTION()
 	void OnRep_Armor(const FGameplayAttributeData& OldArmor) const;
-	UFUNCTION()
-	void OnRep_BlockChance(const FGameplayAttributeData& OldBlockChance) const;
+	/*UFUNCTION()
+	void OnRep_BlockChance(const FGameplayAttributeData& OldBlockChance) const;*/
 	UFUNCTION()
 	void OnRep_CriticalResistance(const FGameplayAttributeData& OldCriticalResistance) const;
 	UFUNCTION()
@@ -113,6 +113,12 @@ public:
 	UFUNCTION()
 	void OnRep_Mana(const FGameplayAttributeData& OldMana) const;
 
+	UPROPERTY()
+	mutable float HealthRatio = 1.f;
+
+	UPROPERTY()
+	mutable float ManaRatio = 1.f;
+
 private:
 	void SetEffectProperties(const FGameplayEffectModCallbackData& Data, FEffectProperties& Props);
 	void HandleIncomingDamage(const FEffectProperties& Props, const FGameplayEffectModCallbackData& Data);
@@ -147,9 +153,9 @@ public:
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_Armor, Category = "SecondaryAttributes")
 	FGameplayAttributeData Armor;
 	ATTRIBUTE_ACCESSORS(UPRAttributeSet, Armor);
-	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_BlockChance, Category = "SecondaryAttributes")
+	/*UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_BlockChance, Category = "SecondaryAttributes")
 	FGameplayAttributeData BlockChance;
-	ATTRIBUTE_ACCESSORS(UPRAttributeSet, BlockChance);
+	ATTRIBUTE_ACCESSORS(UPRAttributeSet, BlockChance);*/
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_CriticalResistance, Category = "SecondaryAttributes")
 	FGameplayAttributeData CriticalResistance;
 	ATTRIBUTE_ACCESSORS(UPRAttributeSet, CriticalResistance);
@@ -217,11 +223,4 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "MetaAttributes")
 	FGameplayAttributeData IncomingDamage;
 	ATTRIBUTE_ACCESSORS(UPRAttributeSet, IncomingDamage);
-
-private:
-	UPROPERTY()
-	mutable float HealthRatio = 1.f;
-
-	UPROPERTY()
-	mutable float ManaRatio = 1.f;
 };

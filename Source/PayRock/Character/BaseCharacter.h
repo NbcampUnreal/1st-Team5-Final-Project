@@ -41,7 +41,10 @@ public:
 	void SpawnLootContainer();
 
 	UFUNCTION(BlueprintCallable)
-	void ApplySecondaryAttributeInitEffect();
+	void RecalculateSecondaryAttributes();
+	void InternalRecalculateSecondaryAttributes();
+	FTimerHandle StatRecalculateTimerHandle;
+	bool bRecalculationScheduled = false;
 	
 	void InitializeDefaultAttributes();
 	bool bAreAttributesInitialized = false;
