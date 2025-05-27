@@ -10,35 +10,23 @@ void UBaseWeaponAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle
                                          const FGameplayEventData* TriggerEventData)
 {
 	bHit = false;
-	if (!CollisionComponents.IsEmpty()) return;
+
 	if (ABaseCharacter* AvatarCharacter = Cast<ABaseCharacter>(GetAvatarActorFromActorInfo()))
 	{
-		if (USkeletalMeshComponent* Weapon = AvatarCharacter->GetWeapon())
+		if (CollisionComponents.IsEmpty())
 		{
-			GetCollisionComponents(Weapon, CollisionSocketName);
-			BindCallbackToCollision();
+			if (USkeletalMeshComponent* Weapon = AvatarCharacter->GetWeapon())
+			{
+				GetCollisionComponents(Weapon, CollisionSocketName);
+				BindCallbackToCollision();
+			}
 		}
 
 		if (APRCharacter* PlayerCharacter = Cast<APRCharacter>(AvatarCharacter))
 		{
 			UpdateCurrentAttackType(PlayerCharacter);
-
-			if (CurrentAttackType == EAttackType::DashAttack)
-			{
-				PlayerCharacter->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
-
-				// 로그
-				/*UE_LOG(LogTemp, Warning, TEXT("[ActivateAbility] Server & Client에 MOVE_None 적용 요청됨"));*/
-
-				// 입력 잠금
-				if (APlayerController* PC = Cast<APlayerController>(PlayerCharacter->GetController()))
-				{
-					PC->SetIgnoreMoveInput(true);
-				}
-			}
 		}
 	}
-
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 }
 

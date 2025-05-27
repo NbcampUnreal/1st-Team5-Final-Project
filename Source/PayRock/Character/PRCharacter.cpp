@@ -31,6 +31,8 @@ APRCharacter::APRCharacter()
     GetCharacterMovement()->RotationRate = FRotator(0, 400.f, 0);
     GetCharacterMovement()->bConstrainToPlane = true;
     GetCharacterMovement()->bSnapToPlaneAtStart = true;
+    GetCharacterMovement()->bUseControllerDesiredRotation = false;
+    GetCharacterMovement()->bIgnoreClientMovementErrorChecksAndCorrection = true;
 
     bUseControllerRotationPitch = false;
     bUseControllerRotationYaw = true;
@@ -445,6 +447,7 @@ void APRCharacter::StartSprint(const FInputActionValue& value)
 void APRCharacter::ServerStartSprint_Implementation()
 {
     SetSpeedMode(true);
+    bIsSprinting = true;
 }
 
 void APRCharacter::StopSprint(const FInputActionValue& value)
@@ -462,11 +465,16 @@ void APRCharacter::StopSprint(const FInputActionValue& value)
 void APRCharacter::ServerStopSprint_Implementation()
 {
     SetSpeedMode(false);
+    bIsSprinting = false;
 }
 
 void APRCharacter::ServerRequestFootstep_Implementation(FVector Location, USoundBase* Sound)
 {
     if (IsLocallyControlled()) return;
+
+    FVector ActorLoc = GetActorLocation();
+    UE_LOG(LogTemp, Warning, TEXT("[Footstep] Server - SoundLocation: %s | ActorLocation: %s"),
+        *Location.ToString(), *ActorLoc.ToString());
 
     UGameplayStatics::PlaySoundAtLocation(
         this,
@@ -483,6 +491,10 @@ void APRCharacter::ServerRequestFootstep_Implementation(FVector Location, USound
 void APRCharacter::MulticastPlayFootstep_Implementation(FVector Location, USoundBase* Sound)
 {
     float Volume = IsLocallyControlled() ? 0.3f : 1.0f;
+
+    FVector ActorLoc = GetActorLocation();
+    UE_LOG(LogTemp, Warning, TEXT("[Footstep] Multicast - SoundLocation: %s | ActorLocation: %s | Local: %d"),
+        *Location.ToString(), *ActorLoc.ToString(), IsLocallyControlled());
 
     UGameplayStatics::PlaySoundAtLocation(
         this,
