@@ -49,6 +49,7 @@ public:
 	FGameplayTag InputTag_2;
 	FGameplayTag InputTag_3;
 	FGameplayTag InputTag_4;
+	FGameplayTag InputTag_Z;
 
 	FGameplayTag CombatSocket_Weapon;
 	FGameplayTag CombatSocket_RightHand;
@@ -65,6 +66,7 @@ public:
 	FGameplayTag Status_Life_Alive;
 	FGameplayTag Status_Weapon_Equipped;
 	FGameplayTag Status_Weapon_Unarmed;
+	FGameplayTag Status_Buff_Invincible;
 
 	FGameplayTag Effects_HitReact;
 
