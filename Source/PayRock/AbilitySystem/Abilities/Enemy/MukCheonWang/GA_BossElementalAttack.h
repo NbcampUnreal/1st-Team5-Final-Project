@@ -24,6 +24,7 @@ protected:
 		const FGameplayEventData* TriggerEventData) override;
 
 	void PlayMontage();
+	void OnMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Animation")

@@ -5,7 +5,7 @@
 
 UGA_BossRoar::UGA_BossRoar()
 {
-	AbilityTags.AddTag(FGameplayTag::RequestGameplayTag("Event.Montage.Boss.Roaring"));
+	AbilityTags.AddTag(FGameplayTag::RequestGameplayTag("Event.Montage.Boss.Roar"));
 	ActivationOwnedTags.AddTag(FGameplayTag::RequestGameplayTag("Boss.State.Roaring"));
 	ActiveRoarTag = FGameplayTag::RequestGameplayTag("Boss.State.Roaring");
 }

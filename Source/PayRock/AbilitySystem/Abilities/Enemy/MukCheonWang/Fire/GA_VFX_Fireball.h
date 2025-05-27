@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "FireballProjectile.h"
 #include "PayRock/AbilitySystem/Abilities/BaseDamageGameplayAbility.h"
+#include "PayRock/Enemy/FinalBoss/MukCheonWangCharacter.h"
 #include "GA_VFX_Fireball.generated.h"
 
 
@@ -20,29 +21,24 @@ public:
 		const FGameplayAbilitySpecHandle Handle,
 		const FGameplayAbilityActorInfo* ActorInfo,
 		const FGameplayAbilityActivationInfo ActivationInfo,
-		const FGameplayEventData* TriggerEventData
-	) override;
+		const FGameplayEventData* TriggerEventData) override;
 
 protected:
+	void StartFireballSequence();
+	
+	void SpawnNextFireball();
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Fireball")
+protected:
+	UPROPERTY(EditDefaultsOnly, Category = "Fire")
 	TSubclassOf<AFireballProjectile> FireballClass;
-
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Timing")
-	float AuraDelayTime = 0.8f;
-
+	
 
 	FTimerHandle AuraDelayTimerHandle;
-
+	FTimerHandle FireballSequenceTimerHandle;
 	
-	UFUNCTION()
-	void SpawnFireballAfterAura();
-	
-	FGameplayAbilitySpecHandle CurrentSpecHandle;
-	const FGameplayAbilityActorInfo* CurrentActorInfo = nullptr;
-	FGameplayAbilityActivationInfo CurrentActivationInfo;
+	int32 TotalFireballsToSpawn = 0;
+	int32 CurrentFireballIndex = 0;
 
-	UPROPERTY()
-	TObjectPtr<AActor> AvatarActor;
+	TWeakObjectPtr<AMukCheonWangCharacter> Caster;
+	TArray<TWeakObjectPtr<AActor>> DetectedTargets;
 };

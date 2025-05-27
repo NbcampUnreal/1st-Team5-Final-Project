@@ -5,11 +5,11 @@
 #include "CoreMinimal.h"
 #include "GameplayEffect.h"
 #include "GameplayTagContainer.h"
+#include "NiagaraComponent.h"
+#include "Components/SphereComponent.h"
 #include "GameFramework/Actor.h"
 #include "FireDOTArea.generated.h"
 
-class USphereComponent;
-class UNiagaraComponent;
 
 UCLASS()
 class PAYROCK_API AFireDOTArea : public AActor
@@ -18,42 +18,51 @@ class PAYROCK_API AFireDOTArea : public AActor
 
 public:
 	AFireDOTArea();
-	virtual void Tick(float DeltaTime) override;
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaTime) override;
 
+	void ApplyDotToOverlappingActors();
+	void ApplyEffectToActor(AActor* Actor);
+
+	UFUNCTION()
+	void OnActorEnter(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+protected:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<USphereComponent> AreaCollision;
 
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UNiagaraComponent> VFX;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Damage")
-	float DamageInterval = 0.2f;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Area")
-	float ExpansionSpeed = 200.f;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Area")
-	float MaxRadius = 400.f;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Lifetime")
-	float Lifetime = 3.f;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Damage")
+	UPROPERTY(EditDefaultsOnly, Category = "DOT")
 	TSubclassOf<UGameplayEffect> DamageEffectClass;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Damage")
+	UPROPERTY(EditDefaultsOnly, Category = "DOT")
 	FGameplayTag DamageTypeTag;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Damage")
+	UPROPERTY(EditDefaultsOnly, Category = "DOT")
 	float Damage = 5.f;
 
-private:
-	TSet<AActor*> DamagedActors;
-	float CurrentRadius = 0.f;
-	float TimeElapsed = 0.f;
+	UPROPERTY(EditDefaultsOnly, Category = "DOT")
+	float MaxRadius = 300.f;
 
-	void ApplyDotToOverlappingActors();
+	UPROPERTY(EditDefaultsOnly, Category = "DOT")
+	float ExpansionSpeed = 100.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "DOT")
+	float DamageInterval = 1.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "DOT")
+	float Lifetime = 20.f;
+
+	float TimeElapsed = 0.f;
+	float CurrentRadius = 0.f;
+
+	UPROPERTY()
+	TSet<AActor*> DamagedActors;
+
+	FTimerHandle DamageStartTimerHandle;
 };

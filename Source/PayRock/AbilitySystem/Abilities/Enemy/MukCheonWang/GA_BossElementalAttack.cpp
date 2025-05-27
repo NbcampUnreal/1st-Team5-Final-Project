@@ -46,6 +46,17 @@ void UGA_BossElementalAttack::PlayMontage()
 	UAnimInstance* AnimInstance = Character->GetMesh()->GetAnimInstance();
 	if (AnimInstance)
 	{
-		AnimInstance->Montage_Play(AttackMontage);
+		float Duration = AnimInstance->Montage_Play(AttackMontage);
+		if (Duration > 0.f)
+		{
+			FOnMontageEnded EndDelegate;
+			EndDelegate.BindUObject(this, &UGA_BossElementalAttack::OnMontageEnded);
+			AnimInstance->Montage_SetEndDelegate(EndDelegate, AttackMontage);
+		}
 	}
-} 
+}
+
+void UGA_BossElementalAttack::OnMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bInterrupted, false);
+}

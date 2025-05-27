@@ -60,16 +60,4 @@ void UBaseDamageGameplayAbility::PlayAuraVFX(AActor* TargetActor)
 			true
 		);
 	}
-
-	if (AuraDecalClass && TargetActor->GetWorld())
-	{
-		FActorSpawnParameters Params;
-		Params.Owner = TargetActor;
-		TargetActor->GetWorld()->SpawnActor<AActor>(
-			AuraDecalClass,
-			TargetActor->GetActorLocation(),
-			FRotator::ZeroRotator,
-			Params
-		);
-	}
 }

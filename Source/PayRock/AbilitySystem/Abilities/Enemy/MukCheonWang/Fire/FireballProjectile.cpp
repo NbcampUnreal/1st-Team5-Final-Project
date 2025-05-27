@@ -1,68 +1,116 @@
 ﻿#include "FireballProjectile.h"
-
-#include "FireDOTArea.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "NiagaraComponent.h"
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
-#include "TimerManager.h"
+#include "PayRock/Enemy/FinalBoss/MukCheonWangCharacter.h"
+#include "PayRock/Character/PRCharacter.h"
+#include "FireDOTArea.h"
+#include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystemComponent.h"
 
 AFireballProjectile::AFireballProjectile()
 {
-    PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
+	bReplicates = true;
 
-    CollisionComponent = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionComponent"));
-    CollisionComponent->InitSphereRadius(10.f);
-    CollisionComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-    RootComponent = CollisionComponent;
+	CollisionComponent = CreateDefaultSubobject<USphereComponent>(TEXT("Sphere"));
+	SetRootComponent(CollisionComponent);
+	CollisionComponent->InitSphereRadius(10.f);
+	CollisionComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	CollisionComponent->SetCollisionObjectType(ECC_GameTraceChannel2);
+	CollisionComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
+	CollisionComponent->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
+	CollisionComponent->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block); 
+	CollisionComponent->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+	CollisionComponent->SetGenerateOverlapEvents(true);
 
-    NiagaraComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NiagaraComponent"));
-    NiagaraComponent->SetupAttachment(RootComponent);
+	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
+	ProjectileMovement->ProjectileGravityScale = 0.f;
+	ProjectileMovement->InitialSpeed = 1200.f;
+	ProjectileMovement->MaxSpeed = 1200.f;
 
-    ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
-    ProjectileMovement->bRotationFollowsVelocity = true;
-    ProjectileMovement->ProjectileGravityScale = 0.6f;
-    ProjectileMovement->InitialSpeed = 1200.f;
-    ProjectileMovement->MaxSpeed = 1200.f;
+	NiagaraComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NiagaraComponent"));
+	NiagaraComponent->SetupAttachment(RootComponent);
 }
 
 void AFireballProjectile::BeginPlay()
 {
-    Super::BeginPlay();
+	Super::BeginPlay();
+	SetLifeSpan(5.f);
+	SetReplicateMovement(true);
+
+	CollisionComponent->OnComponentBeginOverlap.AddDynamic(this, &AFireballProjectile::OnSphereOverlap);
+	CollisionComponent->OnComponentHit.AddDynamic(this, &AFireballProjectile::OnHit);
+
+	LaunchToTargetPlayer();
 }
 
-void AFireballProjectile::Tick(float DeltaTime)
+void AFireballProjectile::LaunchToTargetPlayer()
 {
-    Super::Tick(DeltaTime);
+	AMukCheonWangCharacter* Boss = Cast<AMukCheonWangCharacter>(GetOwner());
+	if (!Boss) return;
 
-    if (TargetActor)
-    {
-        float Distance = FVector::Dist(GetActorLocation(), TargetActor->GetActorLocation());
-        if (Distance < 100.f)
-        {
-            HandleImpact();
-        }
-    }
+	TArray<AActor*> Targets = Boss->GetDetectedActors();
+	if (Targets.Num() == 0) return;
+
+	AActor* Target = Targets[FMath::RandRange(0, Targets.Num() - 1)];
+	if (!Target) return;
+
+	FVector TargetLocation = Target->GetActorLocation() + FVector(0, 0, 5.f);
+	FVector LaunchVelocity = (TargetLocation - GetActorLocation()).GetSafeNormal() * ProjectileMovement->InitialSpeed;
+	ProjectileMovement->Velocity = LaunchVelocity;
 }
 
-void AFireballProjectile::InitTarget(AActor* InTarget)
+void AFireballProjectile::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+                                          UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-    TargetActor = InTarget;
-    if (TargetActor)
-    {
-        FVector Direction = (TargetActor->GetActorLocation() - GetActorLocation()).GetSafeNormal();
-        ProjectileMovement->Velocity = Direction * ProjectileMovement->InitialSpeed;
-    }
+	if (!OtherActor || OtherActor == GetOwner() || bHit) return;
+	
+	if (APRCharacter* PRChar = Cast<APRCharacter>(OtherActor))
+	{
+		bHit = true;
+
+		if (HasAuthority() && DamageEffectClass)
+		{
+			UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor);
+			UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetOwner());
+
+			if (TargetASC && SourceASC)
+			{
+				FGameplayEffectSpecHandle SpecHandle = SourceASC->MakeOutgoingSpec(DamageEffectClass, 1.f, SourceASC->MakeEffectContext());
+				if (SpecHandle.IsValid())
+				{
+					SpecHandle.Data->SetSetByCallerMagnitude(DamageTag, DamageAmount);
+					SourceASC->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(), TargetASC);
+				}
+			}
+		}
+
+		Destroy();
+	}
 }
 
-void AFireballProjectile::HandleImpact()
+void AFireballProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,
+                                UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-    if (DOTAreaClass)
-    {
-        FVector SpawnLoc = GetActorLocation() + FVector(0, 0, SpawnHeightOffset);
-        GetWorld()->SpawnActor<AFireDOTArea>(DOTAreaClass, SpawnLoc, FRotator::ZeroRotator);
-    }
+	if (!OtherActor || OtherActor == GetOwner() || bHit) return;
+	bHit = true;
+	
+	HandleImpact(true);
+}
 
-    SetLifeSpan(ImpactDelay);
-    SetActorTickEnabled(false);
-} 
+void AFireballProjectile::HandleImpact(bool bSpawnDOT)
+{
+	if (bSpawnDOT && DOTAreaClass)
+	{
+		FVector SpawnLoc = GetActorLocation() + FVector(0.f, 0.f, SpawnHeightOffset);
+
+		FActorSpawnParameters Params;
+		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		GetWorld()->SpawnActor<AFireDOTArea>(DOTAreaClass, SpawnLoc, FRotator::ZeroRotator, Params);
+	}
+
+	Destroy();
+}

@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Kismet/GameplayStaticsTypes.h"
+#include "PayRock/AbilitySystem/Abilities/BaseDamageGameplayAbility.h"
 #include "FireballProjectile.generated.h"
 
 class UProjectileMovementComponent;
@@ -19,34 +21,47 @@ class PAYROCK_API AFireballProjectile : public AActor
 public:
 	AFireballProjectile();
 
-	virtual void Tick(float DeltaTime) override;
-
-	void InitTarget(AActor* InTarget);
-
 protected:
 	virtual void BeginPlay() override;
-
+	
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<USphereComponent> CollisionComponent;
 
 	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<UNiagaraComponent> NiagaraComponent;
-
-	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UProjectileMovementComponent> ProjectileMovement;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Effect")
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<UNiagaraComponent> NiagaraComponent;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Damage")
+	TSubclassOf<UGameplayEffect> DamageEffectClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Damage")
+	FGameplayTag DamageTag;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Damage")
+	float DamageAmount = 50.f;
+
+
+	UPROPERTY(EditDefaultsOnly, Category = "DOT")
 	TSubclassOf<AFireDOTArea> DOTAreaClass;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Effect")
+	UPROPERTY(EditDefaultsOnly, Category = "DOT")
 	float SpawnHeightOffset = 50.f;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Effect")
-	float ImpactDelay = 0.1f;
+	
+	bool bHit = false;
 
-private:
-	UPROPERTY()
-	TObjectPtr<AActor> TargetActor;
 
-	void HandleImpact();
+	void LaunchToTargetPlayer();
+	void HandleImpact(bool bSpawnDOT);
+
+
+	UFUNCTION()
+	void OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+						 UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,
+			   UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 };
