@@ -4,6 +4,7 @@
 #include "UIManager.h"
 #include "PayRock/Player/PRPlayerState.h"
 #include "PayRock/UI/Widget/BaseUserWidget.h"
+#include "PayRock/UI/WidgetController/StatWidgetController.h"
 
 void UUIManager::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -20,7 +21,7 @@ void UUIManager::Initialize(FSubsystemCollectionBase& Collection)
 	}
 }
 
-void UUIManager::ShowWidget(EWidgetCategory Category)
+UUserWidget* UUIManager::ShowWidget(EWidgetCategory Category)
 {
 	UUserWidget* Widget = FindWidget(Category);
 	if (!Widget)
@@ -29,6 +30,7 @@ void UUIManager::ShowWidget(EWidgetCategory Category)
 	}
 	ensure(Widget);
 	Widget->SetVisibility(ESlateVisibility::Visible);
+	return Widget;
 }
 
 void UUIManager::HideWidget(EWidgetCategory Category)
@@ -58,6 +60,15 @@ void UUIManager::RemoveAllWidgets()
 {
 	for (uint8 i = 0; i < static_cast<uint8>(EWidgetCategory::MAX); i++)
 	{
+		RemoveWidget(static_cast<EWidgetCategory>(i));
+	}
+}
+
+void UUIManager::RemoveAllWidgetsInLobby()
+{
+	for (uint8 i = 0; i < static_cast<uint8>(EWidgetCategory::MAX); i++)
+	{
+		if (i == static_cast<uint8>(EWidgetCategory::Lobby)) continue;
 		RemoveWidget(static_cast<EWidgetCategory>(i));
 	}
 }
@@ -127,7 +138,21 @@ UBaseWidgetController* UUIManager::GetWidgetController(const FWidgetControllerPa
 	if (UBaseWidgetController** WidgetControllerPtr = WidgetControllerMap.Find(Category))
 	{
 		// WidgetController in TMap is valid --> return it
-		if (IsValid(*WidgetControllerPtr)) return *WidgetControllerPtr;
+		if (IsValid(*WidgetControllerPtr))
+		{
+			if (Category == EWidgetCategory::Stat)
+			{
+				if ((*WidgetControllerPtr)->IsAbilitySystemValid())
+				{
+					return *WidgetControllerPtr;
+				}
+			}
+			else
+			{
+				return *WidgetControllerPtr;	
+			}
+		}
+		
 		
 		// WidgetController in TMap is not valid --> remove it from TMap
 		WidgetControllerMap.Remove(Category);

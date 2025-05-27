@@ -17,7 +17,6 @@ class PAYROCK_API UStatWidgetController : public UBaseWidgetController
 	GENERATED_BODY()
 
 public:
-	
 	virtual void BroadcastInitialValues() override;
 	virtual void BindCallbacksToDependencies() override;
 

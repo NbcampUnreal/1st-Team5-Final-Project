@@ -7,6 +7,8 @@
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "SaveDataSubsystem.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBlessingSaved, const TArray<FBlessingData>&, Blessings);
+
 UCLASS()
 class PAYROCK_API USaveDataSubsystem : public UGameInstanceSubsystem
 {
@@ -41,6 +43,8 @@ public:
 	void SetSavedMoney(const int32& Amount) { SavedMoney = Amount; }
 	UFUNCTION(BlueprintCallable, Category = "Money")
 	const int32& GetSavedMoney() const { return SavedMoney; }
+
+	FOnBlessingSaved OnBlessingSaved;
 
 private:
 	UPROPERTY()
