@@ -40,7 +40,14 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void SpawnLootContainer();
 
-	void InitializeDefaultAttributes() const;
+	UFUNCTION(BlueprintCallable)
+	void RecalculateSecondaryAttributes();
+	void InternalRecalculateSecondaryAttributes();
+	FTimerHandle StatRecalculateTimerHandle;
+	bool bRecalculationScheduled = false;
+	
+	void InitializeDefaultAttributes();
+	bool bAreAttributesInitialized = false;
 	
 protected:
 	virtual void BeginPlay() override;

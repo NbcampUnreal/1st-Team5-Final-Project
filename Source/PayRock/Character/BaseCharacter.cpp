@@ -5,6 +5,7 @@
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "PayRock/PRGameplayTags.h"
+#include "PayRock/AbilitySystem/PRAttributeSet.h"
 
 ABaseCharacter::ABaseCharacter()
 {
@@ -133,9 +134,56 @@ void ABaseCharacter::ApplyEffectToSelf(const TSubclassOf<UGameplayEffect>& Effec
 	AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 }
 
-void ABaseCharacter::InitializeDefaultAttributes() const
+void ABaseCharacter::InitializeDefaultAttributes()
 {
 	ApplyEffectToSelf(InitPrimaryAttributeEffect, 1.f);
 	ApplyEffectToSelf(InitSecondaryAttributeEffect, 1.f);
 	ApplyEffectToSelf(InitVitalAttributeEffect, 1.f);
+	bAreAttributesInitialized = true;
 }
+
+void ABaseCharacter::RecalculateSecondaryAttributes()
+{
+	if (bRecalculationScheduled) return;
+	bRecalculationScheduled = true;
+
+	GetWorldTimerManager().SetTimer(StatRecalculateTimerHandle,
+		this, &ABaseCharacter::InternalRecalculateSecondaryAttributes, 0.5f, false);
+}
+
+void ABaseCharacter::InternalRecalculateSecondaryAttributes()
+{
+	bRecalculationScheduled = false;
+	if (!bAreAttributesInitialized) return;
+	
+	UPRAttributeSet* AS = Cast<UPRAttributeSet>(GetAttributeSet());
+	const float OldMaxHealth = AS->GetMaxHealth();
+	const float OldMaxMana = AS->GetMaxMana();
+	
+	ApplyEffectToSelf(InitSecondaryAttributeEffect, 1.f);
+
+	const float NewMaxHealth = AS->GetMaxHealth();
+	const float NewMaxMana = AS->GetMaxMana();
+
+	if (!FMath::IsNearlyEqual(OldMaxHealth, NewMaxHealth))
+	{
+		const float Health = AS->GetHealth();
+		const float NewHealth = AS->HealthRatio * NewMaxHealth;
+		if (!FMath::IsNearlyEqual(Health, NewHealth))
+		{
+			AS->SetHealth(FMath::Clamp(NewHealth, 0.f, NewMaxHealth));
+			UE_LOG(LogTemp, Warning, TEXT("SetHealth called in recalculate function"))
+		}
+	}
+	
+	if (!FMath::IsNearlyEqual(OldMaxMana, NewMaxMana))
+	{
+		const float Mana = AS->GetMana();
+		const float NewMana = AS->ManaRatio * NewMaxMana;
+		if (!FMath::IsNearlyEqual(Mana, NewMana))
+		{
+			AS->SetMana(FMath::Clamp(NewMana, 0.f, NewMaxMana));
+		}
+	}
+}
+

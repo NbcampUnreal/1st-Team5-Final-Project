@@ -43,7 +43,7 @@ public:
 	void Client_BroadcastPassiveBlessing(const FBlessingData& Blessing);
 	UFUNCTION(Client, Reliable, Category = "Blessing")
 	void Client_BroadcastBlessingAcquired(const FBlessingData& Blessing);
-
+	
 	const FBlessingData& GetEquippedPassiveBlessingData() const { return EquippedPassiveBlessingData; }
 	const FBlessingData& GetEquippedActiveBlessingData() const { return EquippedActiveBlessingData; }
 
