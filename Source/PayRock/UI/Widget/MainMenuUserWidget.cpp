@@ -10,7 +10,8 @@
 void UMainMenuUserWidget::HandleStartGameClicked()
 {
     // 메인 레벨 이름을 정확하게 설정하세요 (예: "MainLevel")
-    UGameplayStatics::OpenLevel(this, FName("Lobby"));
+    // 시작 버튼 누를때 -> 로비 로 
+    UGameplayStatics::OpenLevel(this, FName("SessionLevel"));
 }
 
 void UMainMenuUserWidget::HandleQuitGameClicked()
