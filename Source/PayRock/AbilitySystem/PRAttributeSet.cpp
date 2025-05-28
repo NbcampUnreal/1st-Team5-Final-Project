@@ -157,7 +157,8 @@ float UPRAttributeSet::GetCalculatedDamage(float LocalIncomingDamage, const FEff
 	if (AttackerAttributeSet)
 	{
 		// Critical Hit Multiplier
-		const float EffectiveCritChance = FMath::Clamp(AttackerAttributeSet->GetCriticalChance() - GetCriticalResistance(), 0.f, 100.f);
+		const float EffectiveCritChance = FMath::Clamp(
+			AttackerAttributeSet->GetCriticalChance() - GetCriticalResistance(), 0.f, 100.f);
 		const bool bIsCritical = FMath::RandRange(0.f, 100.f) < EffectiveCritChance;
 		if (bIsCritical) UE_LOG(LogTemp, Warning, TEXT("Critical Hit!"));
 		CriticalMultiplier = bIsCritical ? (AttackerAttributeSet->GetCriticalDamage() / 100.f) : 1.f;

@@ -142,16 +142,16 @@ void ABaseCharacter::InitializeDefaultAttributes()
 	bAreAttributesInitialized = true;
 }
 
-void ABaseCharacter::RecalculateSecondaryAttributes()
+void ABaseCharacter::RecalculateSecondaryAttributesDelayed()
 {
 	if (bRecalculationScheduled) return;
 	bRecalculationScheduled = true;
 
 	GetWorldTimerManager().SetTimer(StatRecalculateTimerHandle,
-		this, &ABaseCharacter::InternalRecalculateSecondaryAttributes, 0.5f, false);
+		this, &ABaseCharacter::RecalculateSecondaryAttributes, 0.5f, false);
 }
 
-void ABaseCharacter::InternalRecalculateSecondaryAttributes()
+void ABaseCharacter::RecalculateSecondaryAttributes()
 {
 	bRecalculationScheduled = false;
 	if (!bAreAttributesInitialized) return;
