@@ -174,6 +174,9 @@ void FPRGameplayTags::InitializeNativeGameplayTags()
     GameplayTags.Status_Buff_Invincible = UGameplayTagsManager::Get().AddNativeGameplayTag(
         FName("Status.Buff.Invincible")
         );
+    GameplayTags.Status_Buff_Invincible = UGameplayTagsManager::Get().AddNativeGameplayTag(
+        FName("Status.Buff.BackAttack")
+        );
     
     /*
      * Effects

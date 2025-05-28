@@ -34,7 +34,7 @@ void UBlessingContainerWidget::InitializeBlessingRows()
 			break;
 		}
 		
-		RowWidget->SetBlessingName(Blessing.BlessingName);
+		RowWidget->SetBlessingName(Blessing.KoreanName);
 		RowWidget->SetBlessingImage(Blessing.Icon);
 		FText InfoText = FText::Format(
 			FText::FromString("- Ability: {0}\n- Penalty: {1}"),

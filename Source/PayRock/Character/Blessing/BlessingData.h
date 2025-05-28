@@ -37,6 +37,9 @@ struct FBlessingData
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blessing")
 	FText BlessingName = FText::GetEmpty();
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blessing")
+	FText KoreanName = FText::GetEmpty();
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (MultiLine = true), Category = "Blessing")
 	FText BlessingDescription = FText::GetEmpty();
 
