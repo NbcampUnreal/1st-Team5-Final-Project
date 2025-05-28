@@ -39,6 +39,17 @@ AMukCheonWangCharacter::AMukCheonWangCharacter()
     AIPerception->ConfigureSense(*DamageConfig);
     AIPerception->SetDominantSense(SightConfig->GetSenseImplementation());
 
+    
+    ChairMesh = CreateDefaultSubobject<USkeletalMeshComponent>("KingChair");
+    ChairMesh->SetupAttachment(GetMesh());
+    ChairMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+    
+    KingCrown = CreateDefaultSubobject<USkeletalMeshComponent>("KingCrown");
+    KingCrown->SetupAttachment(GetMesh(),CrownSocketName);
+    KingCrown->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    
+    
     SetReplicates(true);
 }
 
@@ -71,6 +82,11 @@ void AMukCheonWangCharacter::Tick(float DeltaTime)
         CurrentPhase = NewPhase;
         OnPhaseChanged(NewPhase);
     }
+}
+
+void AMukCheonWangCharacter::ToggleVisibleSkeletalMesh(bool isActive)
+{
+    ChairMesh->SetVisibility(isActive);
 }
 
 void AMukCheonWangCharacter::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)

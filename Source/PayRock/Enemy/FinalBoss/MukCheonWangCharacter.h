@@ -54,6 +54,24 @@ protected:
 	TArray<AActor*> DetectedActors;
 
 
+
+	// 의자 및 앉는 거 추가
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
+	USkeletalMeshComponent* ChairMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sit")
+	bool bIsSit;
+
+	UFUNCTION(BlueprintCallable, Category = "Mesh")
+	void ToggleVisibleSkeletalMesh(bool isActive);
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
+	USkeletalMeshComponent* KingCrown;
+	
+	UPROPERTY(EditAnywhere, Category = "Mesh")
+	FName CrownSocketName = FName("HeadCapSocket");
+
+	
 	UFUNCTION()
 	void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
 	
@@ -73,5 +91,8 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "AI|Hearing")
 	float MinLoudnessToReact = 50.f;
 
+
+
+	
 	FTimerHandle TimerHandle;
 };
