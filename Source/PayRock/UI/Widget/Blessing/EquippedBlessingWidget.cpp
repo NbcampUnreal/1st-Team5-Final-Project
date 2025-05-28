@@ -41,7 +41,7 @@ void UEquippedBlessingWidget::UpdateActiveBlessing(const FBlessingData& Blessing
 
 	if (ActiveBlessingName)
 	{
-		ActiveBlessingName->SetText(Blessing.BlessingName);
+		ActiveBlessingName->SetText(Blessing.KoreanName);
 	}
 
 	if (ActiveBlessingDescription)
@@ -76,7 +76,7 @@ void UEquippedBlessingWidget::UpdatePassiveBlessing(const FBlessingData& Blessin
 
 	if (PassiveBlessingName)
 	{
-		PassiveBlessingName->SetText(Blessing.BlessingName);
+		PassiveBlessingName->SetText(Blessing.KoreanName);
 	}
 
 	if (PassiveBlessingDescription)

@@ -17,13 +17,16 @@ protected:
 	void ApplyBlessingEffect();
 
 	UFUNCTION()
-	void ApplyPenaltyEffect(const FGameplayEffectRemovalInfo& RemovalInfo);
+	void ApplyPenaltyEffectOrAbility(const FGameplayEffectRemovalInfo& RemovalInfo);
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blessing")
 	TSubclassOf<UGameplayEffect> BlessingEffectClass;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blessing")
 	TSubclassOf<UGameplayEffect> PenaltyEffectClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blessing")
+	TSubclassOf<UGameplayAbility> PenaltyAbilityClass;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Blessing")
 	FActiveGameplayEffectHandle ActivePenaltyEffectHandle;
