@@ -44,6 +44,10 @@
 				"Linux",
 				"Android"
 			]
+		},
+		{
+			"Name": "Text3D",
+			"Enabled": true
 		}
 	]
 }
