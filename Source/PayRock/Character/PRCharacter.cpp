@@ -32,7 +32,7 @@ APRCharacter::APRCharacter()
     GetCharacterMovement()->bConstrainToPlane = true;
     GetCharacterMovement()->bSnapToPlaneAtStart = true;
     GetCharacterMovement()->bUseControllerDesiredRotation = false;
-    GetCharacterMovement()->bIgnoreClientMovementErrorChecksAndCorrection = true;
+    GetCharacterMovement()->bIgnoreClientMovementErrorChecksAndCorrection = false;
 
     bUseControllerRotationPitch = false;
     bUseControllerRotationYaw = true;
@@ -570,42 +570,6 @@ USoundBase* APRCharacter::GetLandingSoundBySurface(EPhysicalSurface SurfaceType)
     return DefaultLandSound;
 }
 
-void APRCharacter::ServerSetMovementMode_None_Implementation()
-{
-    GetCharacterMovement()->SetMovementMode(MOVE_None);
-}
-
-void APRCharacter::ClientSetMovementMode_None_Implementation()
-{
-    GetCharacterMovement()->SetMovementMode(MOVE_None);
-}
-
-void APRCharacter::ServerSetMovementMode_Walking_Implementation()
-{
-    GetCharacterMovement()->SetMovementMode(MOVE_Walking);
-}
-
-void APRCharacter::ClientSetMovementMode_Walking_Implementation()
-{
-    GetCharacterMovement()->SetMovementMode(MOVE_Walking);
-}
-
-void APRCharacter::SetMovementMode_All(EMovementMode NewMode)
-{
-    if (HasAuthority())
-    {
-        GetCharacterMovement()->SetMovementMode(NewMode);
-    }
-    else
-    {
-        ServerSetMovementMode(NewMode);
-    }
-}
-
-void APRCharacter::ServerSetMovementMode_Implementation(EMovementMode NewMode)
-{
-    GetCharacterMovement()->SetMovementMode(NewMode);
-}
 
 void APRCharacter::StartCrouch(const FInputActionValue& value)
 {
