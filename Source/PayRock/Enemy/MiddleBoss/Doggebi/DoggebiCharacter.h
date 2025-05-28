@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "EMaskType.h"
 #include "Engine/TargetPoint.h"
 #include "PayRock/Enemy/EnemyCharacter.h"
 #include "DoggebiCharacter.generated.h"
@@ -11,6 +10,15 @@
 /**
  * 
  */
+
+UENUM(BlueprintType)
+enum class EMaskType : uint8
+{
+
+	Red     UMETA(DisplayName = "Red"),
+	Yellow    UMETA(DisplayName = "Yellow"),
+	Blue  UMETA(DisplayName = "Blue")
+};
 
 
 UCLASS()
