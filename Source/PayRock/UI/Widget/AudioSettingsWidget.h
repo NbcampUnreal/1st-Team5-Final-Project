@@ -12,6 +12,9 @@ class USlider;
 class UButton;
 class USoundMix;
 class USoundClass;
+class UMainMenuUserWidget;
+class UOptionsMenuWidget;
+
 /**
  * 
  */
@@ -31,9 +34,11 @@ protected:
     USlider* SFXVolumeSlider;
 
     UPROPERTY(meta = (BindWidget))
+    
     UButton* ApplyButton;
 
-    UPROPERTY(meta = (BindWidget))
+    /* 뒤로 가기 버튼 -> 인게임에서 재사용 하기에 옵셔널*/
+    UPROPERTY(meta = (BindWidgetOptional))
     UButton* BackButton;
 
     /** 에디터에서 설정 가능한 사운드 에셋들 */
@@ -48,6 +53,14 @@ protected:
 
     UPROPERTY(EditDefaultsOnly, Category = "Audio")
     USoundClass* SFXSoundClass;
+
+public:
+    // MainMenu 위젯에 대한 참조 (SetVisibility를 위해 필요)
+    UPROPERTY()
+    UMainMenuUserWidget* MainMenuRef;
+
+    UPROPERTY()
+    UOptionsMenuWidget* OptionsMenuRef;
 
     UFUNCTION()
     void OnApplyClicked();

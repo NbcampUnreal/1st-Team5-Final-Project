@@ -14,6 +14,7 @@ enum class EWidgetCategory : uint8
 	Stash,
 	Blessing,
 	Loading,
+	MatchHUD,
 	InGameHUD,
 	Stat,
 	MAX

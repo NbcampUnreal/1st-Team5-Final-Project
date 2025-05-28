@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "NiagaraSystem.h"
 #include "Abilities/GameplayAbility.h"
 #include "BaseGameplayAbility.generated.h"
 
@@ -18,4 +19,6 @@ public:
 protected:
 	float GetManaCost(float InLevel = 1.f) const;
 	float GetCooldown(float InLevel = 1.f) const;
+
+
 };

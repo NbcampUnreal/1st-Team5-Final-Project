@@ -5,6 +5,7 @@
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "PayRock/PRGameplayTags.h"
+#include "PayRock/Enemy/SpecialEnemy/MarketClown/MarketClownMonster.h"
 #include "PayRock/AbilitySystem/PRAttributeSet.h"
 
 ABaseCharacter::ABaseCharacter()
@@ -136,6 +137,10 @@ void ABaseCharacter::ApplyEffectToSelf(const TSubclassOf<UGameplayEffect>& Effec
 
 void ABaseCharacter::InitializeDefaultAttributes()
 {
+	if (const AMarketClownMonster* Monster = Cast<AMarketClownMonster>(this))
+	{
+		if (Monster->bIsClone) return; 
+	}
 	ApplyEffectToSelf(InitPrimaryAttributeEffect, 1.f);
 	ApplyEffectToSelf(InitSecondaryAttributeEffect, 1.f);
 	ApplyEffectToSelf(InitVitalAttributeEffect, 1.f);

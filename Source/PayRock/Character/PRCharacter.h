@@ -219,25 +219,6 @@ public:
 
 	void Landed(const FHitResult& Hit);
 
-	// 루트모션
-	UFUNCTION(Server, Reliable)
-	void ServerSetMovementMode_None();
-
-	UFUNCTION(Client, Reliable)
-	void ClientSetMovementMode_None();
-
-	UFUNCTION(Server, Reliable)
-	void ServerSetMovementMode_Walking();
-
-	UFUNCTION(Client, Reliable)
-	void ClientSetMovementMode_Walking();
-
-	// MovementMode를 서버/클라이언트 모두에서 설정하는 유틸 함수
-	void SetMovementMode_All(EMovementMode NewMode);
-
-	UFUNCTION(Server, Reliable)
-	void ServerSetMovementMode(EMovementMode NewMode);
-
 protected:
 	virtual void BeginPlay() override;
 	virtual void AddCharacterAbilities() override;
