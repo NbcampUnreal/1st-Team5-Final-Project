@@ -4,12 +4,15 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "PayRock/GameSystem/PRGameState.h"
 #include "PRPlayerController.generated.h"
+
 
 struct FInputActionValue;
 class UInputMappingContext;
 class UInputAction;
 class UUserWidget;
+//class EMatchFlowState; // Enum class는 전방선언 불가;; 
 
 UCLASS()
 class PAYROCK_API APRPlayerController : public APlayerController
@@ -116,4 +119,11 @@ private:
 	bool bIsSettingsMenuOpen = false;
 
 	void ToggleSettingsMenu(); // ESC 키 입력 시 호출할 함수
+
+
+public:
+	// 매칭, 매치후 인게임 UI 다르게 표시 
+	void HandleMatchFlowStateChanged(EMatchFlowState NewState);
+
+
 };

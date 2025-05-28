@@ -14,6 +14,9 @@
 #include "Camera/CameraComponent.h"
 #include "PayRock/Character/PRCharacter.h"
 #include "PayRock/UI/Widget/BaseUserWidget.h"
+//#include "PayRock/GameSystem/PRGameState.h"
+#include "PayRock/UI/Manager/UIManager.h"
+
 APRPlayerController::APRPlayerController()
 {
 	bReplicates = true;
@@ -249,5 +252,28 @@ void APRPlayerController::ToggleSettingsMenu()
 		//SetInputMode(FInputModeUIOnly()); // UI 만 켜지게 
 		SetShowMouseCursor(false);
 		bIsSettingsMenuOpen = false;
+	}
+}
+
+void APRPlayerController::HandleMatchFlowStateChanged(EMatchFlowState NewState)
+{
+	UUIManager* UIManager = GetGameInstance()->GetSubsystem<UUIManager>();
+	if (!UIManager) return;
+
+	switch (NewState)
+	{
+	case EMatchFlowState::WaitingToStart:
+		UIManager->ShowWidget(EWidgetCategory::MatchHUD);
+		break;
+	case EMatchFlowState::MatchInProgress:
+		UIManager->RemoveWidget(EWidgetCategory::MatchHUD);
+		UIManager->ShowWidget(EWidgetCategory::InGameHUD);
+		break;
+	case EMatchFlowState::ExtractionEnabled:
+		// 추가 UI 업데이트 원하면 여기에
+		break;
+	case EMatchFlowState::MatchEnded:
+		UIManager->HideAllWidgets();
+		break;
 	}
 }
