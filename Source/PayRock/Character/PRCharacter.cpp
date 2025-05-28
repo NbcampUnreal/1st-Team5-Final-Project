@@ -129,7 +129,7 @@ void APRCharacter::OnRep_PlayerState()
 int32 APRCharacter::GetCharacterLevel()
 {
     const APRPlayerState* PRPlayerState = GetPlayerState<APRPlayerState>();
-    check(PRPlayerState);
+    if (!PRPlayerState) return 1;
     return PRPlayerState->GetCharacterLevel();
 }
 

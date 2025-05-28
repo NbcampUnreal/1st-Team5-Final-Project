@@ -106,6 +106,18 @@ void AEnemyCharacter::Die()
 	GetCharacterMovement()->DisableMovement();
 	GetCharacterMovement()->StopMovementImmediately();
 	
+	if (ContainerClass)
+	{
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+		GetWorld()->SpawnActor<AActor>(
+			ContainerClass,
+			GetActorLocation(),
+			FRotator::ZeroRotator,
+			SpawnParams
+		);
+	}
 	
 	SetLifeSpan(5.0f);
 }

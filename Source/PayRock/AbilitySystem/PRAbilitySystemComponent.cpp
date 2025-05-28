@@ -104,3 +104,5 @@ void UPRAbilitySystemComponent::ClientOnEffectApplied_Implementation(
 	EffectSpec.GetAllAssetTags(TagContainer);
 	EffectAssetTagsDelegate.Broadcast(TagContainer);
 }
+
+

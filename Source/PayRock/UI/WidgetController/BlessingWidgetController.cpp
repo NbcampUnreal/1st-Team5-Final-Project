@@ -19,19 +19,15 @@ void UBlessingWidgetController::BindCallbacksToDependencies()
 	USaveDataSubsystem* SaveSystem = GetWorld()->GetGameInstance()->GetSubsystem<USaveDataSubsystem>();
 	if (!SaveSystem) { UE_LOG(LogTemp, Warning, TEXT("SaveDataSubSystem nullptr (BlessingWC)")); return; }
 
-	BlessingsContainer.Empty();
-	for (const FBlessingData& Blessing : SaveSystem->GetBlessingsContainer())
-	{
-		BlessingsContainer.Add(Blessing);
-	}
+	InitializeBlessingContainer(SaveSystem->GetBlessingsContainer());
+	SaveSystem->OnBlessingSaved.AddUniqueDynamic(this, &UBlessingWidgetController::InitializeBlessingContainer);
 }
 
 void UBlessingWidgetController::HandleBlessingSelection(const FBlessingData& Blessing)
 {
 	if (Blessing.BlessingName.IsEmpty())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("BlessingName is empty. Note: NOT AN ERROR if no Blessing has been equipped!"));
-		return;
+		UE_LOG(LogTemp, Warning, TEXT("BlessingName is empty. <NOT AN ERROR> if unequipped"));
 	}
 
 	// Must be able to save this change in the subsystem
@@ -49,5 +45,14 @@ void UBlessingWidgetController::HandleBlessingSelection(const FBlessingData& Ble
 		OnPassiveBlessingChange.Broadcast(Blessing);
 		SaveSystem->SetEquippedPassiveBlessing(Blessing);
 		break;
+	}
+}
+
+void UBlessingWidgetController::InitializeBlessingContainer(const TArray<FBlessingData>& Blessings)
+{
+	BlessingsContainer.Empty();
+	for (const FBlessingData& Blessing : Blessings)
+	{
+		BlessingsContainer.Add(Blessing);
 	}
 }

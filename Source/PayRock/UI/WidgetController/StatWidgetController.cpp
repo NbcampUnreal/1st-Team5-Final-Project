@@ -29,8 +29,9 @@ void UStatWidgetController::InitializeAttributesArray()
 		{
 			return !(Attribute.AttributeName == FString("Health")
 				|| Attribute.AttributeName == FString("Mana")
-				|| Attribute.AttributeName == FString("BlockChance")
-				|| Attribute.AttributeName == FString("IncomingDamage"));
+				|| Attribute.AttributeName == FString("IncomingDamage")
+				|| Attribute.AttributeName == FString("HealthRatio")
+				|| Attribute.AttributeName == FString("ManaRatio"));
 		});
 	}
 

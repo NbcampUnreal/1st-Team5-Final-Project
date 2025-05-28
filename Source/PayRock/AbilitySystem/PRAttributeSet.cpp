@@ -3,7 +3,6 @@
 #include "PRAttributeSet.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "GameplayEffectExtension.h"
-#include "GameFramework/Character.h"
 #include "Net/UnrealNetwork.h"
 #include "PayRock/PRGameplayTags.h"
 #include "PayRock/Character/BaseCharacter.h"
@@ -26,7 +25,7 @@ void UPRAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 
 	/* Secondary Attributes */
 	DOREPLIFETIME_CONDITION_NOTIFY(UPRAttributeSet, Armor, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UPRAttributeSet, BlockChance, COND_None, REPNOTIFY_Always);
+	// DOREPLIFETIME_CONDITION_NOTIFY(UPRAttributeSet, BlockChance, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UPRAttributeSet, CriticalResistance, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UPRAttributeSet, DebuffResistance, COND_None, REPNOTIFY_Always);
 
@@ -45,12 +44,13 @@ void UPRAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 
 	DOREPLIFETIME_CONDITION_NOTIFY(UPRAttributeSet, LootQualityModifier, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UPRAttributeSet, CarryWeight, COND_None, REPNOTIFY_Always);
+
+	DOREPLIFETIME_CONDITION_NOTIFY(UPRAttributeSet, BonusDamage, COND_None, REPNOTIFY_Always);
 	
 	/* Vital Attributes */
 	DOREPLIFETIME_CONDITION_NOTIFY(UPRAttributeSet, Health, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UPRAttributeSet, Mana, COND_None, REPNOTIFY_Always);
 }
-
 
 void UPRAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
 {
@@ -58,14 +58,133 @@ void UPRAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, fl
 
 	if (Attribute == GetHealthAttribute())
 	{
-		NewValue = FMath::Clamp(NewValue, 0.f, GetMaxHealth());
+		if (!FMath::IsNearlyZero(GetMaxHealth())) HealthRatio = NewValue / GetMaxHealth();
 	}
-	if (Attribute == GetManaAttribute())
+	else if (Attribute == GetManaAttribute())
 	{
-		NewValue = FMath::Clamp(NewValue, 0.f, GetMaxMana());
+		if (!FMath::IsNearlyZero(GetMaxMana())) ManaRatio = NewValue / GetMaxMana();
 	}
 }
 
+void UPRAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
+{
+	Super::PostGameplayEffectExecute(Data);
+
+	FEffectProperties Props;
+	SetEffectProperties(Data, Props);
+	
+	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
+	{
+		SetHealth(FMath::Clamp(GetHealth(), 0.f, GetMaxHealth()));
+
+		/*const float HealthCurrent = GetHealth();
+		const float HealthBase = GetOwningAbilitySystemComponent()->GetNumericAttributeBase(GetHealthAttribute());
+		UE_LOG(LogTemp, Warning, TEXT(
+			"after --> AvatarActor: %s / Amount: %f / Health(Current): %f / GetHealth(Base): %f"),
+			*GetOwningAbilitySystemComponent()->GetAvatarActor()->GetName(),
+			Data.EvaluatedData.Magnitude, HealthCurrent, HealthBase);*/
+	}
+	else if (Data.EvaluatedData.Attribute == GetManaAttribute())
+	{
+		SetMana(FMath::Clamp(GetMana(), 0.f, GetMaxMana()));
+	}
+	else if (Data.EvaluatedData.Attribute == GetIncomingDamageAttribute())
+	{
+		HandleIncomingDamage(Props, Data);
+	}
+}
+
+void UPRAttributeSet::HandleIncomingDamage(const FEffectProperties& Props, const FGameplayEffectModCallbackData& Data)
+{
+	const float LocalIncomingDamage = GetIncomingDamage();
+	SetIncomingDamage(0.f);
+	const float CalculatedDamage = GetCalculatedDamage(LocalIncomingDamage, Props);
+	if (CalculatedDamage > 0.f)
+	{
+		float NewHealth = FMath::Clamp(GetHealth() - CalculatedDamage, 0.f, GetMaxHealth());
+
+		// Invincible Buff (e.g. YiSunSin Blessing)
+		if (NewHealth <= 0.f &&
+			GetOwningAbilitySystemComponent()->HasMatchingGameplayTag(FPRGameplayTags::Get().Status_Buff_Invincible))
+		{
+			NewHealth = 1.f;
+		}
+		
+		FOnAttributeChangeData AttributeChangeData;
+		AttributeChangeData.Attribute = GetHealthAttribute();
+		AttributeChangeData.GEModData = &Data;
+		AttributeChangeData.OldValue = GetHealth();
+		AttributeChangeData.NewValue = NewHealth;
+		
+		SetHealth(NewHealth);
+		Props.TargetASC->GetGameplayAttributeValueChangeDelegate(GetHealthAttribute()).Broadcast(AttributeChangeData);
+
+		/*const float HealthCurrent = GetHealth();
+		const float HealthBase = GetOwningAbilitySystemComponent()->GetNumericAttributeBase(GetHealthAttribute());
+		UE_LOG(LogTemp, Warning, TEXT(
+			"AvatarActor: %s / IncomingDamage: %f / Health(Current): %f / GetHealth(Base): %f"),
+			*GetOwningAbilitySystemComponent()->GetAvatarActor()->GetName(),
+			LocalIncomingDamage, HealthCurrent, HealthBase);*/
+
+		// Activate Hit React
+		FGameplayTagContainer TagContainer;
+		TagContainer.AddTag(FPRGameplayTags::Get().Effects_HitReact);
+		Props.TargetASC->TryActivateAbilitiesByTag(TagContainer);
+
+		if (NewHealth <= 0.f)
+		{
+			// Handle death
+			TagContainer.Reset();
+			TagContainer.AddTag(FPRGameplayTags::Get().Status_Life_Dead);
+			Props.TargetASC->TryActivateAbilitiesByTag(TagContainer);
+
+			/*const FHitResult* HitResult = Data.EffectSpec.GetContext().GetHitResult();
+			Cast<ABaseCharacter>(Props.TargetCharacter)->Die(CalculatedDamage,
+				HitResult == nullptr ? FHitResult() : *HitResult);*/
+		}
+	}
+}
+
+float UPRAttributeSet::GetCalculatedDamage(float LocalIncomingDamage, const FEffectProperties& Props)
+{
+	// TODO: Block
+	
+	const UPRAttributeSet* AttackerAttributeSet =
+		Cast<UPRAttributeSet>(Props.SourceASC->GetAttributeSet(UPRAttributeSet::StaticClass()));
+
+	float NetArmor = GetArmor();
+	float CriticalMultiplier = 1.f;
+	if (AttackerAttributeSet)
+	{
+		// Critical Hit Multiplier
+		const float EffectiveCritChance = FMath::Clamp(
+			AttackerAttributeSet->GetCriticalChance() - GetCriticalResistance(), 0.f, 100.f);
+		const bool bIsCritical = FMath::RandRange(0.f, 100.f) < EffectiveCritChance;
+		if (bIsCritical) UE_LOG(LogTemp, Warning, TEXT("Critical Hit!"));
+		CriticalMultiplier = bIsCritical ? (AttackerAttributeSet->GetCriticalDamage() / 100.f) : 1.f;
+
+		// Net Armor = Defender Armor - Attacker Armor Penetration
+		NetArmor = FMath::Max(0.f, GetArmor() - AttackerAttributeSet->GetArmorPenetration());
+
+		// Attacker's Strength multiplier
+		const float StrengthMultiplier = 1.f + (AttackerAttributeSet->GetStrength() / 500.f);
+		LocalIncomingDamage *= StrengthMultiplier;
+
+		// Attacker's Bonus Damage multiplier (percentage)
+		const float BonusDamageMultiplier = 1.f + AttackerAttributeSet->GetBonusDamage() / 100.f;
+		if (BonusDamageMultiplier > 1.f) GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Yellow, FString::Printf(TEXT("BonusDamageMultiplier: %f"), BonusDamageMultiplier));
+		LocalIncomingDamage *= BonusDamageMultiplier;
+	}
+	
+	// Armor Reduction (percentage)
+	const float ArmorReduction = NetArmor / (NetArmor + 100.f);
+	
+	const float DamageAfterArmor = LocalIncomingDamage * (1.f - ArmorReduction);
+
+	const float FinalDamage = DamageAfterArmor * CriticalMultiplier;
+	
+	return FinalDamage;
+}
 
 void UPRAttributeSet::SetEffectProperties(const FGameplayEffectModCallbackData& Data, FEffectProperties& Props)
 {
@@ -96,116 +215,6 @@ void UPRAttributeSet::SetEffectProperties(const FGameplayEffectModCallbackData& 
 		Props.TargetCharacter = Cast<ACharacter>(Props.TargetAvatarActor);
 		Props.TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Props.TargetAvatarActor);
 	}
-}
-
-void UPRAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
-{
-	Super::PostGameplayEffectExecute(Data);
-
-	FEffectProperties Props;
-	SetEffectProperties(Data, Props);
-
-	//if (Props.TargetCharacter->Implements<UCombatInterface>() && ICombatInterface::Execute_IsDead(Props.TargetCharacter)) return;
-
-	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
-	{
-		SetHealth(FMath::Clamp(GetHealth(), 0.f, GetMaxHealth()));
-
-		const float HealthCurrent = GetHealth();
-		const float HealthBase = GetOwningAbilitySystemComponent()->GetNumericAttributeBase(GetHealthAttribute());
-		UE_LOG(LogTemp, Warning, TEXT(
-			"after --> AvatarActor: %s / Amount: %f / Health(Current): %f / GetHealth(Base): %f"),
-			*GetOwningAbilitySystemComponent()->GetAvatarActor()->GetName(),
-			Data.EvaluatedData.Magnitude, HealthCurrent, HealthBase);
-	}
-	if (Data.EvaluatedData.Attribute == GetManaAttribute())
-	{
-		SetMana(FMath::Clamp(GetMana(), 0.f, GetMaxMana()));
-	}
-	if (Data.EvaluatedData.Attribute == GetIncomingDamageAttribute())
-	{
-		HandleIncomingDamage(Props, Data);
-	}
-}
-
-void UPRAttributeSet::HandleIncomingDamage(const FEffectProperties& Props, const FGameplayEffectModCallbackData& Data)
-{
-	const float LocalIncomingDamage = GetIncomingDamage();
-	SetIncomingDamage(0.f);
-	const float CalculatedDamage = GetCalculatedDamage(LocalIncomingDamage, Props);
-	if (LocalIncomingDamage > 0.f)
-	{
-		float NewHealth = FMath::Clamp(GetHealth() - CalculatedDamage, 0.f, GetMaxHealth());
-
-		FOnAttributeChangeData AttributeChangeData;
-		AttributeChangeData.Attribute = GetHealthAttribute();
-		AttributeChangeData.GEModData = &Data;
-		AttributeChangeData.OldValue = GetHealth();
-		AttributeChangeData.NewValue = NewHealth;
-		
-		SetHealth(NewHealth);
-		//GetHealthAttribute().SetNumericValueChecked(NewHealth, this);
-		Props.TargetASC->GetGameplayAttributeValueChangeDelegate(GetHealthAttribute()).Broadcast(AttributeChangeData);
-
-		const float HealthCurrent = GetHealth();
-		const float HealthBase = GetOwningAbilitySystemComponent()->GetNumericAttributeBase(GetHealthAttribute());
-		UE_LOG(LogTemp, Warning, TEXT(
-			"AvatarActor: %s / IncomingDamage: %f / Health(Current): %f / GetHealth(Base): %f"),
-			*GetOwningAbilitySystemComponent()->GetAvatarActor()->GetName(),
-			LocalIncomingDamage, HealthCurrent, HealthBase);
-
-		// Activate Hit React
-		FGameplayTagContainer TagContainer;
-		TagContainer.AddTag(FPRGameplayTags::Get().Effects_HitReact);
-		Props.TargetASC->TryActivateAbilitiesByTag(TagContainer);
-
-		if (NewHealth <= 0.f)
-		{
-			// Handle death
-			// option 1: (몽타주 재생 필요 시) 태그 달린 어빌리티로 몽타주 재생 및 Die 함수 호출
-			TagContainer.Reset();
-			TagContainer.AddTag(FPRGameplayTags::Get().Status_Life_Dead);
-			Props.TargetASC->TryActivateAbilitiesByTag(TagContainer);
-
-			/*const FHitResult* HitResult = Data.EffectSpec.GetContext().GetHitResult();
-			Cast<ABaseCharacter>(Props.TargetCharacter)->Die(CalculatedDamage,
-				HitResult == nullptr ? FHitResult() : *HitResult);*/
-		}
-	}
-}
-
-float UPRAttributeSet::GetCalculatedDamage(float LocalIncomingDamage, const FEffectProperties& Props)
-{
-	// TODO: Block
-	
-	const UPRAttributeSet* AttackerAttributeSet =
-		Cast<UPRAttributeSet>(Props.SourceASC->GetAttributeSet(UPRAttributeSet::StaticClass()));
-
-	float NetArmor = GetArmor();
-	float CriticalMultiplier = 1.f;
-	if (AttackerAttributeSet)
-	{
-		// Critical Hit Multiplier
-		const float EffectiveCritChance = FMath::Clamp(AttackerAttributeSet->GetCriticalChance() - GetCriticalResistance(), 0.f, 100.f);
-		const bool bIsCritical = FMath::RandRange(0.f, 100.f) < EffectiveCritChance;
-		if (bIsCritical) UE_LOG(LogTemp, Warning, TEXT("Critical Hit!"));
-		CriticalMultiplier = bIsCritical ? (AttackerAttributeSet->GetCriticalDamage() / 100.f) : 1.f;
-
-		// Net Armor = Defender Armor - Attacker Armor Penetration
-		NetArmor = FMath::Max(0.f, GetArmor() - AttackerAttributeSet->GetArmorPenetration());
-
-		// Attacker's Strength multiplier
-		const float StrengthMultiplier = 1.f + (AttackerAttributeSet->GetStrength() / 500.f);
-		LocalIncomingDamage *= StrengthMultiplier;
-	}
-	// Armor Reduction (percentage)
-	const float ArmorReduction = NetArmor / (NetArmor + 100.f);
-	
-	const float DamageAfterArmor = LocalIncomingDamage * (1.f - ArmorReduction);
-
-	const float FinalDamage = DamageAfterArmor * CriticalMultiplier;
-	
-	return FinalDamage;
 }
 
 /* Primary Attributes */
@@ -247,10 +256,10 @@ void UPRAttributeSet::OnRep_Armor(const FGameplayAttributeData& OldArmor) const
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UPRAttributeSet, Armor, OldArmor);
 }
 
-void UPRAttributeSet::OnRep_BlockChance(const FGameplayAttributeData& OldBlockChance) const
+/*void UPRAttributeSet::OnRep_BlockChance(const FGameplayAttributeData& OldBlockChance) const
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UPRAttributeSet, BlockChance, OldBlockChance);
-}
+}*/
 
 void UPRAttributeSet::OnRep_CriticalResistance(const FGameplayAttributeData& OldCriticalResistance) const
 {
@@ -320,6 +329,11 @@ void UPRAttributeSet::OnRep_LootQualityModifier(const FGameplayAttributeData& Ol
 void UPRAttributeSet::OnRep_CarryWeight(const FGameplayAttributeData& OldCarryWeight) const
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UPRAttributeSet, CarryWeight, OldCarryWeight)
+}
+
+void UPRAttributeSet::OnRep_BonusDamage(const FGameplayAttributeData& OldBonusDamage) const
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UPRAttributeSet, BonusDamage, OldBonusDamage);
 }
 
 /* Vital Attributes */

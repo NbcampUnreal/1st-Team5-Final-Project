@@ -27,6 +27,7 @@ void UBaseWeaponAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 			UpdateCurrentAttackType(PlayerCharacter);
 		}
 	}
+
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 }
 
@@ -88,11 +89,18 @@ void UBaseWeaponAbility::OnOverlap(UPrimitiveComponent* OverlappedComponent, AAc
                                    UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (OtherActor == GetAvatarActorFromActorInfo() || bHit) return;
+
+	FVector TargetForward = OtherActor->GetActorForwardVector().GetSafeNormal();
+	FVector ToAttacker = (GetAvatarActorFromActorInfo()->GetActorLocation() - OtherActor->GetActorLocation()).GetSafeNormal();
+
+	float Dot = FVector::DotProduct(TargetForward, ToAttacker);
+
+	bool bIsBackAttack = Dot > 0.5f;
 	
 	if (GetAvatarActorFromActorInfo()->HasAuthority())
 	{
 		bHit = true;
-		CauseDamage(OtherActor);
+		CauseDamage(OtherActor, bIsBackAttack);
 	}
 }
 

@@ -4,6 +4,7 @@
 #include "BlessingDataAsset.h"
 #include "Net/UnrealNetwork.h"
 #include "PayRock/AbilitySystem/PRAbilitySystemComponent.h"
+#include "PayRock/AbilitySystem/PRAttributeSet.h"
 #include "PayRock/Character/BaseCharacter.h"
 #include "PayRock/GameSystem/SaveDataSubsystem.h"
 
@@ -37,10 +38,6 @@ void UBlessingComponent::BeginPlay()
 	
 	Server_EquipActiveBlessing(SaveDataSystem->GetEquippedActiveBlessing());
 	Server_EquipPassiveBlessing(SaveDataSystem->GetEquippedPassiveBlessing());
-
-	//TEST
-	Server_EquipActiveBlessing(TestActiveBlessing);
-	Server_EquipPassiveBlessing(TestPassiveBlessing);
 }
 
 void UBlessingComponent::Server_AddBlessing_Implementation(const FBlessingData& Blessing)
@@ -75,16 +72,8 @@ void UBlessingComponent::Client_SaveAddedBlessing_Implementation(const FBlessing
 				SaveDataSystem->SaveBlessing(Blessing);
 				UE_LOG(LogTemp, Warning, TEXT("Blessing %s saved to subsystem"),
 						*Blessing.BlessingName.ToString());
-				/*if (AcquiredBlessings.Num() > 0)
-				{
-					FBlessingData LastBlessing = AcquiredBlessings.Last();
-					SaveDataSystem->SaveBlessing(LastBlessing);
-					
-					UE_LOG(LogTemp, Warning, TEXT("Blessing %s saved to subsystem (OnRep)"),
-						*LastBlessing.BlessingName.ToString());
 
-					Client_BroadcastBlessingAcquired(LastBlessing);
-				}*/
+				Client_BroadcastBlessingAcquired(Blessing);
 			}
 			else
 			{
@@ -135,6 +124,11 @@ void UBlessingComponent::Server_EquipPassiveBlessing_Implementation(const FBless
 	PassiveBlessingHandle = CachedAbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 	EquippedPassiveBlessingData = Blessing;
 	Client_BroadcastPassiveBlessing(Blessing);
+
+	if (ABaseCharacter* Character = Cast<ABaseCharacter>(GetOwner()))
+	{
+		Character->RecalculateSecondaryAttributes();
+	}
 }
 
 void UBlessingComponent::Server_UnequipActiveBlessing_Implementation()

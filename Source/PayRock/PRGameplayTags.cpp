@@ -116,6 +116,9 @@ void FPRGameplayTags::InitializeNativeGameplayTags()
     GameplayTags.InputTag_4 = UGameplayTagsManager::Get().AddNativeGameplayTag(
         FName("InputTag.4")
         );
+    GameplayTags.InputTag_Z = UGameplayTagsManager::Get().AddNativeGameplayTag(
+        FName("InputTag.Z")
+        );
 
     /*
      * Combat Socket
@@ -167,7 +170,13 @@ void FPRGameplayTags::InitializeNativeGameplayTags()
        );
     GameplayTags.Status_Weapon_Unarmed = UGameplayTagsManager::Get().AddNativeGameplayTag(
        FName("Status.Weapon.Unarmed")
-       ); 
+       );
+    GameplayTags.Status_Buff_Invincible = UGameplayTagsManager::Get().AddNativeGameplayTag(
+        FName("Status.Buff.Invincible")
+        );
+    GameplayTags.Status_Buff_Invincible = UGameplayTagsManager::Get().AddNativeGameplayTag(
+        FName("Status.Buff.BackAttack")
+        );
     
     /*
      * Effects
