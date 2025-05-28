@@ -40,6 +40,9 @@ protected:
 	bool bIsBattle = false;
 	bool bIsDead = false;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Drop")
+	TSubclassOf<AActor> ContainerClass;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Combat")
 	TArray<TObjectPtr<UAnimMontage>> AttackMontages;
 
