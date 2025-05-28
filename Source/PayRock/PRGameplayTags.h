@@ -67,6 +67,7 @@ public:
 	FGameplayTag Status_Weapon_Equipped;
 	FGameplayTag Status_Weapon_Unarmed;
 	FGameplayTag Status_Buff_Invincible;
+	FGameplayTag Status_Buff_BackAttack;
 
 	FGameplayTag Effects_HitReact;
 
