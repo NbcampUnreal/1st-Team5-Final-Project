@@ -41,8 +41,9 @@ public:
 	void SpawnLootContainer();
 
 	UFUNCTION(BlueprintCallable)
+	void RecalculateSecondaryAttributesDelayed();
+	UFUNCTION(BlueprintCallable)
 	void RecalculateSecondaryAttributes();
-	void InternalRecalculateSecondaryAttributes();
 	FTimerHandle StatRecalculateTimerHandle;
 	bool bRecalculationScheduled = false;
 	

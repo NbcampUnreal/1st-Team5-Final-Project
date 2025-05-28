@@ -11,6 +11,7 @@ void UBaseBlessingAbility::ApplyBlessingEffect()
 	if (IsValid(BlessingEffectClass))
 	{
 		FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(BlessingEffectClass, GetAbilityLevel());
+		bool bIsInstant = SpecHandle.Data->GetDuration() == FGameplayEffectConstants::INSTANT_APPLICATION;
 		FActiveGameplayEffectHandle ActiveEffectHandle = ApplyGameplayEffectSpecToOwner(
 			GetCurrentAbilitySpecHandle(),
 			GetCurrentActorInfo(),
@@ -18,10 +19,10 @@ void UBaseBlessingAbility::ApplyBlessingEffect()
 			SpecHandle	
 			);
 
-		// Recalculate secondary attributes in case primary attributes were changed by the GE
-		if (ABaseCharacter* Character = Cast<ABaseCharacter>(GetAvatarActorFromActorInfo()))
+		if (bIsInstant)
 		{
-			Character->RecalculateSecondaryAttributes();
+			ApplyPenaltyEffectOrAbility(FGameplayEffectRemovalInfo());
+			return;
 		}
 	
 		auto OnEffectRemoved =
@@ -39,21 +40,24 @@ void UBaseBlessingAbility::ApplyBlessingEffect()
 
 void UBaseBlessingAbility::ApplyPenaltyEffectOrAbility(const FGameplayEffectRemovalInfo& RemovalInfo)
 {
-	if (IsValid(PenaltyEffectClass))
+	for (const auto PenaltyEffectClass : PenaltyEffectClasses)
 	{
-		FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(PenaltyEffectClass, GetAbilityLevel());
-		ActivePenaltyEffectHandle = ApplyGameplayEffectSpecToOwner(
-		GetCurrentAbilitySpecHandle(),
-		GetCurrentActorInfo(),
-		GetCurrentActivationInfo(),
-		SpecHandle	
-		);
-
-		// Recalculate secondary attributes in case primary attributes were changed by the GE
-		if (ABaseCharacter* Character = Cast<ABaseCharacter>(GetAvatarActorFromActorInfo()))
+		if (IsValid(PenaltyEffectClass))
 		{
-			Character->RecalculateSecondaryAttributes();
+			FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(PenaltyEffectClass, GetAbilityLevel());
+			ActivePenaltyEffectHandle = ApplyGameplayEffectSpecToOwner(
+			GetCurrentAbilitySpecHandle(),
+			GetCurrentActorInfo(),
+			GetCurrentActivationInfo(),
+			SpecHandle	
+			);
 		}
+	}
+
+	// Recalculate secondary attributes in case primary attributes were changed by the GE
+	if (ABaseCharacter* Character = Cast<ABaseCharacter>(GetAvatarActorFromActorInfo()))
+	{
+		Character->RecalculateSecondaryAttributes();
 	}
 
 	if (IsValid(PenaltyAbilityClass))
@@ -66,6 +70,15 @@ void UBaseBlessingAbility::ApplyPenaltyEffectOrAbility(const FGameplayEffectRemo
 				ASC->AddAbility(PenaltyAbilityClass, true, GetAbilityLevel());
 			}
 		}
+	}
+}
+
+void UBaseBlessingAbility::RecalculateSecondaryAttributes()
+{
+	// Recalculate secondary attributes in case primary attributes were changed by the GE
+	if (ABaseCharacter* Character = Cast<ABaseCharacter>(GetAvatarActorFromActorInfo()))
+	{
+		Character->RecalculateSecondaryAttributes();
 	}
 }
 

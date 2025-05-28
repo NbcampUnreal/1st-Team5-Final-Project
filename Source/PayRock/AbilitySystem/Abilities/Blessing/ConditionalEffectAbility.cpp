@@ -91,7 +91,7 @@ void UConditionalEffectAbility::EvaluateAndApplyOrRemoveEffect(const FOnAttribut
 			
 				if (ABaseCharacter* Character = Cast<ABaseCharacter>(GetAbilitySystemComponentFromActorInfo()->GetAvatarActor()))
 				{
-					Character->RecalculateSecondaryAttributes();
+					Character->RecalculateSecondaryAttributesDelayed();
 					UE_LOG(LogTemp, Warning, TEXT("Recalculated Secondary Attributes"))
 				}
 			}
@@ -106,7 +106,7 @@ void UConditionalEffectAbility::EvaluateAndApplyOrRemoveEffect(const FOnAttribut
 
 				if (ABaseCharacter* Character = Cast<ABaseCharacter>(GetAbilitySystemComponentFromActorInfo()->GetAvatarActor()))
 				{
-					Character->RecalculateSecondaryAttributes();
+					Character->RecalculateSecondaryAttributesDelayed();
 					UE_LOG(LogTemp, Warning, TEXT("Recalculated Secondary Attributes"))
 				}
 			}

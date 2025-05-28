@@ -18,12 +18,15 @@ protected:
 
 	UFUNCTION()
 	void ApplyPenaltyEffectOrAbility(const FGameplayEffectRemovalInfo& RemovalInfo);
+
+	UFUNCTION(BlueprintCallable)
+	void RecalculateSecondaryAttributes();
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blessing")
 	TSubclassOf<UGameplayEffect> BlessingEffectClass;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blessing")
-	TSubclassOf<UGameplayEffect> PenaltyEffectClass;
+	TArray<TSubclassOf<UGameplayEffect>> PenaltyEffectClasses;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blessing")
 	TSubclassOf<UGameplayAbility> PenaltyAbilityClass;
