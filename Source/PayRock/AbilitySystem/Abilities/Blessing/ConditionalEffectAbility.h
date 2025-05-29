@@ -44,11 +44,15 @@ protected:
 private:
 	void EvaluateAndApplyOrRemoveEffect(const FOnAttributeChangeData& Data);
 	bool DoesConditionPass(float Current, float Max) const;
+	void FinishWait();
 	
 	FDelegateHandle CurrentAttributeDelegateHandle;
 	FDelegateHandle MaxAttributeDelegateHandle;
 
 	FActiveGameplayEffectHandle ActiveEffectHandle;
 
-	bool bDidConditionPass = false;
+	FTimerHandle WaitTimerHandle;
+
+	bool bShouldWait = false;
+	
 };

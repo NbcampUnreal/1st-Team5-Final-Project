@@ -126,8 +126,14 @@ void ABaseCharacter::AddCharacterAbilities()
 
 void ABaseCharacter::ApplyEffectToSelf(const TSubclassOf<UGameplayEffect>& EffectClass, const float& EffectLevel) const
 {
-	checkf(IsValid(AbilitySystemComponent), TEXT("ABaseCharacter::ApplyEffectToSelf() - ASC invalid"));
-	checkf(IsValid(EffectClass), TEXT("ABaseCharacter::ApplyEffectToSelf() - GE class invalid"))
+	if (!IsValid(AbilitySystemComponent))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ABaseCharacter::ApplyEffectToSelf() - ASC invalid")); return;
+	}
+	if (!IsValid(EffectClass))
+	{
+		UE_LOG(LogTemp, Error, TEXT("ABaseCharacter::ApplyEffectToSelf() - GE class invalid")); return;
+	}
 	FGameplayEffectContextHandle ContextHandle = AbilitySystemComponent->MakeEffectContext();
 	ContextHandle.AddSourceObject(this);
 	const FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(
@@ -146,7 +152,7 @@ void ABaseCharacter::InitializeDefaultAttributes()
 	ApplyEffectToSelf(InitVitalAttributeEffect, 1.f);
 	bAreAttributesInitialized = true;
 }
-
+/*
 void ABaseCharacter::RecalculateSecondaryAttributesDelayed()
 {
 	if (bRecalculationScheduled) return;
@@ -165,7 +171,7 @@ void ABaseCharacter::RecalculateSecondaryAttributes()
 	const float OldMaxHealth = AS->GetMaxHealth();
 	const float OldMaxMana = AS->GetMaxMana();
 	
-	ApplyEffectToSelf(InitSecondaryAttributeEffect, 1.f);
+	ApplyEffectToSelf(RecalculateSecondaryEffect, 1.f);
 
 	const float NewMaxHealth = AS->GetMaxHealth();
 	const float NewMaxMana = AS->GetMaxMana();
@@ -191,4 +197,4 @@ void ABaseCharacter::RecalculateSecondaryAttributes()
 		}
 	}
 }
-
+*/

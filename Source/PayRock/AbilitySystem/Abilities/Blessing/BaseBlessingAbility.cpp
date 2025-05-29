@@ -4,7 +4,6 @@
 #include "BaseBlessingAbility.h"
 #include "PayRock/AbilitySystem/PRAbilitySystemComponent.h"
 #include "PayRock/AbilitySystem/PRAttributeSet.h"
-#include "PayRock/Character/BaseCharacter.h"
 
 void UBaseBlessingAbility::ApplyBlessingEffect()
 {
@@ -54,12 +53,6 @@ void UBaseBlessingAbility::ApplyPenaltyEffectOrAbility(const FGameplayEffectRemo
 		}
 	}
 
-	// Recalculate secondary attributes in case primary attributes were changed by the GE
-	if (ABaseCharacter* Character = Cast<ABaseCharacter>(GetAvatarActorFromActorInfo()))
-	{
-		Character->RecalculateSecondaryAttributes();
-	}
-
 	if (IsValid(PenaltyAbilityClass))
 	{
 		if (UPRAbilitySystemComponent* ASC = Cast<UPRAbilitySystemComponent>(GetAbilitySystemComponentFromActorInfo()))
@@ -72,14 +65,4 @@ void UBaseBlessingAbility::ApplyPenaltyEffectOrAbility(const FGameplayEffectRemo
 		}
 	}
 }
-
-void UBaseBlessingAbility::RecalculateSecondaryAttributes()
-{
-	// Recalculate secondary attributes in case primary attributes were changed by the GE
-	if (ABaseCharacter* Character = Cast<ABaseCharacter>(GetAvatarActorFromActorInfo()))
-	{
-		Character->RecalculateSecondaryAttributes();
-	}
-}
-
 

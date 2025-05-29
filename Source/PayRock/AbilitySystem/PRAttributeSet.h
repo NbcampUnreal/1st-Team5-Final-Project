@@ -49,7 +49,7 @@ class PAYROCK_API UPRAttributeSet : public UAttributeSet
 public:
 	UPRAttributeSet();
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
+	// virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
 	
 	/* Primary Attributes */
@@ -113,11 +113,11 @@ public:
 	UFUNCTION()
 	void OnRep_Mana(const FGameplayAttributeData& OldMana) const;
 
-	UPROPERTY()
+	/*UPROPERTY()
 	mutable float HealthRatio = 1.f;
 
 	UPROPERTY()
-	mutable float ManaRatio = 1.f;
+	mutable float ManaRatio = 1.f;*/
 
 private:
 	void SetEffectProperties(const FGameplayEffectModCallbackData& Data, FEffectProperties& Props);
@@ -153,9 +153,6 @@ public:
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_Armor, Category = "SecondaryAttributes")
 	FGameplayAttributeData Armor;
 	ATTRIBUTE_ACCESSORS(UPRAttributeSet, Armor);
-	/*UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_BlockChance, Category = "SecondaryAttributes")
-	FGameplayAttributeData BlockChance;
-	ATTRIBUTE_ACCESSORS(UPRAttributeSet, BlockChance);*/
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_CriticalResistance, Category = "SecondaryAttributes")
 	FGameplayAttributeData CriticalResistance;
 	ATTRIBUTE_ACCESSORS(UPRAttributeSet, CriticalResistance);
