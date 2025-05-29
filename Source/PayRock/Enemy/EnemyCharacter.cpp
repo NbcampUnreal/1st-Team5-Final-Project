@@ -106,7 +106,7 @@ void AEnemyCharacter::Die()
 	GetCharacterMovement()->DisableMovement();
 	GetCharacterMovement()->StopMovementImmediately();
 	
-	if (ContainerClass)
+	if (!bIsClone && ContainerClass)
 	{
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
@@ -118,7 +118,6 @@ void AEnemyCharacter::Die()
 			SpawnParams
 		);
 	}
-	
 	SetLifeSpan(5.0f);
 }
 
