@@ -32,23 +32,17 @@ public:
 
 	/* Death */
 	UFUNCTION(BlueprintCallable)
-	virtual void Die(/*const FHitResult& HitResult*/);
-	UFUNCTION(BlueprintCallable)
-	virtual UAnimMontage* GetDeathMontage();
+	virtual void Die(FVector HitDirection = FVector::ZeroVector);
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastRagdoll(const FVector& HitDirection);
+
 	UFUNCTION(BlueprintCallable)
 	void ForceDeath();
 	UFUNCTION(BlueprintImplementableEvent)
 	void SpawnLootContainer();
 
-	/*
 	UFUNCTION(BlueprintCallable)
-	void RecalculateSecondaryAttributesDelayed();
-	UFUNCTION(BlueprintCallable)
-	void RecalculateSecondaryAttributes();
-	
-	FTimerHandle StatRecalculateTimerHandle;
-	bool bRecalculationScheduled = false;
-	*/
+	UAnimMontage* GetDeathMontage();
 	
 	void InitializeDefaultAttributes();
 	bool bAreAttributesInitialized = false;
@@ -61,6 +55,8 @@ protected:
 	virtual void AddCharacterAbilities();
 	void ApplyEffectToSelf(const TSubclassOf<UGameplayEffect>& EffectClass, const float& EffectLevel) const;
 	void BindToTagChange();
+
+	
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")

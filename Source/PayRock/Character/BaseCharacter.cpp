@@ -57,31 +57,63 @@ const UAnimMontage* ABaseCharacter::GetHitReactMontage()
 	return HitReactMontages[FMath::RandRange(0, HitReactMontages.Num() - 1)];
 }
 
-void ABaseCharacter::Die(/*const FHitResult& HitResult*/)
+void ABaseCharacter::Die(FVector HitDirection)
 {
-	if (true) //HasAuthority()
-	{
-		GetCharacterMovement()->DisableMovement();
-		GetCharacterMovement()->StopMovementImmediately();
-	
-		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetCharacterMovement()->DisableMovement();
+	GetCharacterMovement()->StopMovementImmediately();
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-		if (HasAuthority())
-		{
-			SpawnLootContainer();
-		}
+	if (HasAuthority())
+	{
+		GetAbilitySystemComponent()->ClearAllAbilities();
 		
-		/*if (HitResult.bBlockingHit)
-		{
-			FVector Impulse = -HitResult.ImpactNormal * 10000.f;
-			Impulse = Impulse.GetClampedToMaxSize(100000.f);
-			GetMesh()->AddImpulseAtLocation(Impulse, HitResult.ImpactPoint, HitResult.BoneName);
-		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Die - Not a blocking hit. No Impulse applied"));
-		}*/
+		// Remove ALL active gameplay effects
+		FGameplayEffectQuery Query = FGameplayEffectQuery::MakeQuery_MatchAllEffectTags(FGameplayTagContainer());
+		GetAbilitySystemComponent()->RemoveActiveEffects(Query);
 	}
+	
+	MulticastRagdoll(HitDirection);
+}
+
+void ABaseCharacter::MulticastRagdoll_Implementation(const FVector& HitDirection)
+{
+	if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
+	{
+		AnimInstance->StopAllMontages(0.2f);
+	}
+	
+	if (APlayerController* PC = Cast<APlayerController>(GetController()))
+	{
+		DisableInput(PC);
+	}
+
+	USkeletalMeshComponent* CharacterMesh = GetMesh();
+	if (!CharacterMesh->IsRegistered())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Component not registered yet"));
+		return;
+	}
+	CharacterMesh->SetSimulatePhysics(true);
+	CharacterMesh->SetCollisionProfileName(FName("Ragdoll"));
+	CharacterMesh->WakeAllRigidBodies();
+
+	FVector Impulse = HitDirection * 10000.f;
+	if (HitDirection.Equals(FVector::ZeroVector))
+	{
+		Impulse = -GetActorForwardVector() * 10000.f;
+	}
+	GetMesh()->AddImpulseAtLocation(Impulse, GetActorLocation());
+	
+	FTimerHandle TimerHandle;
+	GetWorldTimerManager().SetTimer(TimerHandle, [this]()
+	{
+		SpawnLootContainer();
+	}, 0.5f, false);
+}
+
+void ABaseCharacter::ForceDeath()
+{
+	Die();
 }
 
 UAnimMontage* ABaseCharacter::GetDeathMontage()
@@ -89,13 +121,6 @@ UAnimMontage* ABaseCharacter::GetDeathMontage()
 	if (DeathMontages.IsEmpty()) return nullptr;
 
 	return DeathMontages[FMath::RandRange(0, DeathMontages.Num() - 1)];
-}
-
-void ABaseCharacter::ForceDeath()
-{
-	FGameplayTagContainer TagContainer;
-	TagContainer.AddTag(FPRGameplayTags::Get().Status_Life_Dead);
-	GetAbilitySystemComponent()->TryActivateAbilitiesByTag(TagContainer);
 }
 
 FVector ABaseCharacter::GetCombatSocketLocation_Implementation(const FGameplayTag& SocketTag)
@@ -152,49 +177,4 @@ void ABaseCharacter::InitializeDefaultAttributes()
 	ApplyEffectToSelf(InitVitalAttributeEffect, 1.f);
 	bAreAttributesInitialized = true;
 }
-/*
-void ABaseCharacter::RecalculateSecondaryAttributesDelayed()
-{
-	if (bRecalculationScheduled) return;
-	bRecalculationScheduled = true;
 
-	GetWorldTimerManager().SetTimer(StatRecalculateTimerHandle,
-		this, &ABaseCharacter::RecalculateSecondaryAttributes, 0.5f, false);
-}
-
-void ABaseCharacter::RecalculateSecondaryAttributes()
-{
-	bRecalculationScheduled = false;
-	if (!bAreAttributesInitialized) return;
-	
-	UPRAttributeSet* AS = Cast<UPRAttributeSet>(GetAttributeSet());
-	const float OldMaxHealth = AS->GetMaxHealth();
-	const float OldMaxMana = AS->GetMaxMana();
-	
-	ApplyEffectToSelf(RecalculateSecondaryEffect, 1.f);
-
-	const float NewMaxHealth = AS->GetMaxHealth();
-	const float NewMaxMana = AS->GetMaxMana();
-
-	if (!FMath::IsNearlyEqual(OldMaxHealth, NewMaxHealth))
-	{
-		const float Health = AS->GetHealth();
-		const float NewHealth = AS->HealthRatio * NewMaxHealth;
-		if (!FMath::IsNearlyEqual(Health, NewHealth))
-		{
-			AS->SetHealth(FMath::Clamp(NewHealth, 0.f, NewMaxHealth));
-			UE_LOG(LogTemp, Warning, TEXT("SetHealth called in recalculate function"))
-		}
-	}
-	
-	if (!FMath::IsNearlyEqual(OldMaxMana, NewMaxMana))
-	{
-		const float Mana = AS->GetMana();
-		const float NewMana = AS->ManaRatio * NewMaxMana;
-		if (!FMath::IsNearlyEqual(Mana, NewMana))
-		{
-			AS->SetMana(FMath::Clamp(NewMana, 0.f, NewMaxMana));
-		}
-	}
-}
-*/
