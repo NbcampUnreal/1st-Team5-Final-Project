@@ -145,7 +145,12 @@ protected:
 	UFUNCTION()
 	void OnRep_MatchFlowState();
 
+public:
+	UFUNCTION(BlueprintCallable, Category = "MatchFlow")
+	EMatchFlowState GetMatchFlowState() const { return MatchFlowState; }
 
+
+protected:
 	void SetMatchFlowState(EMatchFlowState NewState);
 
 
