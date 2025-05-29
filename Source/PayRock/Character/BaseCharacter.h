@@ -40,12 +40,15 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void SpawnLootContainer();
 
+	/*
 	UFUNCTION(BlueprintCallable)
 	void RecalculateSecondaryAttributesDelayed();
 	UFUNCTION(BlueprintCallable)
 	void RecalculateSecondaryAttributes();
+	
 	FTimerHandle StatRecalculateTimerHandle;
 	bool bRecalculationScheduled = false;
+	*/
 	
 	void InitializeDefaultAttributes();
 	bool bAreAttributesInitialized = false;
@@ -84,6 +87,8 @@ protected:
 	TSubclassOf<UGameplayEffect> InitSecondaryAttributeEffect;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
 	TSubclassOf<UGameplayEffect> InitVitalAttributeEffect;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
+	TSubclassOf<UGameplayEffect> RecalculateSecondaryEffect;
 
 private:
 	UPROPERTY(EditAnywhere, Category = "Combat")

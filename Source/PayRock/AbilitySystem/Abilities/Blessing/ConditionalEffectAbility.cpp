@@ -4,7 +4,6 @@
 #include "ConditionalEffectAbility.h"
 #include "AbilitySystemComponent.h"
 #include "PayRock/AbilitySystem/PRAttributeSet.h"
-#include "PayRock/Character/BaseCharacter.h"
 
 
 void UConditionalEffectAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
@@ -54,15 +53,20 @@ void UConditionalEffectAbility::EndAbility(const FGameplayAbilitySpecHandle Hand
 	{
 		ASC->RemoveActiveGameplayEffect(ActiveEffectHandle);
 
-		if (ABaseCharacter* Character = Cast<ABaseCharacter>(GetAbilitySystemComponentFromActorInfo()->GetAvatarActor()))
+		/*if (GetAvatarActorFromActorInfo()->HasAuthority())
 		{
-			Character->RecalculateSecondaryAttributes();
-		}
+			if (ABaseCharacter* Character = Cast<ABaseCharacter>(GetAvatarActorFromActorInfo()))
+			{
+				Character->RecalculateSecondaryAttributes();
+			}
+		}*/
 	}
 }
 
 void UConditionalEffectAbility::EvaluateAndApplyOrRemoveEffect(const FOnAttributeChangeData& Data)
 {
+	if (bShouldWait || !GetAvatarActorFromActorInfo()->HasAuthority()) return;
+	
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 	if (!ASC || !ConditionalEffect) return;
 	const UAttributeSet* AS = ASC->GetAttributeSet(UPRAttributeSet::StaticClass());
@@ -72,46 +76,50 @@ void UConditionalEffectAbility::EvaluateAndApplyOrRemoveEffect(const FOnAttribut
 	const float Max = MaxAttribute.GetNumericValue(AS);
 
 	const bool bDoesConditionPass = DoesConditionPass(Current, Max);
-
-	if (bDoesConditionPass != bDidConditionPass)
+	
+	if (bDoesConditionPass)
 	{
-		bDidConditionPass = bDoesConditionPass;
+		bShouldWait = true;
+		if (!ActiveEffectHandle.IsValid())
+		{
+			FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(ConditionalEffect, GetAbilityLevel());
+			ActiveEffectHandle = ApplyGameplayEffectSpecToOwner(
+				GetCurrentAbilitySpecHandle(),
+				GetCurrentActorInfo(),
+				GetCurrentActivationInfo(),
+				SpecHandle);
+			UE_LOG(LogTemp, Warning, TEXT("ConditionalEffect was applied"))
 		
-		if (bDoesConditionPass)
-		{
-			if (!ActiveEffectHandle.IsValid())
+			/*if (ABaseCharacter* Character = Cast<ABaseCharacter>(GetAvatarActorFromActorInfo()))
 			{
-				FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(ConditionalEffect, GetAbilityLevel());
-				ActiveEffectHandle = ApplyGameplayEffectSpecToOwner(
-					GetCurrentAbilitySpecHandle(),
-					GetCurrentActorInfo(),
-					GetCurrentActivationInfo(),
-					SpecHandle);
-				UE_LOG(LogTemp, Warning, TEXT("ConditionalEffect was applied"))
-			
-				if (ABaseCharacter* Character = Cast<ABaseCharacter>(GetAbilitySystemComponentFromActorInfo()->GetAvatarActor()))
-				{
-					Character->RecalculateSecondaryAttributesDelayed();
-					UE_LOG(LogTemp, Warning, TEXT("Recalculated Secondary Attributes"))
-				}
-			}
-		}
-		else
-		{
-			if (ActiveEffectHandle.IsValid())
-			{
-				ASC->RemoveActiveGameplayEffect(ActiveEffectHandle);
-				ActiveEffectHandle.Invalidate();
-				UE_LOG(LogTemp, Warning, TEXT("ConditionalEffect was removed"))
-
-				if (ABaseCharacter* Character = Cast<ABaseCharacter>(GetAbilitySystemComponentFromActorInfo()->GetAvatarActor()))
-				{
-					Character->RecalculateSecondaryAttributesDelayed();
-					UE_LOG(LogTemp, Warning, TEXT("Recalculated Secondary Attributes"))
-				}
-			}
+				Character->RecalculateSecondaryAttributesDelayed();
+				UE_LOG(LogTemp, Warning, TEXT("Recalculated Secondary Attributes"))
+			}*/
 		}
 	}
+	else
+	{
+		bShouldWait = true;
+		if (ActiveEffectHandle.IsValid())
+		{
+			ASC->RemoveActiveGameplayEffect(ActiveEffectHandle);
+			ActiveEffectHandle.Invalidate();
+			UE_LOG(LogTemp, Warning, TEXT("ConditionalEffect was removed"))
+
+			/*if (ABaseCharacter* Character = Cast<ABaseCharacter>(GetAvatarActorFromActorInfo()))
+			{
+				Character->RecalculateSecondaryAttributesDelayed();
+				UE_LOG(LogTemp, Warning, TEXT("Recalculated Secondary Attributes"))
+			}*/
+		}
+	}
+
+	GetWorld()->GetTimerManager().SetTimer(
+		WaitTimerHandle,
+		this,
+		&UConditionalEffectAbility::FinishWait,
+		0.1f
+	);
 }
 
 bool UConditionalEffectAbility::DoesConditionPass(float Current, float Max) const
@@ -133,4 +141,9 @@ bool UConditionalEffectAbility::DoesConditionPass(float Current, float Max) cons
 	default:
 		return false;
 	}
+}
+
+void UConditionalEffectAbility::FinishWait()
+{
+	bShouldWait = false;
 }

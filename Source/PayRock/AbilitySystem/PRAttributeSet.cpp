@@ -52,7 +52,7 @@ void UPRAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 	DOREPLIFETIME_CONDITION_NOTIFY(UPRAttributeSet, Mana, COND_None, REPNOTIFY_Always);
 }
 
-void UPRAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
+/*void UPRAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
 {
 	Super::PreAttributeChange(Attribute, NewValue);
 
@@ -64,7 +64,7 @@ void UPRAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, fl
 	{
 		if (!FMath::IsNearlyZero(GetMaxMana())) ManaRatio = NewValue / GetMaxMana();
 	}
-}
+}*/
 
 void UPRAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
 {
