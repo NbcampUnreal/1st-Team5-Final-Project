@@ -138,4 +138,16 @@ protected:
 
 	void CallTheGmToEnd();
 	/////////////////////////////////////////////////////////////////////
+	//테스트!!!!!!!!!!!!!!!
+	UPROPERTY(ReplicatedUsing = OnRep_MatchFlowState)
+	EMatchFlowState MatchFlowState;
+
+	UFUNCTION()
+	void OnRep_MatchFlowState();
+
+
+	void SetMatchFlowState(EMatchFlowState NewState);
+
+
+
 };

@@ -10,4 +10,5 @@ void UBaseUserWidget::SetWidgetController(UObject* InWidgetController)
 
 void UBaseUserWidget::OnWidgetControllerSet()
 {
+	//
 }
