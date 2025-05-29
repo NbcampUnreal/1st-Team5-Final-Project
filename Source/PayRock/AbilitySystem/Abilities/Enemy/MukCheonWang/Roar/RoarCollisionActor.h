@@ -23,7 +23,7 @@ protected:
 	TObjectPtr<USphereComponent> CollisionSphere;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "VFX")
-	TObjectPtr<UNiagaraSystem> RoarEffect;
+	TObjectPtr<UNiagaraComponent> RoarEffect;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Roar")
 	float MaxRadius = 1200.f;

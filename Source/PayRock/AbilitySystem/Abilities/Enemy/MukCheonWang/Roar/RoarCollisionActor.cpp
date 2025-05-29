@@ -18,7 +18,7 @@ ARoarCollisionActor::ARoarCollisionActor()
 	RootComponent = CollisionSphere;
 
 	
-	RoarEffect = CreateDefaultSubobject<UNiagaraComponent>(TEXT("LightningVFX"));
+	RoarEffect = CreateDefaultSubobject<UNiagaraComponent>(TEXT("RoarEffect"));
 	RoarEffect->SetupAttachment(RootComponent);
 	RoarEffect->SetAutoActivate(false);
 	
@@ -28,19 +28,6 @@ ARoarCollisionActor::ARoarCollisionActor()
 void ARoarCollisionActor::BeginPlay()
 {
 	Super::BeginPlay();
-
-	if (RoarEffect)
-	{
-		UNiagaraFunctionLibrary::SpawnSystemAttached(
-			RoarEffect,
-			RootComponent,
-			NAME_None,
-			FVector::ZeroVector,
-			FRotator::ZeroRotator,
-			EAttachLocation::KeepRelativeOffset,
-			true
-		);
-	}
 }
 
 void ARoarCollisionActor::Tick(float DeltaTime)
