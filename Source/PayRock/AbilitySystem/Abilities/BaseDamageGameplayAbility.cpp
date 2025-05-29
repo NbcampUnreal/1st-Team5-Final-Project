@@ -121,7 +121,7 @@ void UBaseDamageGameplayAbility::PlayAuraVFX(AActor* TargetActor)
 		}
 	}
 
-	if (AuraDecalClass && TargetActor && TargetActor->GetWorld())
+	if (FontlClass && TargetActor && TargetActor->GetWorld())
 	{
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.Owner = TargetActor;
@@ -130,7 +130,7 @@ void UBaseDamageGameplayAbility::PlayAuraVFX(AActor* TargetActor)
 		const FRotator SpawnRotation = FRotator::ZeroRotator;
 
 		AActor* AuraDecal = TargetActor->GetWorld()->SpawnActor<AActor>(
-			AuraDecalClass,
+			FontlClass,
 			SpawnLocation,
 			SpawnRotation,
 			SpawnParams
@@ -139,7 +139,6 @@ void UBaseDamageGameplayAbility::PlayAuraVFX(AActor* TargetActor)
 		if (AuraDecal)
 		{
 			AuraDecal->AttachToActor(TargetActor, FAttachmentTransformRules::KeepWorldTransform);
-			// 자동 파괴는 액터 클래스 내부에서 관리
 		}
 	}
 }

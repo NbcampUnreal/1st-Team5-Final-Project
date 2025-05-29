@@ -4,16 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "BehaviorTree/Tasks/BTTask_BlackboardBase.h"
-#include "BTTask_BossAttack.generated.h"
+#include "BTTask_BossMagicAttack.generated.h"
 
 
 UCLASS()
-class PAYROCK_API UBTTask_BossAttack : public UBTTask_BlackboardBase
+class PAYROCK_API UBTTask_BossMagicAttack : public UBTTask_BlackboardBase
 {
 	GENERATED_BODY()
 
 public:
-	UBTTask_BossAttack();
+	UBTTask_BossMagicAttack();
 
 private:
 	EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory);
@@ -21,6 +21,4 @@ private:
 	UPROPERTY(EditAnywhere, Category = "GAS")
 	TSubclassOf<class UGameplayAbility> MagicAbility;
 	
-	UPROPERTY(EditAnywhere, Category = "GAS")
-	TSubclassOf<class UGameplayAbility> MeleeAbility;
 };

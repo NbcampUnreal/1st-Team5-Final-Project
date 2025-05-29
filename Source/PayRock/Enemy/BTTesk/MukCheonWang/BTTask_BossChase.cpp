@@ -21,10 +21,7 @@ EBTNodeResult::Type UBTTask_BossChase::ExecuteTask(UBehaviorTreeComponent& Owner
 	AActor* Target = Cast<AActor>(OwnerComp.GetBlackboardComponent()->GetValueAsObject("TargetActor"));
 	if (!Target) return EBTNodeResult::Failed;
 	
-	if (Boss->CurrentPhase == EBossPhase::Phase3)
-	{
-		AICon->MoveToActor(Target, 100.f, true);
-	}
+	AICon->MoveToActor(Target, 100.f, true);
 	
 	return EBTNodeResult::Succeeded;
 }

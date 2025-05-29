@@ -1,4 +1,6 @@
 ﻿#include "RoarCollisionActor.h"
+
+#include "NiagaraComponent.h"
 #include "Components/SphereComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "GameFramework/Character.h"
@@ -15,6 +17,11 @@ ARoarCollisionActor::ARoarCollisionActor()
 	CollisionSphere->SetGenerateOverlapEvents(true);
 	RootComponent = CollisionSphere;
 
+	
+	RoarEffect = CreateDefaultSubobject<UNiagaraComponent>(TEXT("LightningVFX"));
+	RoarEffect->SetupAttachment(RootComponent);
+	RoarEffect->SetAutoActivate(false);
+	
 	CollisionSphere->OnComponentBeginOverlap.AddDynamic(this, &ARoarCollisionActor::OnOverlapBegin);
 }
 

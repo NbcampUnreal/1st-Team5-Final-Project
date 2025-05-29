@@ -47,7 +47,7 @@ protected:
 	TObjectPtr<UNiagaraSystem> AuraEffect;
 
 	UPROPERTY(EditDefaultsOnly, Category = "VFX")
-	TSubclassOf<AActor> AuraDecalClass;
+	TSubclassOf<AActor> FontlClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "VFX")
 	float AuraRate = 2.5f;

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PayRock/Enemy/EBossPhase.h"
 #include "PayRock/Enemy/EnemyCharacter.h"
 #include "Perception/AIPerceptionTypes.h"
 #include "MukCheonWangCharacter.generated.h"
@@ -12,13 +13,6 @@ class UAISenseConfig_Sight;
 class UAISenseConfig_Hearing;
 class UAISenseConfig_Damage;
 
-UENUM(BlueprintType)
-enum class EBossPhase : uint8
-{
-	Phase1,
-	Phase2,
-	Phase3
-};
 
 UCLASS()
 class PAYROCK_API AMukCheonWangCharacter : public AEnemyCharacter

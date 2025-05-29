@@ -10,6 +10,7 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "PayRock/AbilitySystem/PRAttributeSet.h"
 #include "PayRock/Character/PRCharacter.h"
+#include "PayRock/Enemy/EBossPhase.h"
 
 
 AMukCheonWangCharacter::AMukCheonWangCharacter()
@@ -81,6 +82,13 @@ void AMukCheonWangCharacter::Tick(float DeltaTime)
     {
         CurrentPhase = NewPhase;
         OnPhaseChanged(NewPhase);
+        if (AAIController* AICon = Cast<AAIController>(GetController()))
+        {
+            if (UBlackboardComponent* BB = AICon->GetBlackboardComponent())
+            {
+                BB->SetValueAsInt(TEXT("CurrentPhase_Int"), static_cast<int32>(NewPhase));
+            }
+        }
     }
 }
 
@@ -128,22 +136,32 @@ void AMukCheonWangCharacter::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulu
 
 void AMukCheonWangCharacter::UpdateRandomTarget()
 {
-    if (!AIPerception) return;
-
     DetectedActors.Empty();
-    AIPerception->GetCurrentlyPerceivedActors(UAISense_Sight::StaticClass(), DetectedActors);
+    TArray<AActor*> AllDetected;
+    AIPerception->GetCurrentlyPerceivedActors(UAISense_Sight::StaticClass(), AllDetected);
+
+    for (AActor* Actor : AllDetected)
+    {
+        if (Actor && Actor->IsA(APRCharacter::StaticClass()))
+        {
+            DetectedActors.Add(Actor);
+        }
+    }
 
     if (DetectedActors.Num() > 0)
     {
         int32 Index = FMath::RandRange(0, DetectedActors.Num() - 1);
         AActor* ChosenTarget = DetectedActors[Index];
 
-        AAIController* AICon = Cast<AAIController>(GetController());
-        if (AICon && AICon->GetBlackboardComponent())
+        if (AAIController* AICon = Cast<AAIController>(GetController()))
         {
-            AICon->GetBlackboardComponent()->SetValueAsObject(TEXT("TargetActor"), ChosenTarget);
+            if (UBlackboardComponent* BB = AICon->GetBlackboardComponent())
+            {
+                BB->SetValueAsObject(TEXT("TargetActor"), ChosenTarget);
+            }
         }
     }
+
 }
 
 void AMukCheonWangCharacter::OnPhaseChanged(EBossPhase NewPhase)
