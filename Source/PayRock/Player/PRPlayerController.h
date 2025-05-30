@@ -4,11 +4,15 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "PayRock/GameSystem/PRGameState.h"
 #include "PRPlayerController.generated.h"
+
 
 struct FInputActionValue;
 class UInputMappingContext;
 class UInputAction;
+class UUserWidget;
+//class EMatchFlowState; // Enum class는 전방선언 불가;; 
 
 UCLASS()
 class PAYROCK_API APRPlayerController : public APlayerController
@@ -48,6 +52,11 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> AimAction;
 
+	// ESC 바인딩 
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<UInputAction> ToggleMenuAction;
+
+
 	UPROPERTY(EditAnywhere, Category = "Input|Spector")
 	TObjectPtr<UInputMappingContext> SpectorIMC;
 	
@@ -56,6 +65,8 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Input|Spectate")
 	TObjectPtr<UInputAction> SpectatePrevAction;
+
+
 	
 	
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
@@ -78,6 +89,8 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	// esc 바인딩 위한 함수 
+	virtual void SetupInputComponent() override;
 	void BindingSpector(); // 스펙터
 private:
 	void SetSpectateTarget(AActor* NewTarget); // 관전 타겟 설정
@@ -90,4 +103,27 @@ private:
 
 	UPROPERTY()
 	UUserWidget* DeathOptionsWidget;
+
+
+//=========================================================================
+	// 컨트롤러 내부에 추가:
+private:
+
+	// 컨트롤러에서-> 세팅메뉴 클래스 설정가능 
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UUserWidget> SettingsMenuWidgetClass;
+
+	UPROPERTY()
+	TObjectPtr<UUserWidget> SettingsMenuWidget;
+
+	bool bIsSettingsMenuOpen = false;
+
+	void ToggleSettingsMenu(); // ESC 키 입력 시 호출할 함수
+
+
+public:
+	// 매칭, 매치후 인게임 UI 다르게 표시 
+	void HandleMatchFlowStateChanged(EMatchFlowState NewState);
+
+
 };

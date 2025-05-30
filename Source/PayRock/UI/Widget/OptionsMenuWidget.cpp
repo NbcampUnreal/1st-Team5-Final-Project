@@ -103,16 +103,23 @@ void UOptionsMenuWidget::InitOptionsMenu(UMainMenuUserWidget* InMainMenuRef)
 {
     MainMenuRef = InMainMenuRef;
 
+    // 하위 비디오 탭에서 들고 있게
     if (VideoSettingsWidget && MainMenuRef)
     {
         VideoSettingsWidget->MainMenuRef = MainMenuRef;
         VideoSettingsWidget->OptionsMenuRef = this; // 비디오에서 옵션 끄게?
     }
 
-    /*if (AudioSettingsWidget && MainMenuRef)
+    // 하위 오디오 탭에서 옵션 들고 있게 
+    if (AudioSettingsWidget && MainMenuRef)
     {
         AudioSettingsWidget->MainMenuRef = MainMenuRef;
         AudioSettingsWidget->OptionsMenuRef = this;
 
-    }*/
+    }
+    // ; todo; 
+    // 하위  키설 정에서 들도록 설정
+
+    // 하위 게임 플레이
+
 }
