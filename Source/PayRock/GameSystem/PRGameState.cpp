@@ -10,7 +10,7 @@
 #include "GameFramework/GameModeBase.h"
 #include "Kismet/GameplayStatics.h"
 #include "PayRock/Character/BaseCharacter.h"
-
+#include "PayRock/Player/PRPlayerController.h"
 
 int32 APRGameState::GetMinimumRequirePlayers()
 {
@@ -61,6 +61,11 @@ void APRGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(APRGameState, MinimumRequirePlayers);
 	DOREPLIFETIME(APRGameState, MatchStart_CountDown);
 	DOREPLIFETIME(APRGameState, RemainingMatchTime);
+
+	// 추가;
+	DOREPLIFETIME(APRGameState, MatchFlowState); 
+
+
 }
 
 void APRGameState::Notify_PlayerConnection_Implementation()
@@ -95,6 +100,9 @@ void APRGameState::Notify_PlayerConnection_Implementation()
 			}
 		}
 	}
+
+	//; 대기시간에 플레이어컨트롤러에 알리기
+	SetMatchFlowState(EMatchFlowState::WaitingToStart);
 }
 
 
@@ -145,6 +153,11 @@ void APRGameState::MatchEnd()
 		false
 	);
 	
+
+
+	//;
+	SetMatchFlowState(EMatchFlowState::MatchEnded); // 여기 추가
+
 }
 
 void APRGameState::TickMatchCountdown()
@@ -220,6 +233,10 @@ void APRGameState::StartMatch()
 		true
 	);
 	UE_LOG(LogTemp, Warning, TEXT("Match timer started. Duration: %d seconds"), MatchDurationSeconds);
+
+
+	SetMatchFlowState(EMatchFlowState::MatchInProgress); // ;여기 추가
+
 }
 
 
@@ -283,6 +300,11 @@ void APRGameState::EnableExtractionZones()
 	}
 
 	UE_LOG(LogTemp, Warning, TEXT("Activated %d Extraction Zones"), ActivatedCount);
+
+
+	// ; 
+	SetMatchFlowState(EMatchFlowState::ExtractionEnabled); // 여기 추가
+
 }
 
 void APRGameState::TickMatchTimer()
@@ -314,4 +336,40 @@ void APRGameState::CallTheGmToEnd()
 		GM->EndThisMatch();
 	}
 }
+
+
+//테스트!!!!!!!!!!!
+void APRGameState::OnRep_MatchFlowState()
+{
+	// 플레이어에게 알려줌
+	//for (APlayerState* PS : PlayerArray)
+	//{
+	//	if (APRPlayerController* PC = Cast<APRPlayerController>(PS->GetOwner()))
+	//	{
+	//		PC->HandleMatchFlowStateChanged(MatchFlowState);
+	//	}
+	//}
+
+
+	UE_LOG(LogTemp, Error, TEXT("Client OnRep_MatchFlowState called! State: %d"), static_cast<int32>(MatchFlowState));
+	// ...
+
+	if (APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0))
+	{
+		if (APRPlayerController* PRPC = Cast<APRPlayerController>(PC))
+		{
+			PRPC->HandleMatchFlowStateChanged(MatchFlowState);
+		}
+	}
+}
+
+void APRGameState::SetMatchFlowState(EMatchFlowState NewState)
+{
+	if (HasAuthority()/*서버인경우*/)
+	{
+		MatchFlowState = NewState;
+		OnRep_MatchFlowState(); // 서버에서도 처리되도록 직접 호출
+	}
+}
+
 

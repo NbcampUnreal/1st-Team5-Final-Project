@@ -138,4 +138,21 @@ protected:
 
 	void CallTheGmToEnd();
 	/////////////////////////////////////////////////////////////////////
+	//테스트!!!!!!!!!!!!!!!
+	UPROPERTY(ReplicatedUsing = OnRep_MatchFlowState)
+	EMatchFlowState MatchFlowState;
+
+	UFUNCTION()
+	void OnRep_MatchFlowState();
+
+public:
+	UFUNCTION(BlueprintCallable, Category = "MatchFlow")
+	EMatchFlowState GetMatchFlowState() const { return MatchFlowState; }
+
+
+protected:
+	void SetMatchFlowState(EMatchFlowState NewState);
+
+
+
 };

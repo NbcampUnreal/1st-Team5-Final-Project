@@ -18,9 +18,6 @@ protected:
 
 	UFUNCTION()
 	void ApplyPenaltyEffectOrAbility(const FGameplayEffectRemovalInfo& RemovalInfo);
-
-	UFUNCTION(BlueprintCallable)
-	void RecalculateSecondaryAttributes();
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blessing")
 	TSubclassOf<UGameplayEffect> BlessingEffectClass;
