@@ -34,7 +34,7 @@ public:
 	int32 SplitLevel = 0;
 	bool bIsClone = false;
 protected:
-	virtual void Die() override;
+	virtual void Die(FVector HitDirection = FVector::ZeroVector) override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="State")
 	bool bIsBattle = false;

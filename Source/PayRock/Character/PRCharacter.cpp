@@ -868,13 +868,14 @@ void APRCharacter::Tick(float DeltaSeconds)
     //}
 }
 
-void APRCharacter::Die(/*const FHitResult& HitResult*/)
+void APRCharacter::Die(FVector HitDirection)
 {
-    Super::Die();
+    Super::Die(HitDirection);
 
     if (HasAuthority())
     {
-        GetAbilitySystemComponent()->ClearAllAbilities();
+        StimuliSourceComponent->UnregisterFromPerceptionSystem();
+        
         if (APRPlayerState* PS = GetPlayerState<APRPlayerState>())
         {
             PS->SetIsDead(true);
@@ -894,31 +895,7 @@ void APRCharacter::Die(/*const FHitResult& HitResult*/)
                 PC->Client_OnSpectateTargetDied(this);
             }
         }
-
-        StimuliSourceComponent->UnregisterFromPerceptionSystem();
     }
-    //UnPossessed();
-    MulticastRagdoll();
-    // Ragdoll
-    // MulticastRagdoll();
-}
-
-void APRCharacter::MulticastRagdoll_Implementation()
-{
-    if (APlayerController* PC = Cast<APlayerController>(GetController()))
-    {
-        DisableInput(PC);
-    }
-
-    USkeletalMeshComponent* CharacterMesh = GetMesh();
-    if (!CharacterMesh->IsRegistered())
-    {
-        UE_LOG(LogTemp, Warning, TEXT("Component not registered yet"));
-        return;
-    }
-    CharacterMesh->SetSimulatePhysics(true);
-    CharacterMesh->SetCollisionProfileName(FName("Ragdoll"));
-    CharacterMesh->WakeAllRigidBodies();
 }
 
 float APRCharacter::CalculateDirectionCustom(const FVector& Velocity, const FRotator& BaseRotation)

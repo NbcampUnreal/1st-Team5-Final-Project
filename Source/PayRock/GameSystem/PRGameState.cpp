@@ -61,6 +61,11 @@ void APRGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(APRGameState, MinimumRequirePlayers);
 	DOREPLIFETIME(APRGameState, MatchStart_CountDown);
 	DOREPLIFETIME(APRGameState, RemainingMatchTime);
+
+	// 추가;
+	DOREPLIFETIME(APRGameState, MatchFlowState); 
+
+
 }
 
 void APRGameState::Notify_PlayerConnection_Implementation()
@@ -337,18 +342,30 @@ void APRGameState::CallTheGmToEnd()
 void APRGameState::OnRep_MatchFlowState()
 {
 	// 플레이어에게 알려줌
-	for (APlayerState* PS : PlayerArray)
+	//for (APlayerState* PS : PlayerArray)
+	//{
+	//	if (APRPlayerController* PC = Cast<APRPlayerController>(PS->GetOwner()))
+	//	{
+	//		PC->HandleMatchFlowStateChanged(MatchFlowState);
+	//	}
+	//}
+
+
+	UE_LOG(LogTemp, Error, TEXT("Client OnRep_MatchFlowState called! State: %d"), static_cast<int32>(MatchFlowState));
+	// ...
+
+	if (APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0))
 	{
-		if (APRPlayerController* PC = Cast<APRPlayerController>(PS->GetOwner()))
+		if (APRPlayerController* PRPC = Cast<APRPlayerController>(PC))
 		{
-			PC->HandleMatchFlowStateChanged(MatchFlowState);
+			PRPC->HandleMatchFlowStateChanged(MatchFlowState);
 		}
 	}
 }
 
 void APRGameState::SetMatchFlowState(EMatchFlowState NewState)
 {
-	if (HasAuthority())
+	if (HasAuthority()/*서버인경우*/)
 	{
 		MatchFlowState = NewState;
 		OnRep_MatchFlowState(); // 서버에서도 처리되도록 직접 호출
