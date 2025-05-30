@@ -26,7 +26,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool GetDie();
 	
-virtual void Die() override;
+virtual void Die(FVector HitDiretion) override;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CollisionComponent")
 	UCapsuleComponent* WeaponCollision;

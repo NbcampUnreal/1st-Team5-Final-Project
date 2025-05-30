@@ -68,9 +68,9 @@ void AEnemyCharacter::AddCharacterAbilities()
 	}
 }
 
-void AEnemyCharacter::Die()
+void AEnemyCharacter::Die(FVector HitDirection)
 {
-	Super::Die();
+	Super::Die(HitDirection);
 
 	bIsDead = true;
 	
@@ -80,10 +80,10 @@ void AEnemyCharacter::Die()
 		ASC->CancelAllAbilities();
 	}
 	
-	if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
+	/*if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
 	{
 		AnimInstance->StopAllMontages(0.2f);
-	}
+	}*/
 	
 	if (AAIController* AICon = Cast<AAIController>(GetController()))
 	{
@@ -102,9 +102,9 @@ void AEnemyCharacter::Die()
 		AICon->UnPossess();
 	}
 	
-	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	/*GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GetCharacterMovement()->DisableMovement();
-	GetCharacterMovement()->StopMovementImmediately();
+	GetCharacterMovement()->StopMovementImmediately();*/
 	
 	if (!bIsClone && ContainerClass)
 	{

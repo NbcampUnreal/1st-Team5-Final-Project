@@ -23,6 +23,8 @@ void UUIManager::Initialize(FSubsystemCollectionBase& Collection)
 
 UUserWidget* UUIManager::ShowWidget(EWidgetCategory Category)
 {
+	if (!GetWorld() || GetWorld()->bIsTearingDown) return nullptr;
+	
 	UUserWidget* Widget = FindWidget(Category);
 	if (!Widget)
 	{

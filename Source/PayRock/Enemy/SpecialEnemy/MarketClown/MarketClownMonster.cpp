@@ -222,7 +222,7 @@ void AMarketClownMonster::ApplySplitLevelAttributes(int32 InLevel)
 }
 
 
-void AMarketClownMonster::Die()
+void AMarketClownMonster::Die(FVector HitDirection)
 {
 	if (bIsDead) return;
 	bIsDead = true;
@@ -230,7 +230,7 @@ void AMarketClownMonster::Die()
 	if (SplitLevel < MaxSplitCount)
 	{
 		SplitOnDeath();
-		Super::Die();
+		Super::Die(HitDirection);
 		return;
 	}
 
@@ -250,6 +250,6 @@ void AMarketClownMonster::Die()
 		}
 	}
 
-	Super::Die();
+	Super::Die(HitDirection);
 	Destroy();
 }
