@@ -125,10 +125,10 @@ void UBlessingComponent::Server_EquipPassiveBlessing_Implementation(const FBless
 	EquippedPassiveBlessingData = Blessing;
 	Client_BroadcastPassiveBlessing(Blessing);
 
-	if (ABaseCharacter* Character = Cast<ABaseCharacter>(GetOwner()))
+	/*if (ABaseCharacter* Character = Cast<ABaseCharacter>(GetOwner()))
 	{
 		Character->RecalculateSecondaryAttributes();
-	}
+	}*/
 }
 
 void UBlessingComponent::Server_UnequipActiveBlessing_Implementation()

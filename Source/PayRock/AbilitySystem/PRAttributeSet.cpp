@@ -58,11 +58,11 @@ void UPRAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, fl
 
 	if (Attribute == GetHealthAttribute())
 	{
-		if (!FMath::IsNearlyZero(GetMaxHealth())) HealthRatio = NewValue / GetMaxHealth();
+		NewValue = FMath::Clamp(NewValue, 0.f, GetMaxHealth());
 	}
 	else if (Attribute == GetManaAttribute())
 	{
-		if (!FMath::IsNearlyZero(GetMaxMana())) ManaRatio = NewValue / GetMaxMana();
+		NewValue = FMath::Clamp(NewValue, 0.f, GetMaxMana());
 	}
 }
 
@@ -134,13 +134,11 @@ void UPRAttributeSet::HandleIncomingDamage(const FEffectProperties& Props, const
 		if (NewHealth <= 0.f)
 		{
 			// Handle death
-			TagContainer.Reset();
-			TagContainer.AddTag(FPRGameplayTags::Get().Status_Life_Dead);
-			Props.TargetASC->TryActivateAbilitiesByTag(TagContainer);
-
-			/*const FHitResult* HitResult = Data.EffectSpec.GetContext().GetHitResult();
-			Cast<ABaseCharacter>(Props.TargetCharacter)->Die(CalculatedDamage,
-				HitResult == nullptr ? FHitResult() : *HitResult);*/
+			ABaseCharacter* Character = Cast<ABaseCharacter>(Props.TargetCharacter);
+			if (Character && Character->HasAuthority())
+			{
+				Character->Die((Props.TargetCharacter->GetActorLocation() - Props.SourceCharacter->GetActorLocation()).GetSafeNormal());
+			}
 		}
 	}
 }

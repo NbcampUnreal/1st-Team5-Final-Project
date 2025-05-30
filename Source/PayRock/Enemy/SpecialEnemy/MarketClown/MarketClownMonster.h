@@ -51,7 +51,7 @@ public:
 	
 protected:
 
-	virtual void Die() override;
+	virtual void Die(FVector HitDirection = FVector::ZeroVector) override;
 	
 
 	UPROPERTY(VisibleAnywhere, Category = "Combat")
