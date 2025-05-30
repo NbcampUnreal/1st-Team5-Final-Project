@@ -8,6 +8,7 @@
 #include "FireDOTArea.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
+#include "NiagaraFunctionLibrary.h"
 
 AFireballProjectile::AFireballProjectile()
 {
@@ -89,6 +90,7 @@ void AFireballProjectile::OnSphereOverlap(UPrimitiveComponent* OverlappedCompone
 	if (APRCharacter* PRChar = Cast<APRCharacter>(OtherActor))
 	{
 		bHit = true;
+		PlayImpactVFX();
 
 		if (HasAuthority() && DamageEffectClass)
 		{
@@ -115,6 +117,7 @@ void AFireballProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* Other
 {
 	if (!OtherActor || OtherActor == GetOwner() || bHit) return;
 	bHit = true;
+	PlayImpactVFX();
 	
 	HandleImpact(true);
 }
@@ -138,4 +141,17 @@ void AFireballProjectile::EnableReplication()
 {
 	SetReplicateMovement(true);
 	LaunchToTargetPlayer();
+}
+
+void AFireballProjectile::PlayImpactVFX()
+{
+	if (ImpactVFX && GetWorld())
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+			GetWorld(),
+			ImpactVFX,
+			GetActorLocation(),
+			FRotator::ZeroRotator
+		);
+	}
 }

@@ -77,6 +77,7 @@ void AMukCheonWangCharacter::Tick(float DeltaTime)
         NewPhase = EBossPhase::Phase3;
     else if (HPPercent <= 0.6f)
         NewPhase = EBossPhase::Phase2;
+    
 
     if (NewPhase != CurrentPhase)
     {
@@ -87,6 +88,15 @@ void AMukCheonWangCharacter::Tick(float DeltaTime)
             if (UBlackboardComponent* BB = AICon->GetBlackboardComponent())
             {
                 BB->SetValueAsInt(TEXT("CurrentPhase_Int"), static_cast<int32>(NewPhase));
+                
+                if (NewPhase == EBossPhase::Phase2)
+                {
+                    BB->SetValueAsBool(TEXT("bIsSpecialPattern1"), true);
+                }
+                if (NewPhase == EBossPhase::Phase3)
+                {
+                    BB->SetValueAsBool(TEXT("bIsSpecialPattern2"), true);
+                }
             }
         }
     }
