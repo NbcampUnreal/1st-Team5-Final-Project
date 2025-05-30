@@ -43,8 +43,8 @@ bool ASamuraiStatueCharacter::GetDie()
 	return bisDead;
 }
 
-void ASamuraiStatueCharacter::Die()
+void ASamuraiStatueCharacter::Die(FVector HitDirection)
 {
-	Super::Die();
+	Super::Die(HitDirection);
 	bisDead = true;
 }

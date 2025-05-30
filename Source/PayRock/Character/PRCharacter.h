@@ -27,10 +27,9 @@ public:
 
 	virtual void Tick(float DeltaSeconds) override;
 
-	virtual void Die(/*const FHitResult& HitResult*/) override;
+	virtual void Die(FVector HitDirection = FVector::ZeroVector) override;
 
-	UFUNCTION(NetMulticast, Reliable)
-	void MulticastRagdoll();
+	
 
 	// SpringArm Component
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
