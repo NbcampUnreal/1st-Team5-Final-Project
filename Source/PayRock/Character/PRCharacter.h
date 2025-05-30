@@ -6,6 +6,7 @@
 #include "BaseCharacter.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "PayRock/Item/PRItemEnum.h"
+#include "PayRock/AbilitySystem/PRAttributeSet.h"
 #include "PRCharacter.generated.h"
 
 class USphereComponent;
@@ -13,6 +14,7 @@ class UPRInputConfig;
 class USpringArmComponent; // 스프링 암 관련 클래스 헤더
 class UCameraComponent; // 카메라 관련 클래스 전방 선언
 struct FInputActionValue; // Enhanced Input에서 액션 값을 받을 때 사용하는 구조체
+class UPRAttributeSet; // 전방 선언
 
 UCLASS()
 class PAYROCK_API APRCharacter : public ABaseCharacter
@@ -118,6 +120,9 @@ public:
 	UPROPERTY(ReplicatedUsing = OnRep_Sprinting, VisibleAnywhere, BlueprintReadOnly, Category = "Anim|Movement")
 	bool bIsSprinting = false;
 
+	UFUNCTION(BlueprintCallable)
+	bool IsSprinting() const { return bIsSprinting; }
+
 	// 앉기
 	UPROPERTY(ReplicatedUsing = OnRep_Crouching, VisibleAnywhere, BlueprintReadOnly, Category = "Anim|Movement")
 	bool bIsCrouching = false;
@@ -217,10 +222,21 @@ public:
 	USoundBase* GetLandingSoundBySurface(EPhysicalSurface SurfaceType);
 
 	void Landed(const FHitResult& Hit);
-
 protected:
 	virtual void BeginPlay() override;
 	virtual void AddCharacterAbilities() override;
+
+	UPROPERTY()
+	UPRAttributeSet* PRAttributeSet;
+
+	FActiveGameplayEffectHandle ActiveSprintGEHandle;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Ability|Cost")
+	TSubclassOf<UGameplayEffect> GE_SprintManaCost;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Ability|Cost")
+	TSubclassOf<UGameplayEffect> GE_JumpManaCost;
+
 	
 private:
 	virtual void InitAbilityActorInfo() override;
