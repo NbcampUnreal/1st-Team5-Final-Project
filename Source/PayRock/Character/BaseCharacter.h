@@ -54,7 +54,7 @@ protected:
 	virtual void InitAbilityActorInfo();
 	virtual void AddCharacterAbilities();
 	void ApplyEffectToSelf(const TSubclassOf<UGameplayEffect>& EffectClass, const float& EffectLevel) const;
-	void BindToTagChange();
+	virtual void BindToTagChange();
 
 	
 

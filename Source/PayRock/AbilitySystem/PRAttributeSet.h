@@ -121,8 +121,13 @@ public:
 
 private:
 	void SetEffectProperties(const FGameplayEffectModCallbackData& Data, FEffectProperties& Props);
-	void HandleIncomingDamage(const FEffectProperties& Props, const FGameplayEffectModCallbackData& Data);
+
+	// Damage
+	float HandleIncomingDamage(const FEffectProperties& Props, const FGameplayEffectModCallbackData& Data);
 	float GetCalculatedDamage(float IncomingDamage, const FEffectProperties& Props);
+
+	// Buffs
+	void HandleLifeSteal(const FEffectProperties& Props, float DealtDamage);
 
 public:
 	/*

@@ -7,6 +7,7 @@
 #include "PayRock/PRGameplayTags.h"
 #include "PayRock/AbilitySystem/PRAbilitySystemComponent.h"
 #include "PayRock/AbilitySystem/PRAttributeSet.h"
+#include "PayRock/Character/PRCharacter.h"
 
 APRPlayerState::APRPlayerState()
 {
@@ -72,9 +73,10 @@ void APRPlayerState::SetIsExtracted(bool bExtracted)
 
 void APRPlayerState::ForceDeath()
 {
-	FGameplayTagContainer TagContainer;
-	TagContainer.AddTag(FPRGameplayTags::Get().Status_Life_Dead);
-	GetAbilitySystemComponent()->TryActivateAbilitiesByTag(TagContainer);
+	if (APRCharacter* Character = Cast<APRCharacter>(GetPawn()))
+	{
+		Character->ForceDeath();
+	}
 }
 
 void APRPlayerState::Extract()
@@ -83,6 +85,10 @@ void APRPlayerState::Extract()
     {
         SetIsExtracted(true);
     }
+	if (APRCharacter* Character = Cast<APRCharacter>(GetPawn()))
+	{
+		Character->OnExtraction();
+	}
 }
 
 void APRPlayerState::OnRep_Level(int32 OldLevel)

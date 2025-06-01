@@ -8,17 +8,16 @@
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "EnhancedInputComponent.h"
+#include "NiagaraFunctionLibrary.h"
 #include "Blessing/BlessingComponent.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "Engine/UserDefinedEnum.h"
 #include "PayRock/PRGameplayTags.h"
 #include "PayRock/AbilitySystem/PRAbilitySystemComponent.h"
 #include "PayRock/AbilitySystem/PRAttributeSet.h"
 #include "PayRock/Input/PRInputComponent.h"
 #include "PayRock/Player/PRPlayerState.h"
 #include "PayRock/Player/PRPlayerController.h"
-#include "PayRock/UI/HUD/BaseHUD.h"
 #include "PayRock/Interface/PRInterface.h"
 #include "Perception/AISense_Damage.h"
 #include "Perception/AISense_Sight.h"
@@ -151,15 +150,24 @@ void APRCharacter::InitAbilityActorInfo()
     Cast<UPRAbilitySystemComponent>(AbilitySystemComponent)->OnAbilityActorInfoInitialized();
     AttributeSet = PRPlayerState->GetAttributeSet();
 
-    if (APRPlayerController* PC = GetController<APRPlayerController>())
+    /*if (APRPlayerController* PC = GetController<APRPlayerController>())
     {
         if (ABaseHUD* HUD = PC->GetHUD<ABaseHUD>())
         {
             HUD->InitInGameHUD(PC, GetPlayerState(), AbilitySystemComponent, AttributeSet);
         }
-    }
+    }*/
     InitializeDefaultAttributes();
     BindToTagChange();
+}
+
+void APRCharacter::BindToTagChange()
+{
+    Super::BindToTagChange();
+
+    // Invisible Tag Binding
+    AbilitySystemComponent->RegisterGameplayTagEvent(FPRGameplayTags::Get().Status_Buff_Invisible).AddUObject(
+        BlessingComponent, &UBlessingComponent::OnInvisibleTagChanged);
 }
 
 void APRCharacter::SetupStimuliSource()
@@ -176,7 +184,6 @@ void APRCharacter::SetupStimuliSource()
     {
         StimuliSourceComponent->RegisterForSense(Sense);
     }
-
     StimuliSourceComponent->RegisterWithPerceptionSystem();
 }
 
@@ -400,16 +407,23 @@ void APRCharacter::StopAim(const FInputActionValue& Value)
 void APRCharacter::StartJump(const FInputActionValue& value)
 {
     if (GetCharacterMovement()->IsCrouching()) return;
-
-    Jump();
-
-    if (HasAuthority())
+    
+    if (CanDoubleJump())
     {
-        SetJustJumped(true);
+        Server_DoubleJump();
     }
     else
     {
-        ServerStartJump();
+        Jump();
+        
+        if (HasAuthority())
+        {
+            SetJustJumped(true);
+        }
+        else
+        {
+            ServerStartJump();
+        }
     }
 }
 void APRCharacter::ServerStartJump_Implementation()
@@ -422,6 +436,61 @@ void APRCharacter::StopJump(const FInputActionValue& value)
 {
     StopJumping();
 }
+
+/*** Double Jump ***/
+void APRCharacter::Server_DoubleJump_Implementation()
+{
+    bIsDoubleJumping = true;
+    
+    FVector LaunchVelocity = GetActorForwardVector();\
+    LaunchVelocity *= 1000.f;
+    LaunchVelocity.Z = DoubleJumpZAmount;
+    LaunchCharacter(LaunchVelocity, false, true);
+    
+    Multicast_DoubleJumpMontage(true);
+}
+
+void APRCharacter::Server_DoubleJumpLanded_Implementation()
+{
+    bIsDoubleJumping = false;
+    
+    Multicast_DoubleJumpMontage(false);
+}
+
+void APRCharacter::Multicast_DoubleJumpMontage_Implementation(bool bIsJump)
+{
+    UAnimMontage* MontageToPlay = bIsJump ? DoubleJumpMontage : DoubleJumpLandedMontage;
+    if (!MontageToPlay) return;
+    
+    if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
+    {
+        AnimInstance->StopAllMontages(0.1f);
+        float MontageLength = AnimInstance->Montage_Play(MontageToPlay);
+
+        if (MontageLength > 0.f && !bIsJump)
+        {
+            DisableInput(GetLocalViewingPlayerController());
+            
+            FTimerHandle TimerHandle;
+            GetWorldTimerManager().SetTimer(
+                TimerHandle,
+                [this]()
+                {
+                    EnableInput(GetLocalViewingPlayerController());
+                },
+                MontageLength,
+                false
+            );
+        }
+    }
+}
+
+bool APRCharacter::CanDoubleJump()
+{
+    return bIsInAir && !bIsDoubleJumping &&
+        GetAbilitySystemComponent()->HasMatchingGameplayTag(FPRGameplayTags::Get().Status_Buff_DoubleJump);
+}
+/*** Double Jump ***/
 
 void APRCharacter::Look(const FInputActionValue& value)
 {
@@ -541,6 +610,11 @@ void APRCharacter::Landed(const FHitResult& Hit)
     else
     {
         ServerRequestLandingSound(Location, LandingSound);
+    }
+
+    if (bIsDoubleJumping)
+    {
+        Server_DoubleJumpLanded();    
     }
 }
 
@@ -685,6 +759,7 @@ void APRCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
     DOREPLIFETIME(APRCharacter, bIsAttacking);
     DOREPLIFETIME(APRCharacter, bIsGuarding);
     DOREPLIFETIME(APRCharacter, bJustJumped);
+    DOREPLIFETIME(APRCharacter, bIsDoubleJumping)
     DOREPLIFETIME(APRCharacter, bIsAiming);
     DOREPLIFETIME(APRCharacter, ReplicatedMaxWalkSpeed);
     DOREPLIFETIME(APRCharacter, ReplicatedControlRotation);
@@ -872,10 +947,10 @@ void APRCharacter::Die(FVector HitDirection)
 {
     Super::Die(HitDirection);
 
+    StimuliSourceComponent->UnregisterFromPerceptionSystem();
+    
     if (HasAuthority())
     {
-        StimuliSourceComponent->UnregisterFromPerceptionSystem();
-        
         if (APRPlayerState* PS = GetPlayerState<APRPlayerState>())
         {
             PS->SetIsDead(true);
@@ -895,6 +970,63 @@ void APRCharacter::Die(FVector HitDirection)
                 PC->Client_OnSpectateTargetDied(this);
             }
         }
+    }
+}
+
+void APRCharacter::OnExtraction()
+{
+    GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    StimuliSourceComponent->UnregisterFromPerceptionSystem();
+    DisableInput(GetLocalViewingPlayerController());
+    
+    if (HasAuthority())
+    {
+        GetAbilitySystemComponent()->ClearAllAbilities();
+		
+        // Remove ALL active gameplay effects
+        FGameplayEffectQuery Query = FGameplayEffectQuery::MakeQuery_MatchAllEffectTags(FGameplayTagContainer());
+        GetAbilitySystemComponent()->RemoveActiveEffects(Query);
+
+        MulticastExtraction();
+    }
+    
+    GetCharacterMovement()->DisableMovement();
+    GetCharacterMovement()->StopMovementImmediately();
+}
+
+void APRCharacter::MulticastExtraction_Implementation()
+{
+    // NOT WORKING - play extraction montage?
+    Crouch();
+    
+    // Spawn Niagara
+    FVector SpawnLoc = GetActorLocation();
+    SpawnLoc.Z -= GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+
+    if (!ExtractionNiagara)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Extraction Niagara system not set")); return;
+    }
+    UNiagaraComponent* SpawnedExtractionNiagara = UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+        GetWorld(), ExtractionNiagara, SpawnLoc);
+
+    if (GetWorld() && !GetWorld()->bIsTearingDown)
+    {
+        FTimerHandle TimerHandle;
+        GetWorldTimerManager().SetTimer(
+            TimerHandle,
+            this,
+            &APRCharacter::HideCharacter,
+            HideDelay
+            );
+    }
+}
+
+void APRCharacter::HideCharacter()
+{
+    if (IsValid(this))
+    {
+        SetActorHiddenInGame(true);
     }
 }
 
