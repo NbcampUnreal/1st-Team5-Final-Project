@@ -5,7 +5,7 @@
 #include "Net/UnrealNetwork.h"
 #include "PayRock/AbilitySystem/PRAbilitySystemComponent.h"
 #include "PayRock/AbilitySystem/PRAttributeSet.h"
-#include "PayRock/Character/BaseCharacter.h"
+#include "PayRock/Character/PRCharacter.h"
 #include "PayRock/GameSystem/SaveDataSubsystem.h"
 
 UBlessingComponent::UBlessingComponent() :
@@ -15,19 +15,13 @@ UBlessingComponent::UBlessingComponent() :
 	PrimaryComponentTick.bStartWithTickEnabled = false;
 }
 
-void UBlessingComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(UBlessingComponent, AcquiredBlessings);
-}
-
 void UBlessingComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
+	OwningPRCharacter = Cast<APRCharacter>(GetOwner());
 	// Equipped Blessing is saved in the owning client
-	if (!Cast<ACharacter>(GetOwner())->IsLocallyControlled()) return;
+	if (!OwningPRCharacter->IsLocallyControlled()) return;
 
 	USaveDataSubsystem* SaveDataSystem = GetWorld()->GetGameInstance()->GetSubsystem<USaveDataSubsystem>();
 	if (!SaveDataSystem)
@@ -63,22 +57,19 @@ void UBlessingComponent::Server_AddBlessing_Implementation(const FBlessingData& 
 
 void UBlessingComponent::Client_SaveAddedBlessing_Implementation(const FBlessingData& Blessing)
 {
-	if (ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner()))
+	if (OwningPRCharacter->IsLocallyControlled())
 	{
-		if (OwnerCharacter->IsLocallyControlled())
+		if (USaveDataSubsystem* SaveDataSystem = GetWorld()->GetGameInstance()->GetSubsystem<USaveDataSubsystem>())
 		{
-			if (USaveDataSubsystem* SaveDataSystem = GetWorld()->GetGameInstance()->GetSubsystem<USaveDataSubsystem>())
-			{
-				SaveDataSystem->SaveBlessing(Blessing);
-				UE_LOG(LogTemp, Warning, TEXT("Blessing %s saved to subsystem"),
-						*Blessing.BlessingName.ToString());
+			SaveDataSystem->SaveBlessing(Blessing);
+			UE_LOG(LogTemp, Warning, TEXT("Blessing %s saved to subsystem"),
+					*Blessing.BlessingName.ToString());
 
-				Client_BroadcastBlessingAcquired(Blessing);
-			}
-			else
-			{
-				UE_LOG(LogTemp, Warning, TEXT("SaveDataSubsystem is null (OnRep_AcquiredBlessings)"));
-			}
+			Client_BroadcastBlessingAcquired(Blessing);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("SaveDataSubsystem is null (OnRep_AcquiredBlessings)"));
 		}
 	}
 }
@@ -173,14 +164,87 @@ void UBlessingComponent::Client_BroadcastBlessingAcquired_Implementation(const F
 	OnBlessingAcquired.Broadcast(Blessing);
 }
 
+void UBlessingComponent::SetInvisibleMaterial(bool bShouldMakeInvisible)
+{
+	if (bShouldMakeInvisible)
+	{
+		if (!InvisibleMaterialDynamic)
+		{
+			InvisibleMaterialDynamic = UMaterialInstanceDynamic::Create(InvisibleMaterial, OwningPRCharacter);	
+		}
+		OwningPRCharacter->GetMesh()->SetOverlayMaterial(InvisibleMaterialDynamic);
+		OwningPRCharacter->GetWeapon()->SetOverlayMaterial(InvisibleMaterialDynamic);
+		OwningPRCharacter->GetWeapon2()->SetOverlayMaterial(InvisibleMaterialDynamic);
+	}
+	else
+	{
+		OwningPRCharacter->GetMesh()->SetOverlayMaterial(nullptr);
+		OwningPRCharacter->GetWeapon()->SetOverlayMaterial(nullptr);
+		OwningPRCharacter->GetWeapon2()->SetOverlayMaterial(nullptr);
+	}
+	
+}
+
+void UBlessingComponent::OnInvisibleTagChanged(const FGameplayTag ChangedTag, int32 TagCount)
+{
+	if (TagCount > 0)
+	{
+		if (OwningPRCharacter->IsLocallyControlled())
+		{
+			if (!bInvisibleMaterialApplied)
+			{
+				SetInvisibleMaterial(true);
+				bInvisibleMaterialApplied = true;
+			}
+		}
+		else
+		{
+			OwningPRCharacter->GetMesh()->SetHiddenInGame(true);
+			OwningPRCharacter->GetWeapon()->SetHiddenInGame(true);
+			OwningPRCharacter->GetWeapon2()->SetHiddenInGame(true);
+		}
+		Server_UnregisterStimuli();
+	}
+	else
+	{
+		if (OwningPRCharacter->IsLocallyControlled())
+		{
+			if (bInvisibleMaterialApplied)
+			{
+				SetInvisibleMaterial(false);
+				bInvisibleMaterialApplied = false;
+			}
+		}
+		else
+		{
+			OwningPRCharacter->GetMesh()->SetHiddenInGame(false);
+			OwningPRCharacter->GetWeapon()->SetHiddenInGame(false);
+			OwningPRCharacter->GetWeapon2()->SetHiddenInGame(false);
+		}
+		Server_RegisterStimuli();
+	}
+}
+
+void UBlessingComponent::Server_UnregisterStimuli_Implementation()
+{
+	if (!IsValid(OwningPRCharacter->StimuliSourceComponent)) return;
+	OwningPRCharacter->StimuliSourceComponent->UnregisterFromPerceptionSystem();
+}
+
+void UBlessingComponent::Server_RegisterStimuli_Implementation()
+{
+	if (!IsValid(OwningPRCharacter->StimuliSourceComponent)) return;
+	OwningPRCharacter->StimuliSourceComponent->RegisterWithPerceptionSystem();
+}
+
 UAbilitySystemComponent* UBlessingComponent::GetAbilitySystemComponent()
 {
 	if (CachedAbilitySystemComponent) return CachedAbilitySystemComponent;
 	
-	if (ABaseCharacter* Character = Cast<ABaseCharacter>(GetOwner()))
+	if (OwningPRCharacter)
 	{
-		CachedAbilitySystemComponent = Character->GetAbilitySystemComponent();
-		return Character->GetAbilitySystemComponent();
+		CachedAbilitySystemComponent = OwningPRCharacter->GetAbilitySystemComponent();
+		return CachedAbilitySystemComponent;
 	}
 	return nullptr;
 }

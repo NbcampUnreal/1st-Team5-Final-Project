@@ -9,6 +9,7 @@
 #include "Components/ActorComponent.h"
 #include "BlessingComponent.generated.h"
 
+class APRCharacter;
 class UAbilitySystemComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPassiveBlessingChanged, const FBlessingData&, DataAsset);
@@ -47,22 +48,31 @@ public:
 	const FBlessingData& GetEquippedPassiveBlessingData() const { return EquippedPassiveBlessingData; }
 	const FBlessingData& GetEquippedActiveBlessingData() const { return EquippedActiveBlessingData; }
 
-	FOnActiveBlessingChanged OnActiveBlessingChange;
-	FOnPassiveBlessingChanged OnPassiveBlessingChange;
-	FOnBlessingAcquired OnBlessingAcquired;
+	void SetInvisibleMaterial(bool bShouldMakeInvisible);
+	void OnInvisibleTagChanged(const FGameplayTag ChangedTag, int32 TagCount);
 
 protected:
 	virtual void BeginPlay() override;
-	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
-
 	
+	UFUNCTION(Server, Reliable)
+	void Server_UnregisterStimuli();
+	UFUNCTION(Server, Reliable)
+	void Server_RegisterStimuli();
+
 private:
 	UAbilitySystemComponent* GetAbilitySystemComponent();
 
+public:
+	FOnActiveBlessingChanged OnActiveBlessingChange;
+	FOnPassiveBlessingChanged OnPassiveBlessingChange;
+	FOnBlessingAcquired OnBlessingAcquired;
+	
 private:
 	UPROPERTY()
+	APRCharacter* OwningPRCharacter;
+	UPROPERTY()
 	UAbilitySystemComponent* CachedAbilitySystemComponent;
-	UPROPERTY(EditDefaultsOnly, Replicated, Category = "Blessing")
+	UPROPERTY()
 	TArray<FBlessingData> AcquiredBlessings;
 	UPROPERTY()
 	FBlessingData EquippedPassiveBlessingData;
@@ -71,4 +81,10 @@ private:
 
 	FActiveGameplayEffectHandle PassiveBlessingHandle;
 	FGameplayAbilitySpecHandle ActiveBlessingHandle;
+
+	UPROPERTY(EditDefaultsOnly)
+	UMaterialInterface* InvisibleMaterial;
+	UPROPERTY()
+	UMaterialInstanceDynamic* InvisibleMaterialDynamic;
+	bool bInvisibleMaterialApplied = false;
 };
