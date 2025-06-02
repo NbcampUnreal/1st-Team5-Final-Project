@@ -89,12 +89,12 @@ void UPRAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
 	{
 		SetMana(FMath::Clamp(GetMana(), 0.f, GetMaxMana()));
 
-		const float HealthCurrent = GetHealth();
-		const float HealthBase = GetOwningAbilitySystemComponent()->GetNumericAttributeBase(GetHealthAttribute());
+		const float ManaCurrent = GetMana();
+		const float ManaBase = GetOwningAbilitySystemComponent()->GetNumericAttributeBase(GetManaAttribute());
 		UE_LOG(LogTemp, Warning, TEXT(
 			"[Mana] AvatarActor: %s / Amount: %f / Mana(Current): %f / Mana(Base): %f"),
 			*GetOwningAbilitySystemComponent()->GetAvatarActor()->GetName(),
-			Data.EvaluatedData.Magnitude, HealthCurrent, HealthBase);
+			Data.EvaluatedData.Magnitude, ManaCurrent, ManaBase);
 	}
 	else if (Data.EvaluatedData.Attribute == GetIncomingDamageAttribute())
 	{

@@ -30,7 +30,10 @@ public:
 
 	virtual void Tick(float DeltaSeconds) override;
 
+	/* Death */
 	virtual void Die(FVector HitDirection = FVector::ZeroVector) override;
+	UPROPERTY(Replicated)
+	bool bIsDead = false;
 
 	/* Extraction */
 	UFUNCTION()
@@ -45,6 +48,12 @@ public:
 	UAnimMontage* ExtractionMontage;*/
 	UPROPERTY(EditDefaultsOnly, Category = "Extraction")
 	float HideDelay = 2.5f;
+	UPROPERTY(Replicated)
+	bool bIsExtracted = false;
+
+	/* Status */
+	UPROPERTY(Replicated)
+	bool bIsInvisible = false;
 
 	// SpringArm Component
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
@@ -61,8 +70,7 @@ public:
 	//관전용 카메라 컨트롤 Replication
 	UPROPERTY(Replicated)
 	FRotator ReplicatedControlRotation;
-
-
+	
 	FVector DefaultSocketOffset = FVector::ZeroVector;
 	FVector AimingSocketOffset = FVector(0.f, 50.f, 30.f); // 오른쪽 위에서 보는 느낌
 
