@@ -18,21 +18,26 @@ public:
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
 protected:
-	void SpawnEffectArea();
+	UFUNCTION()
+	virtual void SpawnEffectArea();
+	UFUNCTION()
 	void ApplyEffectToActorsWithinRadius();
+	UFUNCTION()
 	void RemoveEffectArea();
 	
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Ability")
 	TSubclassOf<UGameplayEffect> EffectToApply;
-	UPROPERTY(EditDefaultsOnly, Category = "Ability")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ability")
 	TSubclassOf<UGameplayEffect> AdditionalEffectToApplyToSelf;
 	UPROPERTY(EditDefaultsOnly, Category = "Ability")
 	TSubclassOf<UGameplayEffect> EffectToApplyToSelfOnEnd;
 	UPROPERTY(EditDefaultsOnly, Category = "Ability")
 	bool bEndAbilityOnDurationEnd;
+	UPROPERTY(EditDefaultsOnly, Category = "Ability")
+	bool bActivateImmediately = true;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Ability|Duration")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ability|Duration")
 	FScalableFloat Duration;
 	UPROPERTY(EditDefaultsOnly, Category = "Ability|Duration")
 	TSubclassOf<AApplyEffectZone> AreaActorClass;
