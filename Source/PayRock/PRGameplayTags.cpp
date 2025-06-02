@@ -171,11 +171,31 @@ void FPRGameplayTags::InitializeNativeGameplayTags()
     GameplayTags.Status_Weapon_Unarmed = UGameplayTagsManager::Get().AddNativeGameplayTag(
        FName("Status.Weapon.Unarmed")
        );
+
+    /*
+     *  Buff
+     */
     GameplayTags.Status_Buff_Invincible = UGameplayTagsManager::Get().AddNativeGameplayTag(
         FName("Status.Buff.Invincible")
         );
-    GameplayTags.Status_Buff_Invincible = UGameplayTagsManager::Get().AddNativeGameplayTag(
+    GameplayTags.Status_Buff_Invisible = UGameplayTagsManager::Get().AddNativeGameplayTag(
+        FName("Status.Buff.Invisible")
+        ); 
+    GameplayTags.Status_Buff_BackAttack = UGameplayTagsManager::Get().AddNativeGameplayTag(
         FName("Status.Buff.BackAttack")
+        );
+    GameplayTags.Status_Buff_DoubleJump = UGameplayTagsManager::Get().AddNativeGameplayTag(
+        FName("Status.Buff.DoubleJump")
+        );
+    GameplayTags.Status_Buff_LifeSteal = UGameplayTagsManager::Get().AddNativeGameplayTag(
+        FName("Status.Buff.LifeSteal")
+        );
+
+    /*
+     *  Debuff
+     */
+    GameplayTags.Status_Debuff_Poison = UGameplayTagsManager::Get().AddNativeGameplayTag(
+        FName("Status.Debuff.Poison")
         );
     
     /*

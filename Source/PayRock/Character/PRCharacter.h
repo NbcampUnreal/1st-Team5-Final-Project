@@ -6,13 +6,16 @@
 #include "BaseCharacter.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "PayRock/Item/PRItemEnum.h"
+#include "PayRock/AbilitySystem/PRAttributeSet.h"
 #include "PRCharacter.generated.h"
 
+class UNiagaraSystem;
 class USphereComponent;
 class UPRInputConfig;
 class USpringArmComponent; // 스프링 암 관련 클래스 헤더
 class UCameraComponent; // 카메라 관련 클래스 전방 선언
 struct FInputActionValue; // Enhanced Input에서 액션 값을 받을 때 사용하는 구조체
+class UPRAttributeSet; // 전방 선언
 
 UCLASS()
 class PAYROCK_API APRCharacter : public ABaseCharacter
@@ -29,7 +32,19 @@ public:
 
 	virtual void Die(FVector HitDirection = FVector::ZeroVector) override;
 
-	
+	/* Extraction */
+	UFUNCTION()
+	void OnExtraction();
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastExtraction();
+	UFUNCTION()
+	void HideCharacter();
+	UPROPERTY(EditDefaultsOnly, Category = "Extraction")
+	UNiagaraSystem* ExtractionNiagara;
+	/*UPROPERTY(EditDefaultsOnly, Category = "Extraction")
+	UAnimMontage* ExtractionMontage;*/
+	UPROPERTY(EditDefaultsOnly, Category = "Extraction")
+	float HideDelay = 2.5f;
 
 	// SpringArm Component
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
@@ -62,6 +77,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Movement|Interp")
 	float CurrentInterpRate;
 
+	//AI 감지 관련 함수
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
+	UAIPerceptionStimuliSourceComponent* StimuliSourceComponent;
+	
 	// Fist Collision Component
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CollisionComponent")
 	USphereComponent* LeftHandCollisionComp;
@@ -118,6 +137,9 @@ public:
 	UPROPERTY(ReplicatedUsing = OnRep_Sprinting, VisibleAnywhere, BlueprintReadOnly, Category = "Anim|Movement")
 	bool bIsSprinting = false;
 
+	UFUNCTION(BlueprintCallable)
+	bool IsSprinting() const { return bIsSprinting; }
+
 	// 앉기
 	UPROPERTY(ReplicatedUsing = OnRep_Crouching, VisibleAnywhere, BlueprintReadOnly, Category = "Anim|Movement")
 	bool bIsCrouching = false;
@@ -137,6 +159,9 @@ public:
 	UPROPERTY(ReplicatedUsing = OnRep_JustJumped, VisibleAnywhere, BlueprintReadOnly, Category = "Anim|Movement")
 	bool bJustJumped = false;
 
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Anim|Movement")
+	bool bIsDoubleJumping = false;
+
 	UPROPERTY(ReplicatedUsing = OnRep_IsAiming, VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
 	bool bIsAiming = false;
 
@@ -155,6 +180,22 @@ public:
 
 	UFUNCTION(Server, Reliable)
 	void ServerStartJump();
+
+	/* Double Jump */
+	UFUNCTION(Server, Reliable)
+	void Server_DoubleJump();
+	UFUNCTION(Server, Reliable)
+	void Server_DoubleJumpLanded();
+	UFUNCTION(NetMulticast, Unreliable)
+	void Multicast_DoubleJumpMontage(bool bIsJump);
+	bool CanDoubleJump();
+
+	UPROPERTY(EditDefaultsOnly, Category = "Anim|DoubleJump")
+	UAnimMontage* DoubleJumpMontage;
+	UPROPERTY(EditDefaultsOnly, Category = "Anim|DoubleJump")
+	UAnimMontage* DoubleJumpLandedMontage;
+	UPROPERTY(EditDefaultsOnly, Category = "Anim|DoubleJump")
+	float DoubleJumpZAmount;
 
 	UFUNCTION(Server, Reliable)
 	void ServerStartSprint();
@@ -180,6 +221,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	EWeaponType GetCurrentWeaponType() const { return CurrentWeaponType; }
+
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	USkeletalMeshComponent* GetWeapon2() const { return Weapon2; }
 
 	// 발소리 관련
 	UFUNCTION(Server, Reliable)
@@ -221,6 +265,19 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void AddCharacterAbilities() override;
+
+	UPROPERTY()
+	UPRAttributeSet* PRAttributeSet;
+
+	FActiveGameplayEffectHandle ActiveSprintGEHandle;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Ability|Cost")
+	TSubclassOf<UGameplayEffect> GE_SprintManaCost;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Ability|Cost")
+	TSubclassOf<UGameplayEffect> GE_JumpManaCost;
+
+	virtual void BindToTagChange() override;
 	
 private:
 	virtual void InitAbilityActorInfo() override;
@@ -230,10 +287,6 @@ protected:
 	// Equipped Ability Spec Handles
 	UPROPERTY(BlueprintReadWrite)
 	TArray<FGameplayAbilitySpecHandle> WeaponAbilityHandles;
-	
-	//AI 감지 관련 함수
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
-	UAIPerceptionStimuliSourceComponent* StimuliSourceComponent;
 
 	// 상호작용 관련 함수
 	UFUNCTION(BlueprintCallable, Category = "Interaction")

@@ -56,6 +56,10 @@
 				"Win64",
 				"Linux"
 			]
+		},
+		{
+			"Name": "MetaHumanRuntime",
+			"Enabled": true
 		}
 	]
 }

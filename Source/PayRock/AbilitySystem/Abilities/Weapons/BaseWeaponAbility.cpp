@@ -95,7 +95,7 @@ void UBaseWeaponAbility::OnOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 
 	float Dot = FVector::DotProduct(TargetForward, ToAttacker);
 
-	bool bIsBackAttack = Dot > 0.5f;
+	bool bIsBackAttack = Dot < -0.5f;
 	
 	if (GetAvatarActorFromActorInfo()->HasAuthority())
 	{
@@ -108,11 +108,11 @@ void UBaseWeaponAbility::UpdateCurrentAttackType(APRCharacter* PlayerCharacter)
 {
 	UCharacterMovementComponent* MovementComp = PlayerCharacter->GetCharacterMovement();
 
-	if (PlayerCharacter->bIsCrouching)
-	{
-		CurrentAttackType = EAttackType::CrouchAttack;
-		return;
-	}
+	//if (PlayerCharacter->bIsCrouching)
+	//{
+	//	CurrentAttackType = EAttackType::CrouchAttack;
+	//	return;
+	//}
 
 	if (PlayerCharacter->bIsInAir)
 	{

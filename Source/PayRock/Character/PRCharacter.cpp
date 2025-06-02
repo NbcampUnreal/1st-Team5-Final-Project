@@ -8,17 +8,16 @@
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "EnhancedInputComponent.h"
+#include "NiagaraFunctionLibrary.h"
 #include "Blessing/BlessingComponent.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "Engine/UserDefinedEnum.h"
 #include "PayRock/PRGameplayTags.h"
 #include "PayRock/AbilitySystem/PRAbilitySystemComponent.h"
 #include "PayRock/AbilitySystem/PRAttributeSet.h"
 #include "PayRock/Input/PRInputComponent.h"
 #include "PayRock/Player/PRPlayerState.h"
 #include "PayRock/Player/PRPlayerController.h"
-#include "PayRock/UI/HUD/BaseHUD.h"
 #include "PayRock/Interface/PRInterface.h"
 #include "Perception/AISense_Damage.h"
 #include "Perception/AISense_Sight.h"
@@ -151,15 +150,27 @@ void APRCharacter::InitAbilityActorInfo()
     Cast<UPRAbilitySystemComponent>(AbilitySystemComponent)->OnAbilityActorInfoInitialized();
     AttributeSet = PRPlayerState->GetAttributeSet();
 
+    PRAttributeSet = Cast<UPRAttributeSet>(AttributeSet);
+
     if (APRPlayerController* PC = GetController<APRPlayerController>())
+    /*if (APRPlayerController* PC = GetController<APRPlayerController>())
     {
         if (ABaseHUD* HUD = PC->GetHUD<ABaseHUD>())
         {
             HUD->InitInGameHUD(PC, GetPlayerState(), AbilitySystemComponent, AttributeSet);
         }
-    }
+    }*/
     InitializeDefaultAttributes();
     BindToTagChange();
+}
+
+void APRCharacter::BindToTagChange()
+{
+    Super::BindToTagChange();
+
+    // Invisible Tag Binding
+    AbilitySystemComponent->RegisterGameplayTagEvent(FPRGameplayTags::Get().Status_Buff_Invisible).AddUObject(
+        BlessingComponent, &UBlessingComponent::OnInvisibleTagChanged);
 }
 
 void APRCharacter::SetupStimuliSource()
@@ -176,7 +187,6 @@ void APRCharacter::SetupStimuliSource()
     {
         StimuliSourceComponent->RegisterForSense(Sense);
     }
-
     StimuliSourceComponent->RegisterWithPerceptionSystem();
 }
 
@@ -397,31 +407,115 @@ void APRCharacter::StopAim(const FInputActionValue& Value)
     OnRep_IsAiming();
 }
 
-void APRCharacter::StartJump(const FInputActionValue& value)
+void APRCharacter::StartJump(const FInputActionValue& Value)
 {
     if (GetCharacterMovement()->IsCrouching()) return;
+    if (!AbilitySystemComponent || !GE_JumpManaCost || !PRAttributeSet) return;
+    if (PRAttributeSet->GetMana() < 10.f) return; // 마나 부족 시 점프 금지
 
-    Jump();
+    Jump(); // 클라이언트에서 즉시 점프 반응
 
-    if (HasAuthority())
+    // 로컬에서 실행하지 않고 서버에 요청
+    ServerStartJump();
+    
+    if (CanDoubleJump())
     {
-        SetJustJumped(true);
+        Server_DoubleJump();
     }
     else
     {
-        ServerStartJump();
+        Jump();
+        
+        if (HasAuthority())
+        {
+            SetJustJumped(true);
+        }
+        else
+        {
+            ServerStartJump();
+        }
     }
 }
+
 void APRCharacter::ServerStartJump_Implementation()
 {
-    Jump(); // 서버도 점프 상태 반영
-    SetJustJumped(true); // bJustJumped 리플리케이션으로 애니메이션 연동
+    if (!AbilitySystemComponent || !GE_JumpManaCost || !PRAttributeSet) return;
+    if (PRAttributeSet->GetMana() < 10.f) 
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, TEXT("Not enough Mana to jump!"));
+        return;
+    }
+
+    FGameplayEffectContextHandle Context = AbilitySystemComponent->MakeEffectContext();
+    FGameplayEffectSpecHandle Spec = AbilitySystemComponent->MakeOutgoingSpec(GE_JumpManaCost, 1.f, Context);
+
+    if (Spec.IsValid())
+    {
+        AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*Spec.Data);
+        Jump(); // 점프 수행
+        SetJustJumped(true); // 애님 연동용 리플리케이션
+    }
 }
 
 void APRCharacter::StopJump(const FInputActionValue& value)
 {
     StopJumping();
 }
+
+/*** Double Jump ***/
+void APRCharacter::Server_DoubleJump_Implementation()
+{
+    bIsDoubleJumping = true;
+    
+    FVector LaunchVelocity = GetActorForwardVector();\
+    LaunchVelocity *= 1000.f;
+    LaunchVelocity.Z = DoubleJumpZAmount;
+    LaunchCharacter(LaunchVelocity, false, true);
+    
+    Multicast_DoubleJumpMontage(true);
+}
+
+void APRCharacter::Server_DoubleJumpLanded_Implementation()
+{
+    bIsDoubleJumping = false;
+    
+    Multicast_DoubleJumpMontage(false);
+}
+
+void APRCharacter::Multicast_DoubleJumpMontage_Implementation(bool bIsJump)
+{
+    UAnimMontage* MontageToPlay = bIsJump ? DoubleJumpMontage : DoubleJumpLandedMontage;
+    if (!MontageToPlay) return;
+    
+    if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
+    {
+        AnimInstance->StopAllMontages(0.1f);
+        float MontageLength = AnimInstance->Montage_Play(MontageToPlay);
+
+        if (MontageLength > 0.f && !bIsJump)
+        {
+            DisableInput(GetLocalViewingPlayerController());
+            
+            FTimerHandle TimerHandle;
+            GetWorldTimerManager().SetTimer(
+                TimerHandle,
+                [this]()
+                {
+                    EnableInput(GetLocalViewingPlayerController());
+                },
+                MontageLength,
+                false
+            );
+        }
+    }
+}
+
+bool APRCharacter::CanDoubleJump()
+{
+    return bIsInAir && !bIsDoubleJumping &&
+        GetAbilitySystemComponent()->HasMatchingGameplayTag(FPRGameplayTags::Get().Status_Buff_DoubleJump);
+}
+/*** Double Jump ***/
 
 void APRCharacter::Look(const FInputActionValue& value)
 {
@@ -430,9 +524,12 @@ void APRCharacter::Look(const FInputActionValue& value)
     AddControllerPitchInput(LookInput.Y * MouseSensitivity);
 }
 
-void APRCharacter::StartSprint(const FInputActionValue& value)
+void APRCharacter::StartSprint(const FInputActionValue& Value)
 {
-    if (bIsAiming) return;
+    if (bIsAiming || bIsSprinting || !AbilitySystemComponent || !GE_SprintManaCost || !PRAttributeSet) return;
+
+    // 마나가 5 미만이면 스프린트 불가
+    if (PRAttributeSet->GetMana() < 5.f) return;
 
     SetSpeedMode(true);
 
@@ -446,26 +543,48 @@ void APRCharacter::StartSprint(const FInputActionValue& value)
 
 void APRCharacter::ServerStartSprint_Implementation()
 {
+    if (bIsAiming || bIsSprinting || !AbilitySystemComponent || !GE_SprintManaCost || !PRAttributeSet) return;
+
+    if (PRAttributeSet->GetMana() < 5.f) return;
+
     SetSpeedMode(true);
     bIsSprinting = true;
+
+    if (!ActiveSprintGEHandle.IsValid())
+    {
+        FGameplayEffectContextHandle ContextHandle = AbilitySystemComponent->MakeEffectContext();
+        FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(GE_SprintManaCost, 1.f, ContextHandle);
+        if (SpecHandle.IsValid())
+        {
+            ActiveSprintGEHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data);
+        }
+    }
 }
 
-void APRCharacter::StopSprint(const FInputActionValue& value)
+void APRCharacter::StopSprint(const FInputActionValue& Value)
 {
-    SetSpeedMode(false); // 이걸로 대체
+    if (!bIsSprinting) return;
+
+    SetSpeedMode(false);
 
     if (!HasAuthority())
     {
         ServerStopSprint();
     }
 
-    bIsSprinting = false; // 클라에서도 상태 유지
+    bIsSprinting = false;
 }
 
 void APRCharacter::ServerStopSprint_Implementation()
 {
     SetSpeedMode(false);
     bIsSprinting = false;
+
+    if (ActiveSprintGEHandle.IsValid())
+    {
+        AbilitySystemComponent->RemoveActiveGameplayEffect(ActiveSprintGEHandle);
+        ActiveSprintGEHandle.Invalidate();
+    }
 }
 
 void APRCharacter::ServerRequestFootstep_Implementation(FVector Location, USoundBase* Sound)
@@ -541,6 +660,11 @@ void APRCharacter::Landed(const FHitResult& Hit)
     else
     {
         ServerRequestLandingSound(Location, LandingSound);
+    }
+
+    if (bIsDoubleJumping)
+    {
+        Server_DoubleJumpLanded();    
     }
 }
 
@@ -685,6 +809,7 @@ void APRCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
     DOREPLIFETIME(APRCharacter, bIsAttacking);
     DOREPLIFETIME(APRCharacter, bIsGuarding);
     DOREPLIFETIME(APRCharacter, bJustJumped);
+    DOREPLIFETIME(APRCharacter, bIsDoubleJumping)
     DOREPLIFETIME(APRCharacter, bIsAiming);
     DOREPLIFETIME(APRCharacter, ReplicatedMaxWalkSpeed);
     DOREPLIFETIME(APRCharacter, ReplicatedControlRotation);
@@ -833,49 +958,34 @@ void APRCharacter::Tick(float DeltaSeconds)
             }
         }
     }
-    // 루트모션 디버깅
-    //FString NetRoleString;
-    //switch (GetLocalRole())
-    //{
-    //case ROLE_Authority: NetRoleString = TEXT("Authority"); break;
-    //case ROLE_AutonomousProxy: NetRoleString = TEXT("AutonomousProxy"); break;
-    //case ROLE_SimulatedProxy: NetRoleString = TEXT("SimulatedProxy"); break;
-    //default: NetRoleString = TEXT("Unknown"); break;
-    //}
+    // 디버그용 마나 확인
+    if (IsLocallyControlled() && PRAttributeSet)
+    {
+        float Mana = PRAttributeSet->GetMana();
+        if (IsSprinting() && Mana < 5.f)
+        {
+            if (HasAuthority())
+            {
+                StopSprint(FInputActionValue());
+            }
+            else
+            {
+                ServerStopSprint();
+            }
+        }
 
-    //UE_LOG(LogTemp, Log, TEXT("[RootMotion Debug] (%s) 위치: %s | 이동 모드: %d | 속도: %.2f"),
-    //    *NetRoleString,
-    //    *GetActorLocation().ToString(),
-    //    static_cast<int32>(GetCharacterMovement()->MovementMode),
-    //    GetVelocity().Size());
-
-    //if (UAnimInstance* AnimInst = GetMesh()->GetAnimInstance())
-    //{
-    //    if (UAnimMontage* ActiveMontage = AnimInst->GetCurrentActiveMontage())
-    //    {
-    //        UE_LOG(LogTemp, Log, TEXT("[RootMotion Debug] 재생 중 몽타주: %s"),
-    //            *ActiveMontage->GetName());
-
-    //        if (AnimInst->GetRootMotionMontageInstance())
-    //        {
-    //            UE_LOG(LogTemp, Warning, TEXT("[RootMotion Debug] 루트모션 몽타주 ACTIVE"));
-    //        }
-    //        else
-    //        {
-    //            UE_LOG(LogTemp, Warning, TEXT("[RootMotion Debug] 루트모션 몽타주 INACTIVE"));
-    //        }
-    //    }
-    //}
+        GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Cyan, FString::Printf(TEXT("Current Mana: %.1f"), Mana));
+    }
 }
 
 void APRCharacter::Die(FVector HitDirection)
 {
     Super::Die(HitDirection);
 
+    StimuliSourceComponent->UnregisterFromPerceptionSystem();
+    
     if (HasAuthority())
     {
-        StimuliSourceComponent->UnregisterFromPerceptionSystem();
-        
         if (APRPlayerState* PS = GetPlayerState<APRPlayerState>())
         {
             PS->SetIsDead(true);
@@ -895,6 +1005,63 @@ void APRCharacter::Die(FVector HitDirection)
                 PC->Client_OnSpectateTargetDied(this);
             }
         }
+    }
+}
+
+void APRCharacter::OnExtraction()
+{
+    GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    StimuliSourceComponent->UnregisterFromPerceptionSystem();
+    DisableInput(GetLocalViewingPlayerController());
+    
+    if (HasAuthority())
+    {
+        GetAbilitySystemComponent()->ClearAllAbilities();
+		
+        // Remove ALL active gameplay effects
+        FGameplayEffectQuery Query = FGameplayEffectQuery::MakeQuery_MatchAllEffectTags(FGameplayTagContainer());
+        GetAbilitySystemComponent()->RemoveActiveEffects(Query);
+
+        MulticastExtraction();
+    }
+    
+    GetCharacterMovement()->DisableMovement();
+    GetCharacterMovement()->StopMovementImmediately();
+}
+
+void APRCharacter::MulticastExtraction_Implementation()
+{
+    // NOT WORKING - play extraction montage?
+    Crouch();
+    
+    // Spawn Niagara
+    FVector SpawnLoc = GetActorLocation();
+    SpawnLoc.Z -= GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+
+    if (!ExtractionNiagara)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Extraction Niagara system not set")); return;
+    }
+    UNiagaraComponent* SpawnedExtractionNiagara = UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+        GetWorld(), ExtractionNiagara, SpawnLoc);
+
+    if (GetWorld() && !GetWorld()->bIsTearingDown)
+    {
+        FTimerHandle TimerHandle;
+        GetWorldTimerManager().SetTimer(
+            TimerHandle,
+            this,
+            &APRCharacter::HideCharacter,
+            HideDelay
+            );
+    }
+}
+
+void APRCharacter::HideCharacter()
+{
+    if (IsValid(this))
+    {
+        SetActorHiddenInGame(true);
     }
 }
 
