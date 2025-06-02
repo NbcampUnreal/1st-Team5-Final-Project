@@ -41,7 +41,8 @@ void UBaseDamageGameplayAbility::CauseDamage(AActor* TargetActor, bool bIsBackAt
 	{
 		UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 		
-		FGameplayEffectSpecHandle DamageEffectSpecHandle = MakeOutgoingGameplayEffectSpec(DamageEffectClass, 1.f);
+		FGameplayEffectSpecHandle DamageEffectSpecHandle = MakeOutgoingGameplayEffectSpec(
+			DamageEffectClass, GetAbilityLevel());
 		float ScaledDamage = Damage.GetValueAtLevel(GetAbilityLevel());
 
 		// Back Attack Buff Bonus
@@ -63,31 +64,28 @@ float UBaseDamageGameplayAbility::GetBackAttackMultiplier()
 {
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 	if (!ASC) return 0.f;
-	
+
+	int32 BackAttackLevel = 1;
 	FGameplayTagContainer Tags;
 	Tags.AddTag(FPRGameplayTags::Get().Status_Buff_BackAttack);
-	TArray<FActiveGameplayEffectHandle> Handles = ASC->GetActiveEffectsWithAllTags(Tags);
-	
-	if (Handles.Num() > 0)
+	for (const auto& ActiveEffect : ASC->GetActiveEffectsWithAllTags(Tags))
 	{
-		const FActiveGameplayEffect* Effect = ASC->GetActiveGameplayEffect(Handles[0]);
-		if (Effect)
-		{
-			switch (static_cast<int32>(Effect->Spec.GetLevel()))
-			{
-			case 1:
-				return 0.5f;
-			case 2:
-				return 0.75f;
-			case 3:
-				return 1.f;
-			case 4:
-				return 1.5f;
-			}
-		}
+		if (!ActiveEffect.WasSuccessfullyApplied()) continue;
+	
+		// will return 1 if for some reason data isn't valid
+		FGameplayEffectContextHandle ContextHandle = ASC->GetEffectContextFromActiveGEHandle(ActiveEffect);
+		BackAttackLevel = ContextHandle.GetAbilityLevel();
+		break; // Presuming there's only one GA that granted this buff
 	}
-
-	return 0.f;
+	// TODO : make this not hard coding
+	switch (BackAttackLevel)
+	{
+	case 1:		return 0.5f;
+	case 2:		return 0.75f;
+	case 3:		return 1.f;
+	case 4:		return 1.5f;
+	default:	return 1.f;
+	}
 }
 
 void UBaseDamageGameplayAbility::PlayAuraVFX(AActor* TargetActor)

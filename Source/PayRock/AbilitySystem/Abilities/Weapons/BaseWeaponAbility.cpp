@@ -95,7 +95,7 @@ void UBaseWeaponAbility::OnOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 
 	float Dot = FVector::DotProduct(TargetForward, ToAttacker);
 
-	bool bIsBackAttack = Dot > 0.5f;
+	bool bIsBackAttack = Dot < -0.5f;
 	
 	if (GetAvatarActorFromActorInfo()->HasAuthority())
 	{
