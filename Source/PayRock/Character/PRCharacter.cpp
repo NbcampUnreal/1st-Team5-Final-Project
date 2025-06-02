@@ -517,6 +517,18 @@ bool APRCharacter::CanDoubleJump()
 }
 /*** Double Jump ***/
 
+/*** Spin ***/
+void APRCharacter::StartSpin()
+{
+    bShouldSpin = true;
+}
+
+void APRCharacter::StopSpin()
+{
+    bShouldSpin = false;
+}
+/*** Spin ***/
+
 void APRCharacter::Look(const FInputActionValue& value)
 {
     FVector2D LookInput = value.Get<FVector2D>();
@@ -811,6 +823,7 @@ void APRCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
     DOREPLIFETIME(APRCharacter, bJustJumped);
     DOREPLIFETIME(APRCharacter, bIsDoubleJumping)
     DOREPLIFETIME(APRCharacter, bIsAiming);
+    DOREPLIFETIME(APRCharacter, bShouldSpin);
     DOREPLIFETIME(APRCharacter, ReplicatedMaxWalkSpeed);
     DOREPLIFETIME(APRCharacter, ReplicatedControlRotation);
     DOREPLIFETIME(APRCharacter, CurrentWeaponType);
@@ -861,7 +874,7 @@ void APRCharacter::OnRep_IsAiming()
 void APRCharacter::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
-
+    
     // 카메라 보간
     const float TargetArm = bIsAiming ? AimingArmLength : DefaultArmLength;
     const FVector TargetOffset = bIsAiming ? AimingSocketOffset : DefaultSocketOffset;
@@ -912,6 +925,12 @@ void APRCharacter::Tick(float DeltaSeconds)
         }
 
         GetCharacterMovement()->RotationRate = FRotator(0.f, 400.f, 0.f);
+    }
+
+    if (bShouldSpin)
+    {
+        AddActorLocalRotation(FRotator(0.f, SpinSpeed * DeltaSeconds, 0.f));
+        return;
     }
 
     // 방향 계산

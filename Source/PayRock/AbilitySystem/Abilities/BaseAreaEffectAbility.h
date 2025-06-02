@@ -19,11 +19,11 @@ public:
 
 protected:
 	UFUNCTION()
-	virtual void SpawnEffectArea();
+	void SpawnEffectArea();
 	UFUNCTION()
 	void ApplyEffectToActorsWithinRadius();
 	UFUNCTION()
-	void RemoveEffectArea();
+	virtual void RemoveEffectArea();
 	
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Ability")

@@ -197,6 +197,15 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Anim|DoubleJump")
 	float DoubleJumpZAmount;
 
+	/* Spin */
+	UFUNCTION(BlueprintCallable)
+	void StartSpin();
+	UFUNCTION(BlueprintCallable)
+	void StopSpin();
+	UPROPERTY(Replicated)
+	bool bShouldSpin;
+	float SpinSpeed = 1440.f;
+
 	UFUNCTION(Server, Reliable)
 	void ServerStartSprint();
 
