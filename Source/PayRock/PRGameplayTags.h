@@ -66,8 +66,14 @@ public:
 	FGameplayTag Status_Life_Alive;
 	FGameplayTag Status_Weapon_Equipped;
 	FGameplayTag Status_Weapon_Unarmed;
+	
 	FGameplayTag Status_Buff_Invincible;
+	FGameplayTag Status_Buff_Invisible;
 	FGameplayTag Status_Buff_BackAttack;
+	FGameplayTag Status_Buff_DoubleJump;
+	FGameplayTag Status_Buff_LifeSteal;
+
+	FGameplayTag Status_Debuff_Poison;
 
 	FGameplayTag Effects_HitReact;
 
