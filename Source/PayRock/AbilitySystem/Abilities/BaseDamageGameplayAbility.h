@@ -37,8 +37,8 @@ protected:
 	UPROPERTY(BlueprintReadWrite)
 	int32 MontageIndex;
 
-	UPROPERTY(BlueprintReadOnly)
-	FHitResult HitResult;
+	// UPROPERTY(BlueprintReadOnly)
+	// FHitResult HitResult;
 
 	UPROPERTY(BlueprintReadOnly)
 	float AttackSpeed = 1.f;
