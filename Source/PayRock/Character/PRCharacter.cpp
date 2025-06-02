@@ -150,6 +150,9 @@ void APRCharacter::InitAbilityActorInfo()
     Cast<UPRAbilitySystemComponent>(AbilitySystemComponent)->OnAbilityActorInfoInitialized();
     AttributeSet = PRPlayerState->GetAttributeSet();
 
+    PRAttributeSet = Cast<UPRAttributeSet>(AttributeSet);
+
+    if (APRPlayerController* PC = GetController<APRPlayerController>())
     /*if (APRPlayerController* PC = GetController<APRPlayerController>())
     {
         if (ABaseHUD* HUD = PC->GetHUD<ABaseHUD>())
@@ -404,9 +407,16 @@ void APRCharacter::StopAim(const FInputActionValue& Value)
     OnRep_IsAiming();
 }
 
-void APRCharacter::StartJump(const FInputActionValue& value)
+void APRCharacter::StartJump(const FInputActionValue& Value)
 {
     if (GetCharacterMovement()->IsCrouching()) return;
+    if (!AbilitySystemComponent || !GE_JumpManaCost || !PRAttributeSet) return;
+    if (PRAttributeSet->GetMana() < 10.f) return; // 마나 부족 시 점프 금지
+
+    Jump(); // 클라이언트에서 즉시 점프 반응
+
+    // 로컬에서 실행하지 않고 서버에 요청
+    ServerStartJump();
     
     if (CanDoubleJump())
     {
@@ -426,10 +436,25 @@ void APRCharacter::StartJump(const FInputActionValue& value)
         }
     }
 }
+
 void APRCharacter::ServerStartJump_Implementation()
 {
-    Jump(); // 서버도 점프 상태 반영
-    SetJustJumped(true); // bJustJumped 리플리케이션으로 애니메이션 연동
+    if (!AbilitySystemComponent || !GE_JumpManaCost || !PRAttributeSet) return;
+    if (PRAttributeSet->GetMana() < 10.f) 
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, TEXT("Not enough Mana to jump!"));
+        return;
+    }
+
+    FGameplayEffectContextHandle Context = AbilitySystemComponent->MakeEffectContext();
+    FGameplayEffectSpecHandle Spec = AbilitySystemComponent->MakeOutgoingSpec(GE_JumpManaCost, 1.f, Context);
+
+    if (Spec.IsValid())
+    {
+        AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*Spec.Data);
+        Jump(); // 점프 수행
+        SetJustJumped(true); // 애님 연동용 리플리케이션
+    }
 }
 
 void APRCharacter::StopJump(const FInputActionValue& value)
@@ -499,9 +524,12 @@ void APRCharacter::Look(const FInputActionValue& value)
     AddControllerPitchInput(LookInput.Y * MouseSensitivity);
 }
 
-void APRCharacter::StartSprint(const FInputActionValue& value)
+void APRCharacter::StartSprint(const FInputActionValue& Value)
 {
-    if (bIsAiming) return;
+    if (bIsAiming || bIsSprinting || !AbilitySystemComponent || !GE_SprintManaCost || !PRAttributeSet) return;
+
+    // 마나가 5 미만이면 스프린트 불가
+    if (PRAttributeSet->GetMana() < 5.f) return;
 
     SetSpeedMode(true);
 
@@ -515,26 +543,48 @@ void APRCharacter::StartSprint(const FInputActionValue& value)
 
 void APRCharacter::ServerStartSprint_Implementation()
 {
+    if (bIsAiming || bIsSprinting || !AbilitySystemComponent || !GE_SprintManaCost || !PRAttributeSet) return;
+
+    if (PRAttributeSet->GetMana() < 5.f) return;
+
     SetSpeedMode(true);
     bIsSprinting = true;
+
+    if (!ActiveSprintGEHandle.IsValid())
+    {
+        FGameplayEffectContextHandle ContextHandle = AbilitySystemComponent->MakeEffectContext();
+        FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(GE_SprintManaCost, 1.f, ContextHandle);
+        if (SpecHandle.IsValid())
+        {
+            ActiveSprintGEHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data);
+        }
+    }
 }
 
-void APRCharacter::StopSprint(const FInputActionValue& value)
+void APRCharacter::StopSprint(const FInputActionValue& Value)
 {
-    SetSpeedMode(false); // 이걸로 대체
+    if (!bIsSprinting) return;
+
+    SetSpeedMode(false);
 
     if (!HasAuthority())
     {
         ServerStopSprint();
     }
 
-    bIsSprinting = false; // 클라에서도 상태 유지
+    bIsSprinting = false;
 }
 
 void APRCharacter::ServerStopSprint_Implementation()
 {
     SetSpeedMode(false);
     bIsSprinting = false;
+
+    if (ActiveSprintGEHandle.IsValid())
+    {
+        AbilitySystemComponent->RemoveActiveGameplayEffect(ActiveSprintGEHandle);
+        ActiveSprintGEHandle.Invalidate();
+    }
 }
 
 void APRCharacter::ServerRequestFootstep_Implementation(FVector Location, USoundBase* Sound)
@@ -908,39 +958,24 @@ void APRCharacter::Tick(float DeltaSeconds)
             }
         }
     }
-    // 루트모션 디버깅
-    //FString NetRoleString;
-    //switch (GetLocalRole())
-    //{
-    //case ROLE_Authority: NetRoleString = TEXT("Authority"); break;
-    //case ROLE_AutonomousProxy: NetRoleString = TEXT("AutonomousProxy"); break;
-    //case ROLE_SimulatedProxy: NetRoleString = TEXT("SimulatedProxy"); break;
-    //default: NetRoleString = TEXT("Unknown"); break;
-    //}
+    // 디버그용 마나 확인
+    if (IsLocallyControlled() && PRAttributeSet)
+    {
+        float Mana = PRAttributeSet->GetMana();
+        if (IsSprinting() && Mana < 5.f)
+        {
+            if (HasAuthority())
+            {
+                StopSprint(FInputActionValue());
+            }
+            else
+            {
+                ServerStopSprint();
+            }
+        }
 
-    //UE_LOG(LogTemp, Log, TEXT("[RootMotion Debug] (%s) 위치: %s | 이동 모드: %d | 속도: %.2f"),
-    //    *NetRoleString,
-    //    *GetActorLocation().ToString(),
-    //    static_cast<int32>(GetCharacterMovement()->MovementMode),
-    //    GetVelocity().Size());
-
-    //if (UAnimInstance* AnimInst = GetMesh()->GetAnimInstance())
-    //{
-    //    if (UAnimMontage* ActiveMontage = AnimInst->GetCurrentActiveMontage())
-    //    {
-    //        UE_LOG(LogTemp, Log, TEXT("[RootMotion Debug] 재생 중 몽타주: %s"),
-    //            *ActiveMontage->GetName());
-
-    //        if (AnimInst->GetRootMotionMontageInstance())
-    //        {
-    //            UE_LOG(LogTemp, Warning, TEXT("[RootMotion Debug] 루트모션 몽타주 ACTIVE"));
-    //        }
-    //        else
-    //        {
-    //            UE_LOG(LogTemp, Warning, TEXT("[RootMotion Debug] 루트모션 몽타주 INACTIVE"));
-    //        }
-    //    }
-    //}
+        GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Cyan, FString::Printf(TEXT("Current Mana: %.1f"), Mana));
+    }
 }
 
 void APRCharacter::Die(FVector HitDirection)

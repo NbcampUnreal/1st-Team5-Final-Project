@@ -14,7 +14,7 @@ enum class EAttackType : uint8
 	NormalAttack = 0,
 	DashAttack,
 	JumpAttack,
-	CrouchAttack
+	/*CrouchAttack*/
 };
 
 UCLASS()
@@ -56,8 +56,8 @@ protected:
 	TObjectPtr<UAnimMontage> DashAttackMontage;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TObjectPtr<UAnimMontage> JumpAttackMontage;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TObjectPtr<UAnimMontage> CrouchAttackMontage;
+	//UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	//TObjectPtr<UAnimMontage> CrouchAttackMontage;
 
 	bool bHit = false;
 };

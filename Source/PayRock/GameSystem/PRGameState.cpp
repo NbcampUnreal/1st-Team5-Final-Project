@@ -143,7 +143,7 @@ void APRGameState::MatchEnd()
 	for (APlayerState* PS : PlayerArray)
 	{
 		APRPlayerState* PRPS = Cast<APRPlayerState>(PS);
-		PRPS->ForceDeath();
+		if (!PRPS->GetIsExtracted()) PRPS->ForceDeath();
 	}
 	GetWorld()->GetTimerManager().SetTimer(
 		MatchEndTimerHandle,
