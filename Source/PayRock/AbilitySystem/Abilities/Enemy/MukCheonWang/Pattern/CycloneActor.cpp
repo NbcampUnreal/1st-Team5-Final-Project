@@ -26,10 +26,13 @@ ACycloneActor::ACycloneActor()
 void ACycloneActor::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	SpawnLightning();
-}
 
+	if (HasAuthority())
+	{
+		Multicast_ActivateCycloneVFX(); 
+		SpawnLightning();            
+	}
+}
 void ACycloneActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -117,4 +120,12 @@ void ACycloneActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	}
 
 	Super::EndPlay(EndPlayReason);
+}
+
+void ACycloneActor::Multicast_ActivateCycloneVFX_Implementation()
+{
+	if (CycloneVFX)
+	{
+		CycloneVFX->Activate(true);
+	}
 }

@@ -20,68 +20,66 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
-	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
-	
-	UPROPERTY(VisibleAnywhere, Category = "Components")
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
+	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<USphereComponent> DetectionSphere;
 
-	UPROPERTY(VisibleAnywhere, Category = "Components")
+	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UNiagaraComponent> LightVFX;
 
-	UPROPERTY(VisibleAnywhere, Category = "Components")
+	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UPointLightComponent> LightSource;
-	
-	UPROPERTY(EditDefaultsOnly, Category = "Damage")
+
+	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UGameplayEffect> DamageEffectClass;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Damage")
+	UPROPERTY(EditDefaultsOnly)
 	FGameplayTag DamageTypeTag;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Damage")
+	UPROPERTY(EditDefaultsOnly)
 	float Damage = 2.5f;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Damage")
+	UPROPERTY(EditDefaultsOnly)
+	float RequiredProximity = 800.f;
+
+	UPROPERTY(EditDefaultsOnly)
 	float DamageTickInterval = 1.0f;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Detection")
-	float RequiredProximity = 600.f;
+	UPROPERTY(EditDefaultsOnly)
+	float MoveInterval = 3.0f;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Movement")
-	float MoveRadius = 1500.f;
+	UPROPERTY(EditDefaultsOnly)
+	float MoveRadius = 2000.f;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Movement")
-	float MoveInterval = 2.f;
+	UPROPERTY(EditDefaultsOnly)
+	float OrbLifetime = 20.0f;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Movement")
+	UPROPERTY(EditDefaultsOnly)
 	float MinSpeed = 200.f;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Movement")
+	UPROPERTY(EditDefaultsOnly)
 	float MaxSpeed = 800.f;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Movement")
-	float OrbLifetime = 15.f;
-
-	UPROPERTY()
-	TArray<TObjectPtr<APRCharacter>> CachedPlayers;
-
-	UPROPERTY()
-	TSet<TObjectPtr<AActor>> DamagedActors;
-
+	TArray<APRCharacter*> CachedPlayers;
+	TSet<AActor*> DamagedActors;
 	FTimerHandle DamageTimerHandle;
 	FTimerHandle MoveTimerHandle;
 
-	FVector NextTargetLocation;
-	float ElapsedTime = 0.f;
 	bool bIsMoving = false;
+	float ElapsedTime = 0.f;
+	FVector NextTargetLocation;
+
 	UFUNCTION()
 	void ApplyLightSurvivalDOT();
-	UFUNCTION()
-	void ApplyEffectToActor(AActor* Actor);
-	UFUNCTION()
-	bool IsPlayerInNavAndOutOfRange(APRCharacter* Player);
+
 	UFUNCTION()
 	void MoveToRandomLocation();
-	
-	float GetCurrentSpeed() const;
 
+	void ApplyEffectToActor(AActor* Actor);
+	bool IsPlayerInNavAndOutOfRange(APRCharacter* Player);
+	float GetCurrentSpeed() const;
+	
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_ActivateVisuals();
 };

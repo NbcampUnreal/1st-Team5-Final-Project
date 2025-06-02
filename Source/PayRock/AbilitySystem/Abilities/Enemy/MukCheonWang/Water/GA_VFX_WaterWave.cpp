@@ -1,6 +1,7 @@
 ﻿#include "GA_VFX_WaterWave.h"
 #include "WaterWave.h"
-#include "NiagaraFunctionLibrary.h"
+#include "TimerManager.h"
+#include "PayRock/Enemy/FinalBoss/MukCheonWangCharacter.h"
 
 UGA_VFX_WaterWave::UGA_VFX_WaterWave()
 {
@@ -22,13 +23,17 @@ void UGA_VFX_WaterWave::ActivateAbility(
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 		return;
 	}
-	
+
 	CurrentSpecHandle = Handle;
 	CurrentActorInfo = const_cast<FGameplayAbilityActorInfo*>(ActorInfo);
 	CurrentActivationInfo = ActivationInfo;
 	
-	PlayAuraVFX(AvatarActor);
-	
+	if (AMukCheonWangCharacter* Boss = Cast<AMukCheonWangCharacter>(GetAvatarActorFromActorInfo()))
+	{
+		Boss->Multicast_PlayAuraEffect(AuraEffect, FontlClass, AuraRate);
+	}
+
+
 	if (UWorld* World = GetWorld())
 	{
 		World->GetTimerManager().SetTimer(
@@ -50,19 +55,17 @@ void UGA_VFX_WaterWave::SpawnWaterWaveAfterAura()
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 		return;
 	}
-	
-	NumWavesToSpawn = FMath::RandRange(1, 3);
+
+	NumWavesToSpawn = FMath::RandRange(1, 2);
 	SpawnedWaveCount = 0;
 
-	
 	SpawnNextWave();
 }
 
 void UGA_VFX_WaterWave::SpawnNextWave()
 {
-	if (!AvatarActor || !WaveClass)
+	if (!AvatarActor || !WaveClass || !AvatarActor->HasAuthority())
 	{
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 		return;
 	}
 
@@ -72,17 +75,17 @@ void UGA_VFX_WaterWave::SpawnNextWave()
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = AvatarActor;
 
-	AWaterWave* Wave = AvatarActor->GetWorld()->SpawnActor<AWaterWave>(WaveClass, SpawnLoc, SpawnRot, SpawnParams);
+	AWaterWave* Wave = GetWorld()->SpawnActor<AWaterWave>(WaveClass, SpawnLoc, SpawnRot, SpawnParams);
 	if (Wave)
 	{
 		Wave->SetActorScale3D(WaveScale);
+		Wave->SetReplicates(true);
 	}
 
 	SpawnedWaveCount++;
 
 	if (SpawnedWaveCount < NumWavesToSpawn)
 	{
-		
 		GetWorld()->GetTimerManager().SetTimer(
 			WaveChainTimer,
 			this,

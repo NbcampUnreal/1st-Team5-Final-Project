@@ -32,16 +32,21 @@ void AOrbLightActor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	GetWorldTimerManager().SetTimer(DamageTimerHandle, this, &AOrbLightActor::ApplyLightSurvivalDOT, DamageTickInterval, true);
-	GetWorldTimerManager().SetTimer(MoveTimerHandle, this, &AOrbLightActor::MoveToRandomLocation, MoveInterval, true);
-
-	TArray<AActor*> FoundPlayers;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APRCharacter::StaticClass(), FoundPlayers);
-	for (AActor* Player : FoundPlayers)
+	if (HasAuthority())
 	{
-		if (APRCharacter* PR = Cast<APRCharacter>(Player))
+		Multicast_ActivateVisuals();
+
+		GetWorldTimerManager().SetTimer(DamageTimerHandle, this, &AOrbLightActor::ApplyLightSurvivalDOT, DamageTickInterval, true);
+		GetWorldTimerManager().SetTimer(MoveTimerHandle, this, &AOrbLightActor::MoveToRandomLocation, MoveInterval, true);
+
+		TArray<AActor*> FoundPlayers;
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), APRCharacter::StaticClass(), FoundPlayers);
+		for (AActor* Player : FoundPlayers)
 		{
-			CachedPlayers.Add(PR);
+			if (APRCharacter* PR = Cast<APRCharacter>(Player))
+			{
+				CachedPlayers.Add(PR);
+			}
 		}
 	}
 }
@@ -158,4 +163,17 @@ void AOrbLightActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 	GetWorldTimerManager().ClearTimer(DamageTimerHandle);
 	GetWorldTimerManager().ClearTimer(MoveTimerHandle);
+}
+
+void AOrbLightActor::Multicast_ActivateVisuals_Implementation()
+{
+	if (LightVFX)
+	{
+		LightVFX->Activate(true);
+	}
+
+	if (LightSource)
+	{
+		LightSource->SetVisibility(true); 
+	}
 }

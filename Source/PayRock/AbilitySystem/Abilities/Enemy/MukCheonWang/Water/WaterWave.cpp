@@ -1,14 +1,13 @@
-﻿// PayRockGames
-
-#include "WaterWave.h"
+﻿#include "WaterWave.h"
 #include "NiagaraComponent.h"
 #include "Components/BoxComponent.h"
+#include "Net/UnrealNetwork.h"
 #include "PayRock/Character/PRCharacter.h"
-
 
 AWaterWave::AWaterWave()
 {
 	PrimaryActorTick.bCanEverTick = true;
+	bReplicates = true;
 
 	CollisionBox = CreateDefaultSubobject<UBoxComponent>(TEXT("CollisionBox"));
 	CollisionBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
@@ -18,6 +17,7 @@ AWaterWave::AWaterWave()
 
 	NiagaraEffect = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NiagaraEffect"));
 	NiagaraEffect->SetupAttachment(RootComponent);
+	NiagaraEffect->SetAutoActivate(false);
 
 	CollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AWaterWave::OnOverlapBegin);
 }
@@ -27,8 +27,9 @@ void AWaterWave::BeginPlay()
 	Super::BeginPlay();
 
 	SetLifeSpan(Lifetime);
-	
 	MoveDirection = GetActorForwardVector().GetSafeNormal();
+
+	Multicast_PlayVFX(); 
 }
 
 void AWaterWave::Tick(float DeltaTime)
@@ -40,8 +41,8 @@ void AWaterWave::Tick(float DeltaTime)
 }
 
 void AWaterWave::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-										 UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
-										 const FHitResult& SweepResult)
+								UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
+								bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (APRCharacter* Character = Cast<APRCharacter>(OtherActor))
 	{
@@ -50,5 +51,13 @@ void AWaterWave::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* Oth
 		KnockbackDir.Normalize();
 
 		Character->LaunchCharacter(KnockbackDir * KnockbackStrength, true, true);
+	}
+}
+
+void AWaterWave::Multicast_PlayVFX_Implementation()
+{
+	if (NiagaraEffect && GetNetMode() != NM_DedicatedServer)
+	{
+		NiagaraEffect->Activate(true);
 	}
 }

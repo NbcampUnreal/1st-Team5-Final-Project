@@ -32,7 +32,9 @@ void UGA_SpawnHealingTrees::ActivateAbility(
 	CurrentActivationInfo = ActivationInfo;
 
 	
-	PlayAuraVFX(Boss);
+
+	Boss->Multicast_PlayAuraEffect(AuraEffect, FontlClass, AuraRate);
+	
 	
 	if (UWorld* World = GetWorld())
 	{

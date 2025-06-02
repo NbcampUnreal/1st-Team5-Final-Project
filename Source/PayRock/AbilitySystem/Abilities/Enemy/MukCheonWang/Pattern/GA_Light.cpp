@@ -6,6 +6,7 @@
 #include "OrbLightActor.h"
 #include "LightSourceActor.h"
 #include "TimerManager.h"
+#include "PayRock/Enemy/FinalBoss/MukCheonWangCharacter.h"
 
 UGA_Light::UGA_Light()
 {
@@ -24,6 +25,11 @@ void UGA_Light::ActivateAbility(
 	AActor* Avatar = GetAvatarActorFromActorInfo();
 	if (!Avatar || !OrbLightClass) return;
 	
+	if (AMukCheonWangCharacter* Boss = Cast<AMukCheonWangCharacter>(GetAvatarActorFromActorInfo()))
+	{
+		Boss->Multicast_PlayAuraEffect(AuraEffect, FontlClass, AuraRate);
+	}
+
 	DisableNearbyLights(Avatar);
 	
 	SpawnLightOrbAtCenter(Avatar);

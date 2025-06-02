@@ -22,7 +22,7 @@ AFireballProjectile::AFireballProjectile()
 	CollisionComponent->SetCollisionObjectType(ECC_GameTraceChannel2);
 	CollisionComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
 	CollisionComponent->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
-	CollisionComponent->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block); 
+	CollisionComponent->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
 	CollisionComponent->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 	CollisionComponent->SetGenerateOverlapEvents(true);
 
@@ -43,7 +43,7 @@ void AFireballProjectile::BeginPlay()
 
 	CollisionComponent->OnComponentBeginOverlap.AddDynamic(this, &AFireballProjectile::OnSphereOverlap);
 	CollisionComponent->OnComponentHit.AddDynamic(this, &AFireballProjectile::OnHit);
-	
+
 	GetWorld()->GetTimerManager().SetTimer(LaunchDelayHandle, [this]()
 	{
 		SetReplicateMovement(true);
@@ -55,12 +55,10 @@ void AFireballProjectile::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-
 	FloatElapsedTime += DeltaTime;
 
 	float OffsetZ = FMath::Sin(FloatElapsedTime * FloatSpeed) * FloatHeight * DeltaTime;
 	AddActorWorldOffset(FVector(0.f, 0.f, OffsetZ));
-	
 }
 
 void AFireballProjectile::LaunchToTargetPlayer()
@@ -74,19 +72,18 @@ void AFireballProjectile::LaunchToTargetPlayer()
 	AActor* Target = Targets[FMath::RandRange(0, Targets.Num() - 1)];
 	if (!Target) return;
 
-	FVector TargetLocation = Target->GetActorLocation() + FVector(0, 0, 0);
+	FVector TargetLocation = Target->GetActorLocation();
 	LaunchVelocity = (TargetLocation - GetActorLocation()).GetSafeNormal() * ProjectileMovement->InitialSpeed;
 
 	ProjectileMovement->Velocity = LaunchVelocity;
 	ProjectileMovement->SetActive(true);
 }
 
-
 void AFireballProjectile::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-                                          UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (!OtherActor || OtherActor == GetOwner() || bHit) return;
-	
+
 	if (APRCharacter* PRChar = Cast<APRCharacter>(OtherActor))
 	{
 		bHit = true;
@@ -107,18 +104,17 @@ void AFireballProjectile::OnSphereOverlap(UPrimitiveComponent* OverlappedCompone
 				}
 			}
 		}
-
 		Destroy();
 	}
 }
 
 void AFireballProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,
-                                UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+	UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	if (!OtherActor || OtherActor == GetOwner() || bHit) return;
 	bHit = true;
 	PlayImpactVFX();
-	
+
 	HandleImpact(true);
 }
 
@@ -133,7 +129,6 @@ void AFireballProjectile::HandleImpact(bool bSpawnDOT)
 
 		GetWorld()->SpawnActor<AFireDOTArea>(DOTAreaClass, SpawnLoc, FRotator::ZeroRotator, Params);
 	}
-
 	Destroy();
 }
 
@@ -144,6 +139,14 @@ void AFireballProjectile::EnableReplication()
 }
 
 void AFireballProjectile::PlayImpactVFX()
+{
+	if (HasAuthority())
+	{
+		Multicast_PlayImpactVFX();
+	}
+}
+
+void AFireballProjectile::Multicast_PlayImpactVFX_Implementation()
 {
 	if (ImpactVFX && GetWorld())
 	{

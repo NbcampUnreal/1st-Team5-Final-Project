@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "NiagaraSystem.h"
 #include "PayRock/Enemy/EBossPhase.h"
 #include "PayRock/Enemy/EnemyCharacter.h"
 #include "Perception/AIPerceptionTypes.h"
@@ -31,7 +32,10 @@ public:
 	EBossPhase CurrentPhase;
 
 	TArray<AActor*> GetDetectedActors() {return  DetectedActors;}
-
+	
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_PlayAuraEffect(UNiagaraSystem* InAuraEffect, TSubclassOf<AActor> InFontlClass, float InAuraRate);
+	
 protected:
 	UPROPERTY(VisibleAnywhere, Category = "AI")
 	TObjectPtr<UAIPerceptionComponent> AIPerception;
@@ -74,6 +78,8 @@ protected:
 	void OnPhaseChanged(EBossPhase NewPhase);
 
 	float GetHealthPercent() const;
+	
+
 
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Boss|Animation")

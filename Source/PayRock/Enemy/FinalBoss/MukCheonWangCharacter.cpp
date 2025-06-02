@@ -7,6 +7,8 @@
 #include "Perception/AISenseConfig_Hearing.h"
 #include "Perception/AISenseConfig_Damage.h"
 #include "AIController.h"
+#include "NiagaraComponent.h"
+#include "NiagaraFunctionLibrary.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "PayRock/AbilitySystem/PRAttributeSet.h"
 #include "PayRock/Character/PRCharacter.h"
@@ -197,4 +199,58 @@ float AMukCheonWangCharacter::GetHealthPercent() const
     const float MaxHealth = ASC->GetNumericAttribute(UPRAttributeSet::GetMaxHealthAttribute());
 
     return (MaxHealth > 0.f) ? (CurrentHealth / MaxHealth) : 0.f;
+}
+
+void AMukCheonWangCharacter::Multicast_PlayAuraEffect_Implementation(UNiagaraSystem* InAuraEffect, TSubclassOf<AActor> InFontlClass, float InAuraRate)
+{
+    
+    if (InAuraEffect)
+    {
+        UNiagaraComponent* NiagaraComp = UNiagaraFunctionLibrary::SpawnSystemAttached(
+            InAuraEffect,
+            GetRootComponent(),
+            NAME_None,
+            FVector::ZeroVector,
+            FRotator::ZeroRotator,
+            EAttachLocation::KeepRelativeOffset,
+            true
+        );
+
+        if (NiagaraComp)
+        {
+            FTimerHandle DestroyHandle;
+            FTimerDelegate DestroyDelegate = FTimerDelegate::CreateLambda([NiagaraComp]()
+            {
+                if (NiagaraComp)
+                {
+                    NiagaraComp->DestroyComponent();
+                }
+            });
+
+            GetWorld()->GetTimerManager().SetTimer(
+                DestroyHandle,
+                DestroyDelegate,
+                InAuraRate,
+                false
+            );
+        }
+    }
+    
+    if (InFontlClass)
+    {
+        FActorSpawnParameters SpawnParams;
+        SpawnParams.Owner = this;
+
+        AActor* AuraDecal = GetWorld()->SpawnActor<AActor>(
+            InFontlClass,
+            GetActorLocation(),
+            FRotator::ZeroRotator,
+            SpawnParams
+        );
+
+        if (AuraDecal)
+        {
+            AuraDecal->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);
+        }
+    }
 }

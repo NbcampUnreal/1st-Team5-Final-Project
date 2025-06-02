@@ -29,7 +29,10 @@ void UGA_VFX_StoneImpale::ActivateAbility(
 	CurrentActorInfo = const_cast<FGameplayAbilityActorInfo*>(ActorInfo);
 	CurrentActivationInfo = ActivationInfo;
 	
-	PlayAuraVFX(AvatarActor);
+	
+	Boss->Multicast_PlayAuraEffect(AuraEffect, FontlClass, AuraRate);
+	
+
 	
 	if (UWorld* World = GetWorld())
 	{
@@ -54,28 +57,51 @@ void UGA_VFX_StoneImpale::SpawnStoneSpikesAfterAura()
 		return;
 	}
 
-	TArray<AActor*> Targets = Boss->GetDetectedActors();
+	SpikeTargets = Boss->GetDetectedActors();
+	CurrentTargetIndex = 0;
+
+	if (SpikeTargets.Num() == 0)
+	{
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+		return;
+	}
+	
+	SpawnSingleSpike();
+}
+
+void UGA_VFX_StoneImpale::SpawnSingleSpike()
+{
+	if (!SpikeTargets.IsValidIndex(CurrentTargetIndex))
+	{
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+		return;
+	}
+
+	AActor* Target = SpikeTargets[CurrentTargetIndex++];
+	AMukCheonWangCharacter* Boss = Cast<AMukCheonWangCharacter>(AvatarActor);
+	if (!Boss || !Target || !StoneSpikeClass) return;
+
+	FVector ToTarget = (Target->GetActorLocation() - Boss->GetActorLocation()).GetSafeNormal();
+	FVector SpawnLoc = Boss->GetActorLocation() + ToTarget * SpawnDistance;
+	FRotator SpawnRot = ToTarget.Rotation();
+
 	FActorSpawnParameters Params;
 	Params.Owner = Boss;
 
-	for (AActor* Target : Targets)
+	AStoneSpikeActor* Spike = Boss->GetWorld()->SpawnActor<AStoneSpikeActor>(StoneSpikeClass, SpawnLoc, SpawnRot, Params);
+	if (Spike)
 	{
-		if (!Target) continue;
-
-		FVector ToTarget = (Target->GetActorLocation() - Boss->GetActorLocation()).GetSafeNormal();
-		FVector SpawnLoc = Boss->GetActorLocation() + ToTarget * SpawnDistance;
-		FRotator SpawnRot = ToTarget.Rotation();
-
-		AStoneSpikeActor* Spike = Boss->GetWorld()->SpawnActor<AStoneSpikeActor>(
-			StoneSpikeClass, SpawnLoc, SpawnRot, Params);
-
-		if (Spike)
-		{
-			Spike->SetInstigatorAbility(this);
-			Spike->SetActorRotation(SpawnRot);
-			Spike->SetTarget(Target);
-		}
+		Spike->SetInstigatorAbility(this);
+		Spike->SetActorRotation(SpawnRot);
+		Spike->SetTarget(Target);
 	}
 
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+	
+	Boss->GetWorld()->GetTimerManager().SetTimer(
+		SpikeSpawnTimerHandle,
+		this,
+		&UGA_VFX_StoneImpale::SpawnSingleSpike,
+		0.4f, 
+		false
+	);
 }

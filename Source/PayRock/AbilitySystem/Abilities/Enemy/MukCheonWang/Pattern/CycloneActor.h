@@ -16,42 +16,35 @@ class PAYROCK_API ACycloneActor : public AActor
 
 public:
 	ACycloneActor();
-	
-	TFunction<void()> OnCycloneDestroyed;
 
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
-	UPROPERTY(VisibleAnywhere, Category = "VFX")
-	TObjectPtr<UNiagaraComponent> CycloneVFX;
-
-	UPROPERTY(VisibleAnywhere, Category = "Collision")
+	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<USphereComponent> PullRange;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Lightning")
-	TSubclassOf<ALightningStrikeActor> LightningClass;
-	
-	UPROPERTY(EditDefaultsOnly, Category = "Timing")
-	float LifeTime = 5.0f;
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<UNiagaraComponent> CycloneVFX;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Physics")
-	float PullStrength = 1200.f;
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class ALightningStrikeActor> LightningClass;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Lightning")
-	float LightningRadius = 200.f;
+	UPROPERTY(EditDefaultsOnly)
+	float PullStrength = 400.f;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Lightning")
-	float MinInterval = 0.1f;
+	UPROPERTY(EditDefaultsOnly)
+	float LightningRadius = 800.f;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Lightning")
-	float MaxInterval = 0.3f;
-	
-	TArray<APRCharacter*> OverlappingPlayers;
-	
+	UPROPERTY(EditDefaultsOnly)
+	float MinInterval = 1.5f;
+
+	UPROPERTY(EditDefaultsOnly)
+	float MaxInterval = 2.5f;
+
 	FTimerHandle LightningLoopTimer;
-	FTimerHandle DestroyTimerHandle;
+	TArray<APRCharacter*> OverlappingPlayers;
 
 	UFUNCTION()
 	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
@@ -61,6 +54,13 @@ protected:
 	UFUNCTION()
 	void OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 					  UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
-	UFUNCTION()
+
 	void SpawnLightning();
+
+	
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_ActivateCycloneVFX();
+
+public:
+	TFunction<void()> OnCycloneDestroyed;
 };

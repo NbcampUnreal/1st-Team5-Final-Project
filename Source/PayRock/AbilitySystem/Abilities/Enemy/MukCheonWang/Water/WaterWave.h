@@ -15,10 +15,10 @@ class PAYROCK_API AWaterWave : public AActor
 
 public:
 	AWaterWave();
-	virtual void Tick(float DeltaTime) override;
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaTime) override;
 
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UBoxComponent> CollisionBox;
@@ -26,20 +26,22 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UNiagaraComponent> NiagaraEffect;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Wave")
-	float MoveSpeed = 1000.f;
+	UPROPERTY(EditDefaultsOnly)
+	float MoveSpeed = 400.f;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Wave")
-	float KnockbackStrength = 1200.f;
+	UPROPERTY(EditDefaultsOnly)
+	float Lifetime = 5.f;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Wave")
-	float Lifetime = 3.0f;
-
-private:
-	UFUNCTION()
-	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-						UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
-						const FHitResult& SweepResult);
+	UPROPERTY(EditDefaultsOnly)
+	float KnockbackStrength = 800.f;
 
 	FVector MoveDirection;
+
+	UFUNCTION()
+	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+						UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
+						bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_PlayVFX();
 };

@@ -2,6 +2,7 @@
 #include "CycloneActor.h"
 #include "TimerManager.h"
 #include "GameFramework/Actor.h"
+#include "PayRock/Enemy/FinalBoss/MukCheonWangCharacter.h"
 
 UGA_Cyclone::UGA_Cyclone()
 {
@@ -22,6 +23,11 @@ void UGA_Cyclone::ActivateAbility(
 	CurrentActorInfo = const_cast<FGameplayAbilityActorInfo*>(ActorInfo);
 	CurrentActivationInfo = ActivationInfo;
 	
+	if (AMukCheonWangCharacter* Boss = Cast<AMukCheonWangCharacter>(GetAvatarActorFromActorInfo()))
+	{
+		Boss->Multicast_PlayAuraEffect(AuraEffect, FontlClass, AuraRate);
+	}
+
 	GetWorld()->GetTimerManager().SetTimer(
 		SpawnTimerHandle,
 		this,

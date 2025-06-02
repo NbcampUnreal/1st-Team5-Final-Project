@@ -28,7 +28,13 @@ ARoarCollisionActor::ARoarCollisionActor()
 void ARoarCollisionActor::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (HasAuthority())
+	{
+		Multicast_PlayRoarEffect();
+	}
 }
+
 
 void ARoarCollisionActor::Tick(float DeltaTime)
 {
@@ -60,5 +66,14 @@ void ARoarCollisionActor::OnOverlapBegin(
 		const FVector Knockback = Direction * KnockbackStrength;
 
 		Player->LaunchCharacter(Knockback, true, true);
+	}
+}
+
+
+void ARoarCollisionActor::Multicast_PlayRoarEffect_Implementation()
+{
+	if (RoarEffect)
+	{
+		RoarEffect->Activate(true);
 	}
 }
