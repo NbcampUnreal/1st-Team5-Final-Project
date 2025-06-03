@@ -55,6 +55,17 @@ public:
 	UPROPERTY(Replicated)
 	bool bIsInvisible = false;
 
+	/* Combo */
+	UFUNCTION(BlueprintCallable, Category = "Combo")
+	void StartComboTimer();
+	UFUNCTION()
+	void SetResetCombo();
+	UPROPERTY(BlueprintReadOnly, Replicated, Category = "Combo")
+	bool bResetCombo = false;
+	UPROPERTY(EditDefaultsOnly, Category = "Combo")
+	float ComboTime;
+	FTimerHandle ComboTimerHandle;
+
 	// SpringArm Component
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	USpringArmComponent* SpringArmComp;
@@ -375,11 +386,13 @@ protected:
 
 
 private:
-	/* Callback functions for binding ability input actions based on Input Tags  */
-	UPROPERTY(EditDefaultsOnly, Category = "Input")
-	TObjectPtr<UPRInputConfig> InputConfig;
-
+	/*
+	 *	Ability Callback for Input Tag
+	 */
 	void AbilityInputTagPressed(FGameplayTag InputTag);
 	void AbilityInputTagReleased(FGameplayTag InputTag);
 	void AbilityInputTagHeld(FGameplayTag InputTag);
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<UPRInputConfig> InputConfig;
 };

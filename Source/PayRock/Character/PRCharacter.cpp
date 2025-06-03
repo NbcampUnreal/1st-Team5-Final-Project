@@ -833,6 +833,9 @@ void APRCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
     DOREPLIFETIME(APRCharacter, ReplicatedMaxWalkSpeed);
     DOREPLIFETIME(APRCharacter, ReplicatedControlRotation);
     DOREPLIFETIME(APRCharacter, CurrentWeaponType);
+
+    /* Combo Status */
+    DOREPLIFETIME(APRCharacter, bResetCombo);
 }
 
 void APRCharacter::OnRep_MoveDirection()
@@ -1091,6 +1094,22 @@ void APRCharacter::HideCharacter()
     {
         SetActorHiddenInGame(true);
     }
+}
+
+void APRCharacter::StartComboTimer()
+{
+    bResetCombo = false;
+    GetWorldTimerManager().SetTimer(
+        ComboTimerHandle,
+        this,
+        &APRCharacter::SetResetCombo,
+        ComboTime
+    );
+}
+
+void APRCharacter::SetResetCombo()
+{
+    bResetCombo = true;
 }
 
 float APRCharacter::CalculateDirectionCustom(const FVector& Velocity, const FRotator& BaseRotation)
