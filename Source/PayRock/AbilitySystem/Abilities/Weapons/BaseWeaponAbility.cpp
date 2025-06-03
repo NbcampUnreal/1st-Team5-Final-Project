@@ -112,12 +112,6 @@ void UBaseWeaponAbility::UpdateCurrentAttackType(APRCharacter* PlayerCharacter)
 {
 	UCharacterMovementComponent* MovementComp = PlayerCharacter->GetCharacterMovement();
 
-	//if (PlayerCharacter->bIsCrouching)
-	//{
-	//	CurrentAttackType = EAttackType::CrouchAttack;
-	//	return;
-	//}
-
 	if (PlayerCharacter->bIsInAir)
 	{
 		CurrentAttackType = EAttackType::JumpAttack;
