@@ -59,5 +59,6 @@ protected:
 	//UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	//TObjectPtr<UAnimMontage> CrouchAttackMontage;
 
-	bool bHit = false;
+	UPROPERTY()
+	TSet<AActor*> AlreadyHitActors;
 };
