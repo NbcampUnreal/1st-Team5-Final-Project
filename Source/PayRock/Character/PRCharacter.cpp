@@ -517,6 +517,18 @@ bool APRCharacter::CanDoubleJump()
 }
 /*** Double Jump ***/
 
+/*** Spin ***/
+void APRCharacter::StartSpin()
+{
+    bShouldSpin = true;
+}
+
+void APRCharacter::StopSpin()
+{
+    bShouldSpin = false;
+}
+/*** Spin ***/
+
 void APRCharacter::Look(const FInputActionValue& value)
 {
     FVector2D LookInput = value.Get<FVector2D>();
@@ -802,6 +814,12 @@ void APRCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
+    /* Gameplay Status */
+    DOREPLIFETIME(APRCharacter, bIsDead);
+    DOREPLIFETIME(APRCharacter, bIsExtracted);
+    DOREPLIFETIME(APRCharacter, bIsInvisible);
+
+    /* Movement Status */
     DOREPLIFETIME(APRCharacter, MoveDirection);
     DOREPLIFETIME(APRCharacter, bIsSprinting);
     DOREPLIFETIME(APRCharacter, bIsCrouching);
@@ -811,9 +829,13 @@ void APRCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
     DOREPLIFETIME(APRCharacter, bJustJumped);
     DOREPLIFETIME(APRCharacter, bIsDoubleJumping)
     DOREPLIFETIME(APRCharacter, bIsAiming);
+    DOREPLIFETIME(APRCharacter, bShouldSpin);
     DOREPLIFETIME(APRCharacter, ReplicatedMaxWalkSpeed);
     DOREPLIFETIME(APRCharacter, ReplicatedControlRotation);
     DOREPLIFETIME(APRCharacter, CurrentWeaponType);
+
+    /* Combo Status */
+    DOREPLIFETIME(APRCharacter, bResetCombo);
 }
 
 void APRCharacter::OnRep_MoveDirection()
@@ -861,7 +883,7 @@ void APRCharacter::OnRep_IsAiming()
 void APRCharacter::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
-
+    
     // 카메라 보간
     const float TargetArm = bIsAiming ? AimingArmLength : DefaultArmLength;
     const FVector TargetOffset = bIsAiming ? AimingSocketOffset : DefaultSocketOffset;
@@ -887,6 +909,13 @@ void APRCharacter::Tick(float DeltaSeconds)
     }
     /*UE_LOG(LogTemp, Log, TEXT("CurrentTargetSpeed: %f, MaxWalkSpeed: %f"), CurrentTargetSpeed, GetCharacterMovement()->MaxWalkSpeed);*/
 
+    /* SPIN - early return */
+    if (bShouldSpin)
+    {
+        AddActorLocalRotation(FRotator(0.f, SpinSpeed * DeltaSeconds, 0.f));
+        return;
+    }
+    
     // 점프 중일 땐 회전 막기 (에임 포함)
     if (bIsInAir)
     {
@@ -982,6 +1011,7 @@ void APRCharacter::Die(FVector HitDirection)
 {
     Super::Die(HitDirection);
 
+    bIsDead = true;
     StimuliSourceComponent->UnregisterFromPerceptionSystem();
     
     if (HasAuthority())
@@ -1010,6 +1040,7 @@ void APRCharacter::Die(FVector HitDirection)
 
 void APRCharacter::OnExtraction()
 {
+    bIsExtracted = true;
     GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     StimuliSourceComponent->UnregisterFromPerceptionSystem();
     DisableInput(GetLocalViewingPlayerController());
@@ -1063,6 +1094,22 @@ void APRCharacter::HideCharacter()
     {
         SetActorHiddenInGame(true);
     }
+}
+
+void APRCharacter::StartComboTimer()
+{
+    bResetCombo = false;
+    GetWorldTimerManager().SetTimer(
+        ComboTimerHandle,
+        this,
+        &APRCharacter::SetResetCombo,
+        ComboTime
+    );
+}
+
+void APRCharacter::SetResetCombo()
+{
+    bResetCombo = true;
 }
 
 float APRCharacter::CalculateDirectionCustom(const FVector& Velocity, const FRotator& BaseRotation)

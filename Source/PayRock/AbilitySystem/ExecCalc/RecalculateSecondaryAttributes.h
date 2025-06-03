@@ -14,10 +14,12 @@ class PAYROCK_API URecalculateSecondaryAttributes : public UGameplayEffectExecut
 
 public:
 	URecalculateSecondaryAttributes();
-	virtual void Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams, FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const override;
+	virtual void Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams,
+		FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const override;
 
 private:
-	void AddOutputModifierForAttribute(const FGameplayAttribute& Attribute, FGameplayEffectCustomExecutionOutput& OutExecutionOutput, float NewBaseValue, float BonusValue) const;
+	void AddOutputModifierForAttribute(const FGameplayAttribute& Attribute,
+		FGameplayEffectCustomExecutionOutput& OutExecutionOutput, float NewBaseValue) const;
 
 	/*
 	 *	Primary Attributes
@@ -33,26 +35,13 @@ private:
 	 *	Secondary Attributes
 	 */
 	FGameplayEffectAttributeCaptureDefinition ArmorDef;
-	FGameplayEffectAttributeCaptureDefinition CriticalResistanceDef;
-	FGameplayEffectAttributeCaptureDefinition DebuffResistanceDef;
+	FGameplayEffectAttributeCaptureDefinition ArmorPenetrationDef;
 	FGameplayEffectAttributeCaptureDefinition MaxHealthDef;
 	FGameplayEffectAttributeCaptureDefinition MaxManaDef;
-	FGameplayEffectAttributeCaptureDefinition HealthRegenDef;
-	FGameplayEffectAttributeCaptureDefinition ManaRegenDef;
-	FGameplayEffectAttributeCaptureDefinition ArmorPenetrationDef;
-	FGameplayEffectAttributeCaptureDefinition CriticalChanceDef;
-	FGameplayEffectAttributeCaptureDefinition CriticalDamageDef;
-	FGameplayEffectAttributeCaptureDefinition MoveSpeedDef;
-	FGameplayEffectAttributeCaptureDefinition AttackSpeedDef;
-	FGameplayEffectAttributeCaptureDefinition CooldownReductionDef;
-	FGameplayEffectAttributeCaptureDefinition LootQualityModifierDef;
-	FGameplayEffectAttributeCaptureDefinition CarryWeightDef;
-	FGameplayEffectAttributeCaptureDefinition BonusDamageDef;
 
 	/*
 	 *	Vital Attributes
 	 */
 	FGameplayEffectAttributeCaptureDefinition HealthDef;
 	FGameplayEffectAttributeCaptureDefinition ManaDef;
-	
 };
