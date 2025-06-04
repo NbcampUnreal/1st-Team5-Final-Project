@@ -32,6 +32,15 @@ void APRPlayerController::BeginPlay()
 	{
 		Subsystem->AddMappingContext(PlayerIMC, 0);
 	}
+
+	if (IsLocalController())
+	{
+		APRGameState* PRGameState = GetWorld()->GetGameState<APRGameState>();
+		if (!IsValid(PRGameState)) return;
+        
+		// MatchFlowState 강제 적용
+		HandleMatchFlowStateChanged(PRGameState->GetMatchFlowState());
+	}
 }
 
 void APRPlayerController::SetupInputComponent()

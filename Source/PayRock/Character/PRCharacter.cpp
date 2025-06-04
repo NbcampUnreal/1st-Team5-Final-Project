@@ -123,16 +123,6 @@ void APRCharacter::OnRep_PlayerState()
     Super::OnRep_PlayerState();
 
     InitAbilityActorInfo();
-
-    if (IsLocallyControlled())
-    {
-        APRGameState* PRGameState = GetWorld()->GetGameState<APRGameState>();
-        APRPlayerController* PRPlayerController = Cast<APRPlayerController>(GetController());
-        if (!PRGameState || !PRPlayerController) return;
-        
-        // MatchFlowState 강제 적용
-        PRPlayerController->HandleMatchFlowStateChanged(PRGameState->GetMatchFlowState());
-    }
 }
 
 int32 APRCharacter::GetCharacterLevel()
