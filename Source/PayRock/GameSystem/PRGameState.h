@@ -50,7 +50,7 @@ protected:
 
 	UPROPERTY(BlueprintReadWrite, ReplicatedUsing = OnRep_MatchStart_CountDown, EditAnywhere, Category = "MatchFlow|Players")
 	int32 MatchStart_CountDown;
-
+	
 	bool bHasStartedCountdown = false;
 	bool bForceStarted = false;
 
