@@ -33,10 +33,10 @@ void UBaseDamageGameplayAbility::EndAbility(const FGameplayAbilitySpecHandle Han
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
-void UBaseDamageGameplayAbility::CauseDamage(AActor* TargetActor, bool bIsBackAttack /*, const FHitResult& InHitResult*/)
+void UBaseDamageGameplayAbility::CauseDamage(AActor* TargetActor, bool bIsBackAttack)
 {
 	if (!GetAvatarActorFromActorInfo()->HasAuthority()) return;
-	// HitResult = InHitResult;
+
 	if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor))
 	{
 		UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();

@@ -5,7 +5,6 @@
 #include "AbilitySystemComponent.h"
 #include "Abilities/Tasks/AbilityTask_SpawnActor.h"
 #include "Engine/OverlapResult.h"
-#include "PayRock/PRGameplayTags.h"
 #include "PayRock/Actor/ApplyEffectZone.h"
 
 
@@ -15,7 +14,15 @@ void UBaseAreaEffectAbility::ActivateAbility(const FGameplayAbilitySpecHandle Ha
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	if (!CommitAbility(Handle, ActorInfo, ActivationInfo)) return;
+	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
+	{			
+		constexpr bool bReplicateEndAbility = true;
+		constexpr bool bWasCancelled = true;
+		EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+		return;
+	}
+	
+	if (!bActivateImmediately) return;
 
 	if (IsValid(AdditionalEffectToApplyToSelf))
 	{
@@ -29,9 +36,6 @@ void UBaseAreaEffectAbility::ActivateAbility(const FGameplayAbilitySpecHandle Ha
 	if (DurationFloat > 0.f)
 	{
 		SpawnEffectArea();
-
-		GetWorld()->GetTimerManager().SetTimer(
-			TimerHandle, this, &UBaseAreaEffectAbility::RemoveEffectArea, DurationFloat);
 	}
 	else
 	{
@@ -102,6 +106,9 @@ void UBaseAreaEffectAbility::SpawnEffectArea()
 			}
 		}
 		SpawnActorTask->FinishSpawningActor(this, TargetDataHandle, SpawnedActor);
+
+		GetWorld()->GetTimerManager().SetTimer(
+			TimerHandle, this, &UBaseAreaEffectAbility::RemoveEffectArea, Duration.GetValueAtLevel(GetAbilityLevel()));
 	}
 	else
 	{
