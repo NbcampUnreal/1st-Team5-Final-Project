@@ -2,6 +2,8 @@
 
 
 #include "UIManager.h"
+
+#include "AbilitySystemComponent.h"
 #include "PayRock/Player/PRPlayerState.h"
 #include "PayRock/UI/Widget/BaseUserWidget.h"
 #include "PayRock/UI/WidgetController/StatWidgetController.h"
@@ -123,9 +125,13 @@ void UUIManager::InitializeWidgetController(UUserWidget* Widget, EWidgetCategory
 	if (UBaseUserWidget* BaseUserWidget = Cast<UBaseUserWidget>(Widget))
 	{
 		APlayerController* PC = GetGameInstance()->GetFirstLocalPlayerController();
+		if (!IsValid(PC)) return;
 		APRPlayerState* PS = PC->GetPlayerState<APRPlayerState>();
+		if (!IsValid(PS)) return;
 		UAbilitySystemComponent* ASC = PS->GetAbilitySystemComponent();
+		if (!IsValid(ASC)) return;
 		UAttributeSet* AS = PS->GetAttributeSet();
+		if (!IsValid(AS)) return;
 		const FWidgetControllerParams WCParams(PC, PS, ASC, AS);
 		
 		if (UBaseWidgetController* WidgetController = GetWidgetController(WCParams, Category))
