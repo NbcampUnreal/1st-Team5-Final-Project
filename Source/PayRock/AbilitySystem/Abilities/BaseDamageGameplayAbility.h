@@ -18,36 +18,31 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void CauseDamage(AActor* TargetActor, bool bIsBackAttack = false /*, const FHitResult& HitResult*/);
 
-	UFUNCTION(BlueprintCallable, Category="VFX")
-	void PlayAuraVFX(AActor* TargetActor);
 	
 protected:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage")
 	TSubclassOf<UGameplayEffect> DamageEffectClass;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage")
 	FGameplayTag DamageTypeTag;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage")
 	FScalableFloat Damage;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage")
 	TArray<TObjectPtr<UAnimMontage>> MontageArray;
 	
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(BlueprintReadWrite, Category = "Damage")
 	int32 MontageIndex;
 
-	UPROPERTY(BlueprintReadOnly)
-	FHitResult HitResult;
-
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly, Category = "Damage")
 	float AttackSpeed = 1.f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "VFX")
 	TObjectPtr<UNiagaraSystem> AuraEffect;
 
 	UPROPERTY(EditDefaultsOnly, Category = "VFX")
-	TSubclassOf<AActor> AuraDecalClass;
+	TSubclassOf<AActor> FontlClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "VFX")
 	float AuraRate = 2.5f;

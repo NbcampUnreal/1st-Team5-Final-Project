@@ -8,25 +8,21 @@ void UGA_KappaAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	bHit = false;
 	AvatarCharacter = Cast<AKappaMonster>(GetAvatarActorFromActorInfo());
 	BindCallbackToFistCollision();
+	ToggleFistCollision(true);
 }
 
 void UGA_KappaAttack::BindCallbackToFistCollision()
 {
 	if (!AvatarCharacter) return;
 
-	
-	if (AvatarCharacter->LeftHandCollisionComp && 
-		!AvatarCharacter->LeftHandCollisionComp->OnComponentBeginOverlap.IsBound())
+	if (AvatarCharacter->LeftHandCollisionComp)
 	{
 		AvatarCharacter->LeftHandCollisionComp->OnComponentBeginOverlap.AddDynamic(this, &UGA_KappaAttack::OnFistOverlap);
 	}
 
-	
-	if (AvatarCharacter->RightHandCollisionComp && 
-		!AvatarCharacter->RightHandCollisionComp->OnComponentBeginOverlap.IsBound())
+	if (AvatarCharacter->RightHandCollisionComp)
 	{
 		AvatarCharacter->RightHandCollisionComp->OnComponentBeginOverlap.AddDynamic(this, &UGA_KappaAttack::OnFistOverlap);
 	}
@@ -52,20 +48,28 @@ void UGA_KappaAttack::ToggleFistCollision(bool bShouldEnable)
 void UGA_KappaAttack::OnFistOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (OtherActor == GetAvatarActorFromActorInfo() || bHit) return;
-
-	if (GetAvatarActorFromActorInfo()->HasAuthority())
+	AActor* SelfActor = GetAvatarActorFromActorInfo();
+	if (OtherActor == SelfActor) return;
+	
+	if (OtherActor->IsA(SelfActor->GetClass()))
 	{
-		bHit = true;
+		return;
+	}
+
+	if (SelfActor->HasAuthority())
+	{
 		CauseDamage(OtherActor);
 	}
 }
+
 
 void UGA_KappaAttack::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
 	if (AvatarCharacter)
 	{
+		ToggleFistCollision(false);
+
 		if (AvatarCharacter->LeftHandCollisionComp)
 		{
 			AvatarCharacter->LeftHandCollisionComp->OnComponentBeginOverlap.RemoveDynamic(this, &UGA_KappaAttack::OnFistOverlap);

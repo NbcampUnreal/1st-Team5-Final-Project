@@ -6,6 +6,7 @@
 #include "Net/UnrealNetwork.h"
 #include "PayRock/PRGameplayTags.h"
 #include "PayRock/Character/BaseCharacter.h"
+#include "Abilities/Blessing/BaseBlessingAbility.h"
 
 UPRAttributeSet::UPRAttributeSet()
 {
@@ -80,21 +81,29 @@ void UPRAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
 		/*const float HealthCurrent = GetHealth();
 		const float HealthBase = GetOwningAbilitySystemComponent()->GetNumericAttributeBase(GetHealthAttribute());
 		UE_LOG(LogTemp, Warning, TEXT(
-			"after --> AvatarActor: %s / Amount: %f / Health(Current): %f / GetHealth(Base): %f"),
+			"[Health] AvatarActor: %s / Amount: %f / Health(Current): %f / Health(Base): %f"),
 			*GetOwningAbilitySystemComponent()->GetAvatarActor()->GetName(),
 			Data.EvaluatedData.Magnitude, HealthCurrent, HealthBase);*/
 	}
 	else if (Data.EvaluatedData.Attribute == GetManaAttribute())
 	{
 		SetMana(FMath::Clamp(GetMana(), 0.f, GetMaxMana()));
+
+		/*const float ManaCurrent = GetMana();
+		const float ManaBase = GetOwningAbilitySystemComponent()->GetNumericAttributeBase(GetManaAttribute());
+		UE_LOG(LogTemp, Warning, TEXT(
+			"[Mana] AvatarActor: %s / Amount: %f / Mana(Current): %f / Mana(Base): %f"),
+			*GetOwningAbilitySystemComponent()->GetAvatarActor()->GetName(),
+			Data.EvaluatedData.Magnitude, ManaCurrent, ManaBase);*/
 	}
 	else if (Data.EvaluatedData.Attribute == GetIncomingDamageAttribute())
 	{
-		HandleIncomingDamage(Props, Data);
+		float Damage = HandleIncomingDamage(Props, Data);
+		HandleLifeSteal(Props, Damage);
 	}
 }
 
-void UPRAttributeSet::HandleIncomingDamage(const FEffectProperties& Props, const FGameplayEffectModCallbackData& Data)
+float UPRAttributeSet::HandleIncomingDamage(const FEffectProperties& Props, const FGameplayEffectModCallbackData& Data)
 {
 	const float LocalIncomingDamage = GetIncomingDamage();
 	SetIncomingDamage(0.f);
@@ -120,11 +129,10 @@ void UPRAttributeSet::HandleIncomingDamage(const FEffectProperties& Props, const
 		Props.TargetASC->GetGameplayAttributeValueChangeDelegate(GetHealthAttribute()).Broadcast(AttributeChangeData);
 
 		/*const float HealthCurrent = GetHealth();
-		const float HealthBase = GetOwningAbilitySystemComponent()->GetNumericAttributeBase(GetHealthAttribute());
 		UE_LOG(LogTemp, Warning, TEXT(
-			"AvatarActor: %s / IncomingDamage: %f / Health(Current): %f / GetHealth(Base): %f"),
+			"[DAMAGE] AvatarActor: %s / IncomingDamage: %f / CalculatedDamage: %f / GetHealth: %f / GetMaxHealth: %f"),
 			*GetOwningAbilitySystemComponent()->GetAvatarActor()->GetName(),
-			LocalIncomingDamage, HealthCurrent, HealthBase);*/
+			LocalIncomingDamage, CalculatedDamage, HealthCurrent, GetMaxHealth());*/
 
 		// Activate Hit React
 		FGameplayTagContainer TagContainer;
@@ -141,6 +149,7 @@ void UPRAttributeSet::HandleIncomingDamage(const FEffectProperties& Props, const
 			}
 		}
 	}
+	return CalculatedDamage;
 }
 
 float UPRAttributeSet::GetCalculatedDamage(float LocalIncomingDamage, const FEffectProperties& Props)
@@ -182,6 +191,54 @@ float UPRAttributeSet::GetCalculatedDamage(float LocalIncomingDamage, const FEff
 	const float FinalDamage = DamageAfterArmor * CriticalMultiplier;
 	
 	return FinalDamage;
+}
+
+void UPRAttributeSet::HandleLifeSteal(const FEffectProperties& Props, float DealtDamage)
+{
+	FGameplayTag LifeStealTag = FPRGameplayTags::Get().Status_Buff_LifeSteal;
+	if (!Props.SourceASC->HasMatchingGameplayTag(LifeStealTag)) return;
+
+	int32 LifeStealLevel = 1;
+	TSubclassOf<UGameplayEffect> LifeStealEffectClass = nullptr;
+
+	FGameplayTagContainer Tags;
+	Tags.AddTag(LifeStealTag);
+	for (const auto& ActiveEffect : Props.SourceASC->GetActiveEffectsWithAllTags(Tags))
+	{
+		if (!ActiveEffect.WasSuccessfullyApplied()) continue;
+		
+		// will return 1 if for some reason data isn't valid
+		FGameplayEffectContextHandle ContextHandle = Props.SourceASC->GetEffectContextFromActiveGEHandle(ActiveEffect);
+		LifeStealLevel = ContextHandle.GetAbilityLevel();
+		if (const UBaseBlessingAbility* LifeStealAbility =
+			Cast<UBaseBlessingAbility>(ContextHandle.GetAbilityInstance_NotReplicated()))
+		{
+			if (!IsValid(LifeStealAbility->LifeStealEffectClass)) continue;
+			LifeStealEffectClass = LifeStealAbility->LifeStealEffectClass;
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("LifeSteal Buff is applied, but casting GetAbilityInstance_NotReplicated() failed"));
+			continue;
+		}
+		break; // Presuming there's only one GA that granted this buff
+	}
+
+	if (IsValid(LifeStealEffectClass))
+	{
+		FGameplayEffectContextHandle ContextHandle = Props.SourceASC->MakeEffectContext();
+		FGameplayEffectSpecHandle SpecHandle = Props.SourceASC->MakeOutgoingSpec(
+			LifeStealEffectClass, LifeStealLevel, ContextHandle);
+		float LifeStealMultiplier = 0.2f + static_cast<float>(LifeStealLevel) * 0.1f;
+		UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(
+			SpecHandle, FPRGameplayTags::Get().Status_Buff_LifeSteal,
+			LifeStealMultiplier * DealtDamage);
+		Props.SourceASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("LifeSteal Buff is applied, but the LifeStealEffectClass was not set in the attack ability"))
+	}
 }
 
 void UPRAttributeSet::SetEffectProperties(const FGameplayEffectModCallbackData& Data, FEffectProperties& Props)

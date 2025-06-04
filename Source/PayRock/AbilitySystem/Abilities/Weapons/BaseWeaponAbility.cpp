@@ -9,8 +9,7 @@ void UBaseWeaponAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle
                                          const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
                                          const FGameplayEventData* TriggerEventData)
 {
-	bHit = false;
-
+	AlreadyHitActors.Empty();
 	if (ABaseCharacter* AvatarCharacter = Cast<ABaseCharacter>(GetAvatarActorFromActorInfo()))
 	{
 		if (CollisionComponents.IsEmpty())
@@ -35,6 +34,7 @@ void UBaseWeaponAbility::EndAbility(const FGameplayAbilitySpecHandle Handle, con
 	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
 	CurrentAttackType = EAttackType::NormalAttack;
+	AlreadyHitActors.Empty();
 
 	if (APRCharacter* PlayerCharacter = Cast<APRCharacter>(GetAvatarActorFromActorInfo()))
 	{
@@ -52,6 +52,10 @@ void UBaseWeaponAbility::EndAbility(const FGameplayAbilitySpecHandle Handle, con
 
 void UBaseWeaponAbility::ToggleCollision(bool bShouldEnable)
 {
+	if (bShouldEnable)
+	{
+		AlreadyHitActors.Empty();
+	}
 	for (const auto& CollisionComp : CollisionComponents)
 	{
 		CollisionComp->SetCollisionEnabled(bShouldEnable ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
@@ -88,18 +92,18 @@ void UBaseWeaponAbility::BindCallbackToCollision()
 void UBaseWeaponAbility::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
                                    UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (OtherActor == GetAvatarActorFromActorInfo() || bHit) return;
+	if (OtherActor == GetAvatarActorFromActorInfo() || AlreadyHitActors.Contains(OtherActor)) return;
 
+	AlreadyHitActors.Add(OtherActor);
 	FVector TargetForward = OtherActor->GetActorForwardVector().GetSafeNormal();
 	FVector ToAttacker = (GetAvatarActorFromActorInfo()->GetActorLocation() - OtherActor->GetActorLocation()).GetSafeNormal();
 
 	float Dot = FVector::DotProduct(TargetForward, ToAttacker);
 
-	bool bIsBackAttack = Dot > 0.5f;
+	bool bIsBackAttack = Dot < -0.5f;
 	
 	if (GetAvatarActorFromActorInfo()->HasAuthority())
 	{
-		bHit = true;
 		CauseDamage(OtherActor, bIsBackAttack);
 	}
 }
@@ -107,12 +111,6 @@ void UBaseWeaponAbility::OnOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 void UBaseWeaponAbility::UpdateCurrentAttackType(APRCharacter* PlayerCharacter)
 {
 	UCharacterMovementComponent* MovementComp = PlayerCharacter->GetCharacterMovement();
-
-	if (PlayerCharacter->bIsCrouching)
-	{
-		CurrentAttackType = EAttackType::CrouchAttack;
-		return;
-	}
 
 	if (PlayerCharacter->bIsInAir)
 	{

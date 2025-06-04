@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Components/BoxComponent.h"
 #include "Components/SphereComponent.h"
 #include "Components/SpotLightComponent.h"
 #include "PayRock/Enemy/EnemyCharacter.h"
@@ -23,10 +24,13 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Torch")
 	USpotLightComponent* TorchLight;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Torch")
 	UStaticMeshComponent* TorchBeamVisual;
-	UPROPERTY(VisibleAnywhere, Category = "Combat")
+	
+	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "Combat")
 	TObjectPtr<USphereComponent> WeaponCollision;
+	
 	UPROPERTY(EditDefaultsOnly, Category = "Combat")
 	FName CollisionSocketName = FName("CollisionSocket");
 

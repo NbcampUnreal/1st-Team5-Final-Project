@@ -47,8 +47,8 @@ APRGameState::APRGameState()
 	MinimumRequirePlayers = 2;  // 매치 시작시 필요한 플레이어 수
 	CurrentAmountOfPlayers = 0; // 현재 플레이어 수 초기화
 	MatchStart_CountDown = -1;  // 매치 시작 카운트다운
-	MatchDurationSeconds = 120; // 매치 시작 후 매치 지속시간
-	ExtractionActivationTime = 60; // 탈출구 열리는 시간
+	MatchDurationSeconds = 300; // 매치 시작 후 매치 지속시간
+	ExtractionActivationTime = 180; // 탈출구 열리는 시간
 	RemainingMatchTime = MatchDurationSeconds;
 	bReplicates = true;
 }
@@ -75,10 +75,10 @@ void APRGameState::Notify_PlayerConnection_Implementation()
 	// 최신 접속 인원 수
 	CurrentAmountOfPlayers = GetWorld()->GetGameState<AGameState>()->PlayerArray.Num();
 
-	// 40초 강제 시작 타이머가 없다면 생성
+	// 60초 강제 시작 타이머가 없다면 생성
 	if (!bForceStarted && !GetWorld()->GetTimerManager().IsTimerActive(ForceStartTimerHandle))
 	{
-		GetWorld()->GetTimerManager().SetTimer(ForceStartTimerHandle, this, &APRGameState::ForceStartMatch, 40.0f, false);
+		GetWorld()->GetTimerManager().SetTimer(ForceStartTimerHandle, this, &APRGameState::ForceStartMatch, 60.0f, false);
 	}
 
 	// 조건 충족 시
@@ -88,15 +88,15 @@ void APRGameState::Notify_PlayerConnection_Implementation()
 		{
 			// 카운트다운 시작
 			bHasStartedCountdown = true;
-			MatchStart_CountDown = 5;
+			MatchStart_CountDown = 20;
 			GetWorld()->GetTimerManager().SetTimer(MatchStartTimerHandle, this, &APRGameState::TickMatchCountdown, 1.0f, true);
 		}
 		else
 		{
 			// 이미 카운트다운 중이라면: 남은 시간이 15초보다 크면 15초로 "줄임"
-			if (MatchStart_CountDown > 5)
+			if (MatchStart_CountDown > 20)
 			{
-				MatchStart_CountDown = 5;
+				MatchStart_CountDown = 20;
 			}
 		}
 	}
@@ -143,7 +143,7 @@ void APRGameState::MatchEnd()
 	for (APlayerState* PS : PlayerArray)
 	{
 		APRPlayerState* PRPS = Cast<APRPlayerState>(PS);
-		PRPS->ForceDeath();
+		if (!PRPS->GetIsExtracted()) PRPS->ForceDeath();
 	}
 	GetWorld()->GetTimerManager().SetTimer(
 		MatchEndTimerHandle,
@@ -248,7 +248,7 @@ void APRGameState::ForceStartMatch()
 		bForceStarted = true;
 		MatchStart_CountDown = 5;
 		GetWorld()->GetTimerManager().SetTimer(MatchStartTimerHandle, this, &APRGameState::TickMatchCountdown, 1.0f, true);
-		UE_LOG(LogTemp, Warning, TEXT("40 Second ForceStartMatch"));
+		UE_LOG(LogTemp, Warning, TEXT("60 Second ForceStartMatch"));
 	}
 }
 
@@ -351,11 +351,12 @@ void APRGameState::OnRep_MatchFlowState()
 	//}
 
 
-	UE_LOG(LogTemp, Error, TEXT("Client OnRep_MatchFlowState called! State: %d"), static_cast<int32>(MatchFlowState));
-	// ...
+	//UE_LOG(LogTemp, Error, TEXT("Client OnRep_MatchFlowState called! State: %d"), static_cast<int32>(MatchFlowState));
+	//UE_LOG(LogTemp, Error, TEXT("Client OnRep_MatchFlowState called! State: %d"), static_cast<int32>(MatchFlowState));
 
 	if (APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0))
 	{
+		if (!PC->IsLocalController()) return;
 		if (APRPlayerController* PRPC = Cast<APRPlayerController>(PC))
 		{
 			PRPC->HandleMatchFlowStateChanged(MatchFlowState);

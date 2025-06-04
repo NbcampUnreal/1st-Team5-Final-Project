@@ -2,6 +2,8 @@
 
 
 #include "UIManager.h"
+
+#include "AbilitySystemComponent.h"
 #include "PayRock/Player/PRPlayerState.h"
 #include "PayRock/UI/Widget/BaseUserWidget.h"
 #include "PayRock/UI/WidgetController/StatWidgetController.h"
@@ -30,7 +32,7 @@ UUserWidget* UUIManager::ShowWidget(EWidgetCategory Category)
 	{
 		Widget = InitializeWidget(Category);
 	}
-	ensure(Widget);
+	if (!Widget) return nullptr;
 	Widget->SetVisibility(ESlateVisibility::Visible);
 	return Widget;
 }
@@ -75,6 +77,18 @@ void UUIManager::RemoveAllWidgetsInLobby()
 	}
 }
 
+void UUIManager::RemoveAllWidgetControllers()
+{
+	TArray<EWidgetCategory> Keys;
+	WidgetControllerMap.GenerateKeyArray(Keys);
+	for (const auto& Key : Keys)
+	{
+		UBaseWidgetController* ControllerToRemove = nullptr;
+		WidgetControllerMap.RemoveAndCopyValue(Key, ControllerToRemove);
+		if (IsValid(ControllerToRemove)) ControllerToRemove->BeginDestroy();
+	}
+}
+
 UUserWidget* UUIManager::FindWidget(EWidgetCategory Category)
 {
 	if (UUserWidget** WidgetPtr = WidgetMap.Find(Category))
@@ -105,6 +119,7 @@ UUserWidget* UUIManager::InitializeWidget(EWidgetCategory Category)
 	}
 	
 	UUserWidget* Widget = CreateWidget<UUserWidget>(GetGameInstance(), WidgetClass);
+	if (!Widget) return nullptr;
 
 	InitializeWidgetController(Widget, Category);
 
@@ -122,9 +137,13 @@ void UUIManager::InitializeWidgetController(UUserWidget* Widget, EWidgetCategory
 	if (UBaseUserWidget* BaseUserWidget = Cast<UBaseUserWidget>(Widget))
 	{
 		APlayerController* PC = GetGameInstance()->GetFirstLocalPlayerController();
+		if (!IsValid(PC)) return;
 		APRPlayerState* PS = PC->GetPlayerState<APRPlayerState>();
+		if (!IsValid(PS)) return;
 		UAbilitySystemComponent* ASC = PS->GetAbilitySystemComponent();
+		if (!IsValid(ASC)) return;
 		UAttributeSet* AS = PS->GetAttributeSet();
+		if (!IsValid(AS)) return;
 		const FWidgetControllerParams WCParams(PC, PS, ASC, AS);
 		
 		if (UBaseWidgetController* WidgetController = GetWidgetController(WCParams, Category))
@@ -171,6 +190,8 @@ UBaseWidgetController* UUIManager::GetWidgetController(const FWidgetControllerPa
 	}
 
 	UBaseWidgetController* WidgetController = NewObject<UBaseWidgetController>(this, LoadedClass);
+	if (!IsValid(WidgetController)) return nullptr;
+	
 	WidgetController->SetWidgetControllerParams(WCParams);
 	WidgetController->BindCallbacksToDependencies();
 	WidgetControllerMap.Add(Category, WidgetController);

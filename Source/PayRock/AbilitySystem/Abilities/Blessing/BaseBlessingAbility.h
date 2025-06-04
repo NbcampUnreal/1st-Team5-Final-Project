@@ -12,6 +12,10 @@ class PAYROCK_API UBaseBlessingAbility : public UBaseGameplayAbility
 {
 	GENERATED_BODY()
 
+public:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blessing|LifeSteal")
+	TSubclassOf<UGameplayEffect> LifeStealEffectClass;
+	
 protected:
 	UFUNCTION(BlueprintCallable)
 	void ApplyBlessingEffect();
@@ -27,8 +31,7 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blessing")
 	TSubclassOf<UGameplayAbility> PenaltyAbilityClass;
-
+	
 	UPROPERTY(BlueprintReadOnly, Category = "Blessing")
 	FActiveGameplayEffectHandle ActivePenaltyEffectHandle;
-	
 };

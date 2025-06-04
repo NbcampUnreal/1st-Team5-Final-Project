@@ -7,7 +7,7 @@
 
 UBTS_CheckPlayerDetect::UBTS_CheckPlayerDetect()
 {
-	NodeName = TEXT("Check Player Detection");
+	NodeName = TEXT("Light Player Detection");
 	bNotifyBecomeRelevant = true;
 	bNotifyTick = true;
 }

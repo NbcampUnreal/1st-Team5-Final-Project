@@ -29,6 +29,11 @@ EBTNodeResult::Type UBTTask_BossFindPlayer::ExecuteTask(UBehaviorTreeComponent& 
 		return EBTNodeResult::Succeeded;
 	}
 
+	if (UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent())
+	{
+		BB->SetValueAsBool(FName("bDetect"), true);
+	}
+
 	UAnimInstance* AnimInstance = Boss->GetMesh()->GetAnimInstance();
 	if (AnimInstance)
 	{

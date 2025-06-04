@@ -1,4 +1,6 @@
 ﻿#include "RoarCollisionActor.h"
+
+#include "NiagaraComponent.h"
 #include "Components/SphereComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "GameFramework/Character.h"
@@ -15,6 +17,11 @@ ARoarCollisionActor::ARoarCollisionActor()
 	CollisionSphere->SetGenerateOverlapEvents(true);
 	RootComponent = CollisionSphere;
 
+	
+	RoarEffect = CreateDefaultSubobject<UNiagaraComponent>(TEXT("RoarEffect"));
+	RoarEffect->SetupAttachment(RootComponent);
+	RoarEffect->SetAutoActivate(false);
+	
 	CollisionSphere->OnComponentBeginOverlap.AddDynamic(this, &ARoarCollisionActor::OnOverlapBegin);
 }
 
@@ -22,19 +29,12 @@ void ARoarCollisionActor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (RoarEffect)
+	if (HasAuthority())
 	{
-		UNiagaraFunctionLibrary::SpawnSystemAttached(
-			RoarEffect,
-			RootComponent,
-			NAME_None,
-			FVector::ZeroVector,
-			FRotator::ZeroRotator,
-			EAttachLocation::KeepRelativeOffset,
-			true
-		);
+		Multicast_PlayRoarEffect();
 	}
 }
+
 
 void ARoarCollisionActor::Tick(float DeltaTime)
 {
@@ -66,5 +66,14 @@ void ARoarCollisionActor::OnOverlapBegin(
 		const FVector Knockback = Direction * KnockbackStrength;
 
 		Player->LaunchCharacter(Knockback, true, true);
+	}
+}
+
+
+void ARoarCollisionActor::Multicast_PlayRoarEffect_Implementation()
+{
+	if (RoarEffect)
+	{
+		RoarEffect->Activate(true);
 	}
 }

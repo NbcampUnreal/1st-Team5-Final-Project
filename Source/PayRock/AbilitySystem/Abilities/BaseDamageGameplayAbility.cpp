@@ -8,10 +8,12 @@
 #include "NiagaraFunctionLibrary.h"
 #include "PayRock/PRGameplayTags.h"
 #include "PayRock/AbilitySystem/PRAttributeSet.h"
+#include "PayRock/Enemy/EnemyCharacter.h"
+#include "Perception/AISense_Damage.h"
 
 void UBaseDamageGameplayAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
-	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
-	const FGameplayEventData* TriggerEventData)
+                                                 const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
+                                                 const FGameplayEventData* TriggerEventData)
 {
 	if (const UPRAttributeSet* AttributeSet = Cast<UPRAttributeSet>(
 		GetAbilitySystemComponentFromActorInfo()->GetAttributeSet(UPRAttributeSet::StaticClass())))
@@ -33,15 +35,23 @@ void UBaseDamageGameplayAbility::EndAbility(const FGameplayAbilitySpecHandle Han
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
-void UBaseDamageGameplayAbility::CauseDamage(AActor* TargetActor, bool bIsBackAttack /*, const FHitResult& InHitResult*/)
+void UBaseDamageGameplayAbility::CauseDamage(AActor* TargetActor, bool bIsBackAttack)
 {
 	if (!GetAvatarActorFromActorInfo()->HasAuthority()) return;
 	// HitResult = InHitResult;
+
+	if (GetAvatarActorFromActorInfo()->IsA(AEnemyCharacter::StaticClass()) &&
+		TargetActor->IsA(AEnemyCharacter::StaticClass()))
+	{
+		return;
+	}
+	
 	if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor))
 	{
 		UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 		
-		FGameplayEffectSpecHandle DamageEffectSpecHandle = MakeOutgoingGameplayEffectSpec(DamageEffectClass, 1.f);
+		FGameplayEffectSpecHandle DamageEffectSpecHandle = MakeOutgoingGameplayEffectSpec(
+			DamageEffectClass, GetAbilityLevel());
 		float ScaledDamage = Damage.GetValueAtLevel(GetAbilityLevel());
 
 		// Back Attack Buff Bonus
@@ -56,6 +66,15 @@ void UBaseDamageGameplayAbility::CauseDamage(AActor* TargetActor, bool bIsBackAt
 			DamageEffectSpecHandle, DamageTypeTag, ScaledDamage);
 		ASC->ApplyGameplayEffectSpecToTarget(
 			*DamageEffectSpecHandle.Data.Get(), TargetASC);
+
+		UAISense_Damage::ReportDamageEvent(
+	GetWorld(),
+	TargetActor,
+	GetAvatarActorFromActorInfo(),
+	ScaledDamage,
+	TargetActor->GetActorLocation(),  
+	GetAvatarActorFromActorInfo()->GetActorLocation() 
+	);
 	}
 }
 
@@ -63,83 +82,27 @@ float UBaseDamageGameplayAbility::GetBackAttackMultiplier()
 {
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 	if (!ASC) return 0.f;
-	
+
+	int32 BackAttackLevel = 1;
 	FGameplayTagContainer Tags;
 	Tags.AddTag(FPRGameplayTags::Get().Status_Buff_BackAttack);
-	TArray<FActiveGameplayEffectHandle> Handles = ASC->GetActiveEffectsWithAllTags(Tags);
+	for (const auto& ActiveEffect : ASC->GetActiveEffectsWithAllTags(Tags))
+	{
+		if (!ActiveEffect.WasSuccessfullyApplied()) continue;
 	
-	if (Handles.Num() > 0)
-	{
-		const FActiveGameplayEffect* Effect = ASC->GetActiveGameplayEffect(Handles[0]);
-		if (Effect)
-		{
-			switch (static_cast<int32>(Effect->Spec.GetLevel()))
-			{
-			case 1:
-				return 0.5f;
-			case 2:
-				return 0.75f;
-			case 3:
-				return 1.f;
-			case 4:
-				return 1.5f;
-			}
-		}
+		// will return 1 if for some reason data isn't valid
+		FGameplayEffectContextHandle ContextHandle = ASC->GetEffectContextFromActiveGEHandle(ActiveEffect);
+		BackAttackLevel = ContextHandle.GetAbilityLevel();
+		break; // Presuming there's only one GA that granted this buff
 	}
-
-	return 0.f;
-}
-
-void UBaseDamageGameplayAbility::PlayAuraVFX(AActor* TargetActor)
-{
-	if (AuraEffect && TargetActor)
+	// TODO : make this not hard coding
+	switch (BackAttackLevel)
 	{
-		UNiagaraComponent* NiagaraComp = UNiagaraFunctionLibrary::SpawnSystemAttached(
-			AuraEffect,
-			TargetActor->GetRootComponent(),
-			NAME_None,
-			FVector::ZeroVector,
-			FRotator::ZeroRotator,
-			EAttachLocation::KeepRelativeOffset,
-			true
-		);
-
-		if (NiagaraComp)
-		{
-			FTimerHandle DestroyHandle;
-			FTimerDelegate DestroyDelegate = FTimerDelegate::CreateLambda([NiagaraComp]()
-			{
-				NiagaraComp->DestroyComponent();
-			});
-
-			TargetActor->GetWorldTimerManager().SetTimer(
-				DestroyHandle,
-				DestroyDelegate,
-				AuraRate,
-				false
-			);
-		}
-	}
-
-	if (AuraDecalClass && TargetActor && TargetActor->GetWorld())
-	{
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.Owner = TargetActor;
-
-		const FVector SpawnLocation = TargetActor->GetActorLocation();
-		const FRotator SpawnRotation = FRotator::ZeroRotator;
-
-		AActor* AuraDecal = TargetActor->GetWorld()->SpawnActor<AActor>(
-			AuraDecalClass,
-			SpawnLocation,
-			SpawnRotation,
-			SpawnParams
-		);
-
-		if (AuraDecal)
-		{
-			AuraDecal->AttachToActor(TargetActor, FAttachmentTransformRules::KeepWorldTransform);
-			// 자동 파괴는 액터 클래스 내부에서 관리
-		}
+	case 1:		return 0.5f;
+	case 2:		return 0.75f;
+	case 3:		return 1.f;
+	case 4:		return 1.5f;
+	default:	return 1.f;
 	}
 }
+
