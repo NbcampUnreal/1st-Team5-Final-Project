@@ -30,7 +30,10 @@ public:
 
 	virtual void Tick(float DeltaSeconds) override;
 
+	/* Death */
 	virtual void Die(FVector HitDirection = FVector::ZeroVector) override;
+	UPROPERTY(Replicated)
+	bool bIsDead = false;
 
 	/* Extraction */
 	UFUNCTION()
@@ -45,6 +48,23 @@ public:
 	UAnimMontage* ExtractionMontage;*/
 	UPROPERTY(EditDefaultsOnly, Category = "Extraction")
 	float HideDelay = 2.5f;
+	UPROPERTY(Replicated)
+	bool bIsExtracted = false;
+
+	/* Status */
+	UPROPERTY(Replicated)
+	bool bIsInvisible = false;
+
+	/* Combo */
+	UFUNCTION(BlueprintCallable, Category = "Combo")
+	void StartComboTimer();
+	UFUNCTION()
+	void SetResetCombo();
+	UPROPERTY(BlueprintReadOnly, Replicated, Category = "Combo")
+	bool bResetCombo = false;
+	UPROPERTY(EditDefaultsOnly, Category = "Combo")
+	float ComboTime;
+	FTimerHandle ComboTimerHandle;
 
 	// SpringArm Component
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
@@ -61,8 +81,7 @@ public:
 	//관전용 카메라 컨트롤 Replication
 	UPROPERTY(Replicated)
 	FRotator ReplicatedControlRotation;
-
-
+	
 	FVector DefaultSocketOffset = FVector::ZeroVector;
 	FVector AimingSocketOffset = FVector(0.f, 50.f, 30.f); // 오른쪽 위에서 보는 느낌
 
@@ -196,6 +215,15 @@ public:
 	UAnimMontage* DoubleJumpLandedMontage;
 	UPROPERTY(EditDefaultsOnly, Category = "Anim|DoubleJump")
 	float DoubleJumpZAmount;
+
+	/* Spin */
+	UFUNCTION(BlueprintCallable)
+	void StartSpin();
+	UFUNCTION(BlueprintCallable)
+	void StopSpin();
+	UPROPERTY(Replicated)
+	bool bShouldSpin;
+	float SpinSpeed = 1440.f;
 
 	UFUNCTION(Server, Reliable)
 	void ServerStartSprint();
@@ -358,11 +386,13 @@ protected:
 
 
 private:
-	/* Callback functions for binding ability input actions based on Input Tags  */
-	UPROPERTY(EditDefaultsOnly, Category = "Input")
-	TObjectPtr<UPRInputConfig> InputConfig;
-
+	/*
+	 *	Ability Callback for Input Tag
+	 */
 	void AbilityInputTagPressed(FGameplayTag InputTag);
 	void AbilityInputTagReleased(FGameplayTag InputTag);
 	void AbilityInputTagHeld(FGameplayTag InputTag);
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<UPRInputConfig> InputConfig;
 };

@@ -189,6 +189,7 @@ void UBlessingComponent::OnInvisibleTagChanged(const FGameplayTag ChangedTag, in
 {
 	if (TagCount > 0)
 	{
+		OwningPRCharacter->bIsInvisible = true;
 		if (OwningPRCharacter->IsLocallyControlled())
 		{
 			if (!bInvisibleMaterialApplied)
@@ -207,6 +208,7 @@ void UBlessingComponent::OnInvisibleTagChanged(const FGameplayTag ChangedTag, in
 	}
 	else
 	{
+		OwningPRCharacter->bIsInvisible = false;
 		if (OwningPRCharacter->IsLocallyControlled())
 		{
 			if (bInvisibleMaterialApplied)
