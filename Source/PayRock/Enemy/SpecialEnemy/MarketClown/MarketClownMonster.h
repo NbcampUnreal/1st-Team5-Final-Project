@@ -3,6 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "NiagaraSystem.h"
+#include "Components/BoxComponent.h"
 #include "Components/SphereComponent.h"
 #include "PayRock/Enemy/EnemyCharacter.h"
 #include "MarketClownMonster.generated.h"
@@ -45,7 +47,7 @@ public:
 	
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Split", meta = (AllowPrivateAccess = "true"))
-	int32 MaxSplitCount = 4;
+	int32 MaxSplitCount = 3;
 
 
 	
@@ -54,9 +56,9 @@ protected:
 	virtual void Die(FVector HitDirection = FVector::ZeroVector) override;
 	
 
-	UPROPERTY(VisibleAnywhere, Category = "Combat")
+	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "Combat")
 	TObjectPtr<USphereComponent> WeaponCollision;
-
+	
 	UPROPERTY(VisibleAnywhere, Category = "Mask")
 	USkeletalMeshComponent* MaskMesh;
 
@@ -96,5 +98,11 @@ private:
 	float BaekjeSpeed = 500.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MaskMovement", meta = (AllowPrivateAccess = "true"))
 	float BuneSpeed = 400.0f;
-	
+
+
+	UPROPERTY(EditDefaultsOnly, Category = "VFX")
+	TObjectPtr<UNiagaraSystem> DeathVFX;
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_PlayDeathVFX();
 };

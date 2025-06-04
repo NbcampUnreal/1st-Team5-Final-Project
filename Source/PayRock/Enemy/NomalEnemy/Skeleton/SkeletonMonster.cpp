@@ -10,8 +10,7 @@ ASkeletonMonster::ASkeletonMonster()
 
 	WeaponCollision = CreateDefaultSubobject<USphereComponent>(TEXT("WeaponCollision"));
 	WeaponCollision->SetupAttachment(Weapon, CollisionSocketName);
-
-	WeaponCollision->InitSphereRadius(30.0f);
+	WeaponCollision->InitSphereRadius(50.f); 
 	WeaponCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	WeaponCollision->SetCollisionObjectType(ECC_WorldDynamic);
 	WeaponCollision->SetCollisionResponseToAllChannels(ECR_Ignore);

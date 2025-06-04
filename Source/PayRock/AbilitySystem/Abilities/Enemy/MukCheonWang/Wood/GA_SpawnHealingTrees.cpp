@@ -7,7 +7,7 @@
 
 UGA_SpawnHealingTrees::UGA_SpawnHealingTrees()
 {
-	AbilityTags.AddTag(FGameplayTag::RequestGameplayTag("Event.Montage.Boss.Wood"));
+	SetAssetTags(FGameplayTagContainer(FGameplayTag::RequestGameplayTag("Event.Montage.Boss.Wood")));
 	ActivationOwnedTags.AddTag(FGameplayTag::RequestGameplayTag("Boss.State.Attacking"));
 }
 
@@ -32,7 +32,9 @@ void UGA_SpawnHealingTrees::ActivateAbility(
 	CurrentActivationInfo = ActivationInfo;
 
 	
-	PlayAuraVFX(Boss);
+
+	Boss->Multicast_PlayAuraEffect(AuraEffect, FontlClass, AuraRate);
+	
 	
 	if (UWorld* World = GetWorld())
 	{

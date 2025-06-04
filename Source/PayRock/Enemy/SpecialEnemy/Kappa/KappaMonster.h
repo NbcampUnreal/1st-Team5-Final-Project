@@ -25,11 +25,10 @@ public:
 	void OnPlayerDetected(AActor* DetectedActor);
 	
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CollisionComponent")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CollisionComponent")
 	USphereComponent* LeftHandCollisionComp;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CollisionComponent")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CollisionComponent")
 	USphereComponent* RightHandCollisionComp;
 	
-
 };

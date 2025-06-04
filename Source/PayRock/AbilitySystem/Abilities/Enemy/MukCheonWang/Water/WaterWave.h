@@ -6,6 +6,8 @@
 #include "NiagaraComponent.h"
 #include "Components/BoxComponent.h"
 #include "GameFramework/Actor.h"
+#include "GeometryCache.h"
+#include "GeometryCacheComponent.h"
 #include "WaterWave.generated.h"
 
 UCLASS()
@@ -15,31 +17,41 @@ class PAYROCK_API AWaterWave : public AActor
 
 public:
 	AWaterWave();
-	virtual void Tick(float DeltaTime) override;
 
 protected:
 	virtual void BeginPlay() override;
-
-	UPROPERTY(VisibleAnywhere)
+	virtual void Tick(float DeltaTime) override;
+	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
+	
+	UPROPERTY(VisibleAnywhere, Category = "Wave|Collision")
 	TObjectPtr<UBoxComponent> CollisionBox;
 
-	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<UNiagaraComponent> NiagaraEffect;
+	FVector MoveDirection;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Wave")
-	float MoveSpeed = 1000.f;
+	UPROPERTY(EditDefaultsOnly, Category = "Wave|Movement")
+	float MoveSpeed = 400.f;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Wave")
-	float KnockbackStrength = 1200.f;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Wave")
-	float Lifetime = 3.0f;
+	UPROPERTY(EditDefaultsOnly, Category = "Wave|Lifetime")
+	float Lifetime = 5.f;
 
-private:
+
+	UPROPERTY(EditDefaultsOnly, Category = "Wave|Knockback")
+	float KnockbackStrength = 800.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Wave|Effect")
+	TObjectPtr<UGeometryCache> GeometryCacheAsset;
+
+
+	UPROPERTY(VisibleAnywhere, Category = "Wave|Effect")
+	TObjectPtr<UGeometryCacheComponent> GeometryCacheComp;
+
 	UFUNCTION()
 	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-						UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
-						const FHitResult& SweepResult);
+						UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
+						bool bFromSweep, const FHitResult& SweepResult);
 
-	FVector MoveDirection;
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_PlayVFX();
 };

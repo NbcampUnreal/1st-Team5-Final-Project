@@ -34,7 +34,7 @@ void UGA_ChargeStamp::ActivateAbility(
 		TargetLocation = Avatar->GetActorLocation() + Avatar->GetActorForwardVector() * 300.f;
 	}
 
-	StartChargeVisual(Avatar);
+	//StartChargeVisual(Avatar);
 
 }
 

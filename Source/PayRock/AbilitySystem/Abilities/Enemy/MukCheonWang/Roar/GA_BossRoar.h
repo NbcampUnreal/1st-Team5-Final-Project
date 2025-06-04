@@ -34,6 +34,7 @@ protected:
 
 	UFUNCTION()
 	void OnRoarMontageCancelled();
+	void ResetNearPlayerBlackboardFlag();
 
 private:
 	FGameplayAbilitySpecHandle CurrentSpecHandle;

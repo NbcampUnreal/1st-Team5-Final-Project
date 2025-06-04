@@ -16,6 +16,8 @@ void UAnimNotify_SpawnRoarCollision::Notify(USkeletalMeshComponent* MeshComp, UA
 	Params.Owner = Owner;
 	
 	FVector SpawnLoc = Owner->GetActorLocation();
+	SpawnLoc.Z += 80.f;
+
 	FRotator SpawnRot = Owner->GetActorRotation();
 
 	World->SpawnActor<AActor>(RoarCollisionActorClass, SpawnLoc, SpawnRot, Params);

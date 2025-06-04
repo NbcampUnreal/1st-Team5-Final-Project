@@ -3,11 +3,13 @@
 #include "NiagaraComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
-
+#include "Net/UnrealNetwork.h"
+#include "Kismet/GameplayStatics.h"
 
 ALightningStrikeActor::ALightningStrikeActor()
 {
     PrimaryActorTick.bCanEverTick = false;
+    bReplicates = true;
 
     StrikeCollision = CreateDefaultSubobject<UCapsuleComponent>(TEXT("StrikeCollision"));
     StrikeCollision->InitCapsuleSize(100.f, 200.f);
@@ -17,7 +19,8 @@ ALightningStrikeActor::ALightningStrikeActor()
 
     LightningVFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("LightningVFX"));
     LightningVFX->SetupAttachment(RootComponent);
-    LightningVFX->SetAutoActivate(false);
+    LightningVFX->SetRelativeLocation(FVector(0.f, 0.f, -50.f));
+    LightningVFX->SetAutoActivate(false); 
 
     StrikeCollision->OnComponentBeginOverlap.AddDynamic(this, &ALightningStrikeActor::OnStrikeOverlap);
 }
@@ -26,14 +29,25 @@ void ALightningStrikeActor::BeginPlay()
 {
     Super::BeginPlay();
 
-    GetWorld()->GetTimerManager().SetTimer(TimerHandle_Activate, this, &ALightningStrikeActor::ActivateStrike, DelayBeforeStrike, false);
+    UE_LOG(LogTemp, Warning, TEXT("⚡ BeginPlay on %s | NetMode: %d"), *GetName(), (int32)GetNetMode());
+
+    if (HasAuthority())
+    {
+        UE_LOG(LogTemp, Warning, TEXT("⚡ Server activated timer for %s"), *GetName());
+
+        GetWorld()->GetTimerManager().SetTimer(
+            TimerHandle_Activate, this, &ALightningStrikeActor::ActivateStrike, DelayBeforeStrike, false
+        );
+    }
+
     SetLifeSpan(DelayBeforeStrike + 1.f);
 }
 
 void ALightningStrikeActor::ActivateStrike()
 {
     StrikeCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-    LightningVFX->Activate(true);
+
+    Multicast_PlayLightningVFX();
 }
 
 void ALightningStrikeActor::OnStrikeOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
@@ -53,12 +67,16 @@ void ALightningStrikeActor::OnStrikeOverlap(UPrimitiveComponent* OverlappedComp,
     }
 }
 
-void ALightningStrikeActor::Tick(float DeltaTime)
-{
-    Super::Tick(DeltaTime);
-}
-
 void ALightningStrikeActor::SetInstigatorAbility(UBaseDamageGameplayAbility* InAbility)
 {
     InstigatorAbility = InAbility;
+}
+
+void ALightningStrikeActor::Multicast_PlayLightningVFX_Implementation()
+{
+    if (LightningVFX && GetNetMode() != NM_DedicatedServer)
+    {
+        LightningVFX->SetWorldLocation(GetActorLocation());
+        LightningVFX->Activate(true);
+    }
 }

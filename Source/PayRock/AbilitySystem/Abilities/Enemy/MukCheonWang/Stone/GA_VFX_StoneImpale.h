@@ -22,7 +22,8 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stone")
 	TSubclassOf<AStoneSpikeActor> StoneSpikeClass;
-
+	
+	TArray<AActor*> SpikeTargets;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stone")
 	float SpawnDistance = 300.f;
@@ -30,12 +31,15 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Timing")
 	float AuraDelayTime = 0.8f;
 
+	int32 CurrentTargetIndex = 0;
 
 	FTimerHandle AuraDelayTimerHandle;
-
+	FTimerHandle SpikeSpawnTimerHandle;
+	
 
 	UFUNCTION()
 	void SpawnStoneSpikesAfterAura();
+	void SpawnSingleSpike();
 
 
 	FGameplayAbilitySpecHandle CurrentSpecHandle;
