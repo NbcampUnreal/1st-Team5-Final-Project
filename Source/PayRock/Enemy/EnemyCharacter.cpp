@@ -8,6 +8,7 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "PayRock/AbilitySystem/PRAbilitySystemComponent.h"
 #include "PayRock/AbilitySystem/PRAttributeSet.h"
 
@@ -68,6 +69,24 @@ void AEnemyCharacter::AddCharacterAbilities()
 	}
 }
 
+void AEnemyCharacter::Multicast_PlayAttackSound_Implementation(USoundBase* Sound)
+{
+	if (Sound)
+	{
+		UGameplayStatics::SpawnSoundAtLocation(
+	this,
+	Sound,
+	GetActorLocation(),
+	FRotator::ZeroRotator,
+	1.0f, 
+	1.0f, 
+	0.0f, 
+	AttackAttenuation ,
+	nullptr
+	);
+	}
+}
+
 void AEnemyCharacter::Die(FVector HitDirection)
 {
 	Super::Die(HitDirection);
@@ -119,6 +138,7 @@ void AEnemyCharacter::Die(FVector HitDirection)
 		);
 	}
 	SetLifeSpan(5.0f);
+	
 }
 
 

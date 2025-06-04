@@ -33,6 +33,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Split", meta = (AllowPrivateAccess = "true"))
 	int32 SplitLevel = 0;
 	bool bIsClone = false;
+
+	//Sound
+	UFUNCTION(BlueprintCallable,NetMulticast, Unreliable)
+	void Multicast_PlayAttackSound(USoundBase* Sound);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Sound")
+	USoundAttenuation* AttackAttenuation;
+	
 protected:
 	virtual void Die(FVector HitDirection = FVector::ZeroVector) override;
 
@@ -48,4 +55,7 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Combat")
 	TArray<TObjectPtr<UAnimMontage>> DetectMontages;
+
+
+	
 };
