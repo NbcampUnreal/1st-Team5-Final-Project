@@ -32,14 +32,6 @@ void APRPlayerController::BeginPlay()
 	{
 		Subsystem->AddMappingContext(PlayerIMC, 0);
 	}
-
-
-	//	
-	if (APRGameState* PRGameState = GetWorld()->GetGameState<APRGameState>())
-	{
-		// MatchFlowState 강제 적용
-		HandleMatchFlowStateChanged(PRGameState->GetMatchFlowState());
-	}
 }
 
 void APRPlayerController::SetupInputComponent()
@@ -265,8 +257,8 @@ void APRPlayerController::ToggleSettingsMenu()
 
 void APRPlayerController::HandleMatchFlowStateChanged(EMatchFlowState NewState)
 {
-	UE_LOG(LogTemp, Error, TEXT("HandleMatchFlowStateChanged: %d"), static_cast<int32>(NewState));
-
+	// UE_LOG(LogTemp, Error, TEXT("HandleMatchFlowStateChanged: %d"), static_cast<int32>(NewState));
+	if (!IsLocalController()) return;
 
 	UUIManager* UIManager = GetGameInstance()->GetSubsystem<UUIManager>();
 	if (!UIManager) return;
