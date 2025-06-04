@@ -248,7 +248,7 @@ void APRGameState::ForceStartMatch()
 		bForceStarted = true;
 		MatchStart_CountDown = 5;
 		GetWorld()->GetTimerManager().SetTimer(MatchStartTimerHandle, this, &APRGameState::TickMatchCountdown, 1.0f, true);
-		UE_LOG(LogTemp, Warning, TEXT("40 Second ForceStartMatch"));
+		UE_LOG(LogTemp, Warning, TEXT("60 Second ForceStartMatch"));
 	}
 }
 
