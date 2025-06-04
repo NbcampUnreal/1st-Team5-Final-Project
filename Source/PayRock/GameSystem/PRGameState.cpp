@@ -351,11 +351,12 @@ void APRGameState::OnRep_MatchFlowState()
 	//}
 
 
-	UE_LOG(LogTemp, Error, TEXT("Client OnRep_MatchFlowState called! State: %d"), static_cast<int32>(MatchFlowState));
+	// UE_LOG(LogTemp, Error, TEXT("Client OnRep_MatchFlowState called! State: %d"), static_cast<int32>(MatchFlowState));
 	// ...
 
 	if (APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0))
 	{
+		if (!PC->IsLocalController()) return;
 		if (APRPlayerController* PRPC = Cast<APRPlayerController>(PC))
 		{
 			PRPC->HandleMatchFlowStateChanged(MatchFlowState);
