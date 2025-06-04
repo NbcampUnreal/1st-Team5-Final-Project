@@ -1,8 +1,10 @@
 ﻿#include "WaterWave.h"
-#include "NiagaraComponent.h"
 #include "Components/BoxComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "PayRock/Character/PRCharacter.h"
+#include "Kismet/GameplayStatics.h"
+#include "GeometryCacheComponent.h"
+#include "GeometryCache.h"
 
 AWaterWave::AWaterWave()
 {
@@ -10,16 +12,19 @@ AWaterWave::AWaterWave()
 	bReplicates = true;
 
 	CollisionBox = CreateDefaultSubobject<UBoxComponent>(TEXT("CollisionBox"));
+	SetRootComponent(CollisionBox);
+
+	CollisionBox->InitBoxExtent(FVector(100.f, 300.f, 100.f));
 	CollisionBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	CollisionBox->SetCollisionResponseToAllChannels(ECR_Overlap);
-	CollisionBox->SetBoxExtent(FVector(100.f, 300.f, 100.f));
-	RootComponent = CollisionBox;
-
-	NiagaraEffect = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NiagaraEffect"));
-	NiagaraEffect->SetupAttachment(RootComponent);
-	NiagaraEffect->SetAutoActivate(false);
 
 	CollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AWaterWave::OnOverlapBegin);
+
+	GeometryCacheComp = CreateDefaultSubobject<UGeometryCacheComponent>(TEXT("GeometryCacheComp"));
+	GeometryCacheComp->SetupAttachment(RootComponent);
+	GeometryCacheComp->SetRelativeLocation(FVector::ZeroVector); // 필요 시 조정
+	GeometryCacheComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GeometryCacheComp->SetRelativeScale3D(FVector(0.5f, 0.5f, 0.5f));
 }
 
 void AWaterWave::BeginPlay()
@@ -29,7 +34,7 @@ void AWaterWave::BeginPlay()
 	SetLifeSpan(Lifetime);
 	MoveDirection = GetActorForwardVector().GetSafeNormal();
 
-	Multicast_PlayVFX(); 
+	Multicast_PlayVFX();
 }
 
 void AWaterWave::Tick(float DeltaTime)
@@ -56,8 +61,13 @@ void AWaterWave::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* Oth
 
 void AWaterWave::Multicast_PlayVFX_Implementation()
 {
-	if (NiagaraEffect && GetNetMode() != NM_DedicatedServer)
-	{
-		NiagaraEffect->Activate(true);
-	}
+	if (GetNetMode() == NM_DedicatedServer || !GeometryCacheAsset) return;
+
+	GeometryCacheComp->SetGeometryCache(GeometryCacheAsset);
+	GeometryCacheComp->Play();
+}
+
+void AWaterWave::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
 }

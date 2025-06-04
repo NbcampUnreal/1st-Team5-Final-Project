@@ -9,24 +9,23 @@
 UBTTask_Idle::UBTTask_Idle()
 {
 	NodeName = "Idle";
-	bNotifyTick = false;
+	bNotifyTick = true;
 	bNotifyTaskFinished = true;
+	bCreateNodeInstance = true;
 }
 
 EBTNodeResult::Type UBTTask_Idle::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-	UWorld* World = OwnerComp.GetWorld();
-	if (!World) return EBTNodeResult::Failed;
-	
-	FTimerDelegate TimerDel;
-	TimerDel.BindUObject(this, &UBTTask_Idle::FinishIdle, &OwnerComp);
-
-	World->GetTimerManager().SetTimer(IdleTimerHandle, TimerDel, IdleTime, false);
-
+	ElapsedTime = 0.f;
 	return EBTNodeResult::InProgress;
 }
 
-void UBTTask_Idle::FinishIdle(UBehaviorTreeComponent* OwnerComp)
+void UBTTask_Idle::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
-	FinishLatentTask(*OwnerComp, EBTNodeResult::Succeeded);
+	ElapsedTime += DeltaSeconds;
+
+	if (ElapsedTime >= IdleTime)
+	{
+		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+	}
 }

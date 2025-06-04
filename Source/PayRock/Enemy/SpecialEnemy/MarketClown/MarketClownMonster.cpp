@@ -7,6 +7,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameplayTagContainer.h"
 #include "GameplayEffect.h"
+#include "NiagaraComponent.h"
+#include "NiagaraFunctionLibrary.h"
 #include "PayRock/AbilitySystem/PRAttributeSet.h"
 
 AMarketClownMonster::AMarketClownMonster()
@@ -20,7 +22,7 @@ AMarketClownMonster::AMarketClownMonster()
 
 	WeaponCollision = CreateDefaultSubobject<USphereComponent>(TEXT("WeaponCollision"));
 	WeaponCollision->SetupAttachment(Weapon, CollisionSocketName);
-	WeaponCollision->InitSphereRadius(30.0f);
+	WeaponCollision->InitSphereRadius(50.f);
 	WeaponCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	WeaponCollision->SetCollisionObjectType(ECC_WorldDynamic);
 	WeaponCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
@@ -143,6 +145,11 @@ void AMarketClownMonster::SplitOnDeath()
 				Clone->GetMesh()->SetAnimInstanceClass(AnimInstance->GetClass());
 			}
 			Clone->ApplyMaskBehavior(RandomMask);
+			
+			float ScaleFactor = 1.f - (0.1f * Clone->SplitLevel);
+			ScaleFactor = FMath::Clamp(ScaleFactor, 0.5f, 1.f);
+			Clone->GetMesh()->SetWorldScale3D(FVector(ScaleFactor));
+			
 			Clone->InitAbilityActorInfo();
 			Clone->AddCharacterAbilities();
 			Clone->ApplySplitLevelAttributes(Clone->SplitLevel);
@@ -183,7 +190,7 @@ void AMarketClownMonster::ApplySplitLevelAttributes(int32 InLevel)
 {
 	SplitLevel = InLevel;
 	
-	const float ScaledStrength = FMath::Clamp(10.f - (SplitLevel * 2.5f), 1.f, 10.f);
+	const float ScaledStrength = FMath::Clamp(10.f - (SplitLevel * 3.5f), 1.f, 10.f);
 
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
 	if (!ASC) return;
@@ -226,30 +233,37 @@ void AMarketClownMonster::Die(FVector HitDirection)
 {
 	if (bIsDead) return;
 	bIsDead = true;
-
+	
 	if (SplitLevel < MaxSplitCount)
 	{
+		Multicast_PlayDeathVFX();
 		SplitOnDeath();
 		Super::Die(HitDirection);
 		return;
 	}
 
-	if (UAnimMontage* DeathMontage = GetDeathMontage())
-	{
-		if (UAnimInstance* Anim = GetMesh()->GetAnimInstance())
-		{
-			FOnMontageEnded EndDelegate;
-			EndDelegate.BindLambda([this](UAnimMontage*, bool)
-			{
-				Super::Die();
-				Destroy();
-			});
-			Anim->Montage_Play(DeathMontage);
-			Anim->Montage_SetEndDelegate(EndDelegate, DeathMontage);
-			return;
-		}
-	}
-
+	Multicast_PlayDeathVFX();
 	Super::Die(HitDirection);
 	Destroy();
+}
+
+
+
+void AMarketClownMonster::Multicast_PlayDeathVFX_Implementation()
+{
+	if (!DeathVFX) return;
+
+	UNiagaraComponent* Comp = UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+		this,
+		DeathVFX,
+		GetActorLocation(),
+		GetActorRotation(),
+		FVector(0.6f) 
+	);
+
+
+	if (Comp)
+	{
+		Comp->SetAutoDestroy(true);
+	}
 }

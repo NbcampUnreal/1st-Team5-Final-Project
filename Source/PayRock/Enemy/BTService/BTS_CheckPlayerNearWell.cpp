@@ -4,6 +4,7 @@
 #include "BTS_CheckPlayerNearWell.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "AIController.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "PayRock/Character/PRCharacter.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -34,5 +35,6 @@ void UBTS_CheckPlayerNearWell::TickNode(UBehaviorTreeComponent& OwnerComp, uint8
 	if (bInRange)
 	{
 		BB->SetValueAsObject(TEXT("TargetActor"), Player);
+		BB->SetValueAsBool(TEXT("bPlayerDetect"), true);
 	}
 }

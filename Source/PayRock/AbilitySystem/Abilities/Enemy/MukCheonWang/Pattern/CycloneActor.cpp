@@ -1,12 +1,12 @@
 ﻿#include "CycloneActor.h"
-
 #include "AIController.h"
-#include "NiagaraComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/Character.h"
+#include "Kismet/GameplayStatics.h"
+#include "GeometryCacheComponent.h"
+#include "GeometryCache.h"
 #include "PayRock/Character/PRCharacter.h"
-#include "UObject/FastReferenceCollector.h"
 
 ACycloneActor::ACycloneActor()
 {
@@ -19,8 +19,12 @@ ACycloneActor::ACycloneActor()
 	PullRange->OnComponentBeginOverlap.AddDynamic(this, &ACycloneActor::OnOverlapBegin);
 	PullRange->OnComponentEndOverlap.AddDynamic(this, &ACycloneActor::OnOverlapEnd);
 
-	CycloneVFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("CycloneVFX"));
-	CycloneVFX->SetupAttachment(RootComponent);
+	GeometryCacheComp = CreateDefaultSubobject<UGeometryCacheComponent>(TEXT("CycloneVFX"));
+	GeometryCacheComp->SetupAttachment(RootComponent);
+	GeometryCacheComp->SetRelativeLocation(FVector::ZeroVector);
+	GeometryCacheComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GeometryCacheComp->SetRelativeScale3D(FVector(0.5f, 0.5f, 0.5f));
+	GeometryCacheComp->SetVisibility(false);
 }
 
 void ACycloneActor::BeginPlay()
@@ -29,10 +33,11 @@ void ACycloneActor::BeginPlay()
 
 	if (HasAuthority())
 	{
-		Multicast_ActivateCycloneVFX(); 
-		SpawnLightning();            
+		Multicast_ActivateCycloneVFX();
+		SpawnLightning();
 	}
 }
+
 void ACycloneActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -50,7 +55,6 @@ void ACycloneActor::Tick(float DeltaTime)
 		}
 	}
 }
-
 
 void ACycloneActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 								   UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
@@ -74,7 +78,7 @@ void ACycloneActor::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* Ot
 void ACycloneActor::SpawnLightning()
 {
 	if (!LightningClass || !IsValid(this)) return;
-	
+
 	const FVector RandOffset = FMath::VRand().GetSafeNormal() * FMath::RandRange(0.f, LightningRadius);
 	const FVector SpawnLoc = GetActorLocation() + RandOffset;
 
@@ -82,27 +86,16 @@ void ACycloneActor::SpawnLightning()
 	Params.Owner = this;
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-	GetWorld()->SpawnActor<ALightningStrikeActor>(
-		LightningClass,
-		SpawnLoc,
-		FRotator::ZeroRotator,
-		Params
-	);
-	
+	GetWorld()->SpawnActor<ALightningStrikeActor>(LightningClass, SpawnLoc, FRotator::ZeroRotator, Params);
+
 	const float NextInterval = FMath::FRandRange(MinInterval, MaxInterval);
-	GetWorld()->GetTimerManager().SetTimer(
-		LightningLoopTimer,
-		this,
-		&ACycloneActor::SpawnLightning,
-		NextInterval,
-		false
-	);
+	GetWorld()->GetTimerManager().SetTimer(LightningLoopTimer, this, &ACycloneActor::SpawnLightning, NextInterval, false);
 }
 
 void ACycloneActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	GetWorld()->GetTimerManager().ClearTimer(LightningLoopTimer);
-	
+
 	if (APawn* OwnerPawn = Cast<APawn>(GetOwner()))
 	{
 		if (AAIController* AICon = Cast<AAIController>(OwnerPawn->GetController()))
@@ -113,7 +106,7 @@ void ACycloneActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 			}
 		}
 	}
-	
+
 	if (OnCycloneDestroyed)
 	{
 		OnCycloneDestroyed();
@@ -124,8 +117,9 @@ void ACycloneActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void ACycloneActor::Multicast_ActivateCycloneVFX_Implementation()
 {
-	if (CycloneVFX)
-	{
-		CycloneVFX->Activate(true);
-	}
+	if (!GeometryCacheAsset || GetNetMode() == NM_DedicatedServer) return;
+
+	GeometryCacheComp->SetVisibility(true);
+	GeometryCacheComp->SetGeometryCache(GeometryCacheAsset);
+	GeometryCacheComp->Play();
 }

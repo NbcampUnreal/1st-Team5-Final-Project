@@ -52,8 +52,6 @@ void UBTS_CheckPlayerLooking::TickNode(UBehaviorTreeComponent& OwnerComp, uint8*
 		}
 		else
 		{
-			
-
 			BB->SetValueAsBool("bIsBeingWatched", false);
 		}
 	}

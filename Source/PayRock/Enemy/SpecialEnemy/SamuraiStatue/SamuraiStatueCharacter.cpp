@@ -35,16 +35,16 @@ void ASamuraiStatueCharacter::ResumeAnimation()
 
 void ASamuraiStatueCharacter::SetDie(bool isdie)
 {
-	bisDead = isdie;
+	bIsDead = isdie;
 }
 
 bool ASamuraiStatueCharacter::GetDie()
 {
-	return bisDead;
+	return bIsDead;
 }
 
 void ASamuraiStatueCharacter::Die(FVector HitDirection)
 {
 	Super::Die(HitDirection);
-	bisDead = true;
+	bIsDead = true;
 }

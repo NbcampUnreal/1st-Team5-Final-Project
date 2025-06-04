@@ -17,13 +17,12 @@ class PAYROCK_API UBTTask_Idle : public UBTTask_BlackboardBase
 public:
 	UBTTask_Idle();
 
-	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
-
 protected:
 	UPROPERTY(EditAnywhere, Category = "Idle")
-	float IdleTime = 1.0f;
+	float IdleTime = 2.0f;
+	
+	float ElapsedTime;
 
-	FTimerHandle IdleTimerHandle;
-
-	void FinishIdle(UBehaviorTreeComponent* OwnerComp);
+	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
+	virtual void TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
 };

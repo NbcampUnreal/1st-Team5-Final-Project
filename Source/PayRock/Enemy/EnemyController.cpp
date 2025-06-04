@@ -4,15 +4,15 @@
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISenseConfig_Sight.h"
 #include "Perception/AISenseConfig_Damage.h"
+#include "Perception/AISenseConfig_Hearing.h"
 #include "EnemyCharacter.h"
 #include "PayRock/Character/PRCharacter.h"
 #include "TimerManager.h"
-
 AEnemyController::AEnemyController()
 {
 	BlackboardComponent = CreateDefaultSubobject<UBlackboardComponent>(TEXT("BlackboardComponent"));
 	AIPerceptionComponent = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerceptionComponent"));
-
+	
 	SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("SightConfig"));
 	SightConfig->SightRadius = SightRadius;
 	SightConfig->LoseSightRadius = LoseSightRadius;
@@ -20,24 +20,23 @@ AEnemyController::AEnemyController()
 	SightConfig->DetectionByAffiliation.bDetectEnemies = true;
 	SightConfig->DetectionByAffiliation.bDetectFriendlies = true;
 	SightConfig->DetectionByAffiliation.bDetectNeutrals = true;
-
 	AIPerceptionComponent->ConfigureSense(*SightConfig);
-	AIPerceptionComponent->SetDominantSense(SightConfig->GetSenseImplementation());
-
+	
 	DamageConfig = CreateDefaultSubobject<UAISenseConfig_Damage>(TEXT("DamageConfig"));
 	AIPerceptionComponent->ConfigureSense(*DamageConfig);
-
-
+	
 	HearingConfig = CreateDefaultSubobject<UAISenseConfig_Hearing>(TEXT("HearingConfig"));
 	HearingConfig->HearingRange = 1500.f;
 	HearingConfig->DetectionByAffiliation.bDetectEnemies = true;
 	HearingConfig->DetectionByAffiliation.bDetectFriendlies = true;
 	HearingConfig->DetectionByAffiliation.bDetectNeutrals = true;
-
 	AIPerceptionComponent->ConfigureSense(*HearingConfig);
 	
+	AIPerceptionComponent->SetDominantSense(SightConfig->GetSenseImplementation());
+
 	SetPerceptionComponent(*AIPerceptionComponent);
 }
+
 
 void AEnemyController::BeginPlay()
 {
@@ -55,26 +54,23 @@ void AEnemyController::OnPossess(APawn* InPawn)
 
 	AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(InPawn);
 	if (!Enemy || !DefaultBehaviorTree) return;
-	
-	
+
 	Enemy->InitAbilityActorInfo();
 	Enemy->InitializeDefaultAttributes();
 	Enemy->AddCharacterAbilities();
-	
+
 	UBlackboardComponent* BBComponent = nullptr;
 	if (UseBlackboard(DefaultBehaviorTree->BlackboardAsset, BBComponent))
 	{
 		BlackboardComponent = BBComponent;
-		
 		RunBehaviorTree(DefaultBehaviorTree);
 
-		if (Enemy && BlackboardComponent)
+		if (BlackboardComponent)
 		{
 			BlackboardComponent->SetValueAsVector(FName("StartPosition"), Enemy->GetActorLocation());
 		}
 	}
 }
-
 
 void AEnemyController::OnUnPossess()
 {
@@ -105,40 +101,45 @@ void AEnemyController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stim
 {
 	if (!Actor || !Actor->IsA(APRCharacter::StaticClass())) return;
 
-	AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(GetPawn());
-	if (!Enemy) return;
-	if (Enemy)
+	if (!Stimulus.WasSuccessfullySensed())
 	{
-		Enemy->SetBattleState(true);
+		SensedActors.Remove(Actor);
+		return;
 	}
-	const FVector AIPos = Enemy->GetActorLocation();
 
-	const FAISenseID HearingID = UAISense::GetSenseID<UAISense_Hearing>();
-	const FAISenseID SightID = UAISense::GetSenseID<UAISense_Sight>();
-	const FAISenseID DamageID = UAISense::GetSenseID<UAISense_Damage>();
-
-	if (Stimulus.Type == HearingID)
+	if (!SensedActors.Contains(Actor))
 	{
-		if (Stimulus.Strength >= LoudnessThreshold)
+		SensedActors.Add(Actor);
+
+		if (BlackboardComponent && !BlackboardComponent->GetValueAsObject(TEXT("TargetActor")))
 		{
 			BlackboardComponent->SetValueAsObject(TEXT("TargetActor"), Actor);
 			BlackboardComponent->SetValueAsBool(TEXT("bPlayerDetect"), true);
 		}
-		else if (Stimulus.Strength >= MinLoudnessToReact)
+	}
+
+	if (Stimulus.Type == UAISense::GetSenseID<UAISense_Hearing>())
+	{
+		if (GetPawn())
 		{
-			FRotator LookRot = (Stimulus.StimulusLocation - AIPos).Rotation();
-			Enemy->SetActorRotation(FRotator(0.f, LookRot.Yaw, 0.f));
+			const FVector Direction = (Stimulus.StimulusLocation - GetPawn()->GetActorLocation()).GetSafeNormal();
+			const FRotator LookAtRotation(0.f, Direction.Rotation().Yaw, 0.f);
+			GetPawn()->SetActorRotation(LookAtRotation);
 		}
 	}
-	else if (Stimulus.Type == SightID || Stimulus.Type == DamageID)
+	
+	else if (Stimulus.Type == UAISense::GetSenseID<UAISense_Damage>())
 	{
-		if (Stimulus.WasSuccessfullySensed())
+		if (GetPawn())
 		{
-			BlackboardComponent->SetValueAsObject(TEXT("TargetActor"), Actor);
-			BlackboardComponent->SetValueAsBool(TEXT("bPlayerDetect"), true);
+			const FVector Direction = (Actor->GetActorLocation() - GetPawn()->GetActorLocation()).GetSafeNormal();
+			const FRotator LookAtRotation(0.f, Direction.Rotation().Yaw, 0.f);
+			GetPawn()->SetActorRotation(LookAtRotation);
 		}
 	}
 }
+
+
 
 
 void AEnemyController::ClearDetectedPlayer()
@@ -148,4 +149,9 @@ void AEnemyController::ClearDetectedPlayer()
 		BlackboardComponent->SetValueAsObject(TEXT("TargetActor"), nullptr);
 		BlackboardComponent->SetValueAsBool(TEXT("bPlayerDetect"), false);
 	}
+}
+
+const TArray<AActor*>& AEnemyController::GetSensedActors() const
+{
+	return SensedActors;
 }

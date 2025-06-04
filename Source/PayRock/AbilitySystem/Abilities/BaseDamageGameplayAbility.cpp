@@ -8,10 +8,12 @@
 #include "NiagaraFunctionLibrary.h"
 #include "PayRock/PRGameplayTags.h"
 #include "PayRock/AbilitySystem/PRAttributeSet.h"
+#include "PayRock/Enemy/EnemyCharacter.h"
+#include "Perception/AISense_Damage.h"
 
 void UBaseDamageGameplayAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
-	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
-	const FGameplayEventData* TriggerEventData)
+                                                 const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
+                                                 const FGameplayEventData* TriggerEventData)
 {
 	if (const UPRAttributeSet* AttributeSet = Cast<UPRAttributeSet>(
 		GetAbilitySystemComponentFromActorInfo()->GetAttributeSet(UPRAttributeSet::StaticClass())))
@@ -37,6 +39,13 @@ void UBaseDamageGameplayAbility::CauseDamage(AActor* TargetActor, bool bIsBackAt
 {
 	if (!GetAvatarActorFromActorInfo()->HasAuthority()) return;
 	// HitResult = InHitResult;
+
+	if (GetAvatarActorFromActorInfo()->IsA(AEnemyCharacter::StaticClass()) &&
+		TargetActor->IsA(AEnemyCharacter::StaticClass()))
+	{
+		return;
+	}
+	
 	if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor))
 	{
 		UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
@@ -57,6 +66,15 @@ void UBaseDamageGameplayAbility::CauseDamage(AActor* TargetActor, bool bIsBackAt
 			DamageEffectSpecHandle, DamageTypeTag, ScaledDamage);
 		ASC->ApplyGameplayEffectSpecToTarget(
 			*DamageEffectSpecHandle.Data.Get(), TargetASC);
+
+		UAISense_Damage::ReportDamageEvent(
+	GetWorld(),
+	TargetActor,
+	GetAvatarActorFromActorInfo(),
+	ScaledDamage,
+	TargetActor->GetActorLocation(),  
+	GetAvatarActorFromActorInfo()->GetActorLocation() 
+	);
 	}
 }
 

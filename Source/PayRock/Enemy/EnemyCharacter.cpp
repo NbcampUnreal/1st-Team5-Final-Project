@@ -1,5 +1,3 @@
-// PayRockGames
-
 #include "EnemyCharacter.h"
 
 #include "AIController.h"
@@ -7,10 +5,13 @@
 #include "GenericTeamAgentInterface.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/PawnNoiseEmitterComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "PayRock/AbilitySystem/PRAbilitySystemComponent.h"
 #include "PayRock/AbilitySystem/PRAttributeSet.h"
-
+#include "Perception/AIPerceptionStimuliSourceComponent.h"
+#include "Perception/AISense_Hearing.h"
 
 AEnemyCharacter::AEnemyCharacter()
 {
@@ -21,6 +22,13 @@ AEnemyCharacter::AEnemyCharacter()
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Minimal);
 
 	AttributeSet = CreateDefaultSubobject<UPRAttributeSet>("AttributeSet");
+
+	StimuliSourceComponent = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("StimuliSourceComponent"));
+	StimuliSourceComponent->bAutoRegister = true;
+	StimuliSourceComponent->RegisterForSense(UAISense_Hearing::StaticClass());
+	
+	PawnNoiseEmitterComp = CreateDefaultSubobject<UPawnNoiseEmitterComponent>(TEXT("PawnNoiseEmitter"));
+
 }
 
 void AEnemyCharacter::ToggleWeaponCollision(bool bEnable)
@@ -31,23 +39,28 @@ void AEnemyCharacter::ToggleWeaponCollision(bool bEnable)
 	}
 }
 
-
 void AEnemyCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (StimuliSourceComponent)
+	{
+		StimuliSourceComponent->RegisterForSense(TSubclassOf<UAISense_Hearing>());
+		StimuliSourceComponent->RegisterWithPerceptionSystem();
+	}
 }
 
 void AEnemyCharacter::InitAbilityActorInfo()
 {
 	AbilitySystemComponent->InitAbilityActorInfo(this, this);
-	
+
 	if (AttributeSet)
 	{
 		AbilitySystemComponent->AddAttributeSetSubobject(Cast<UPRAttributeSet>(AttributeSet));
 	}
-	
+
 	BindToTagChange();
-	
+
 	Cast<UPRAbilitySystemComponent>(AbilitySystemComponent)->OnAbilityActorInfoInitialized();
 }
 
@@ -73,18 +86,12 @@ void AEnemyCharacter::Die(FVector HitDirection)
 	Super::Die(HitDirection);
 
 	bIsDead = true;
-	
 
 	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponent())
 	{
 		ASC->CancelAllAbilities();
 	}
-	
-	/*if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
-	{
-		AnimInstance->StopAllMontages(0.2f);
-	}*/
-	
+
 	if (AAIController* AICon = Cast<AAIController>(GetController()))
 	{
 		if (UBrainComponent* Brain = AICon->GetBrainComponent())
@@ -101,11 +108,7 @@ void AEnemyCharacter::Die(FVector HitDirection)
 		}
 		AICon->UnPossess();
 	}
-	
-	/*GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	GetCharacterMovement()->DisableMovement();
-	GetCharacterMovement()->StopMovementImmediately();*/
-	
+
 	if (!bIsClone && ContainerClass)
 	{
 		FActorSpawnParameters SpawnParams;
@@ -120,7 +123,6 @@ void AEnemyCharacter::Die(FVector HitDirection)
 	}
 	SetLifeSpan(5.0f);
 }
-
 
 UAnimMontage* AEnemyCharacter::GetRandomAttackMontage() const
 {
@@ -141,4 +143,60 @@ UAnimMontage* AEnemyCharacter::GetRandomDetectMontage() const
 bool AEnemyCharacter::IsDead() const
 {
 	return bIsDead;
+}
+
+void AEnemyCharacter::PlayGradualSound(USoundBase* InSound, float MaxDistance, float Volume, float Loudness)
+{
+	if (!InSound) return;
+	
+	if (HasAuthority())
+	{
+		Multicast_PlayGradualSound(InSound, MaxDistance, Volume, Loudness);
+	}
+}
+
+void AEnemyCharacter::Multicast_PlayGradualSound_Implementation(USoundBase* InSound, float MaxDistance, float Volume, float Loudness)
+{
+	if (!InSound) return;
+
+	UWorld* World = GetWorld();
+	if (!World) return;
+
+	FVector SoundLocation = GetActorLocation();
+	
+	if (APlayerController* PC = UGameplayStatics::GetPlayerController(World, 0))
+	{
+		if (APawn* PlayerPawn = PC->GetPawn())
+		{
+			float Distance = FVector::Dist(SoundLocation, PlayerPawn->GetActorLocation());
+			if (Distance <= MaxDistance)
+			{
+				float VolumeScale = FMath::Clamp(1.f - (Distance / MaxDistance), 0.f, 1.f) * Volume;
+				UGameplayStatics::PlaySoundAtLocation(World, InSound, SoundLocation, VolumeScale);
+			}
+		}
+	}
+
+	MakeNoise(Loudness, this, SoundLocation, MaxDistance);
+}
+
+void AEnemyCharacter::PlayDetectMontage(UAnimMontage* Montage)
+{
+	if (!Montage || !GetMesh() || !GetMesh()->GetAnimInstance()) return;
+
+	if (HasAuthority())
+	{
+		Multicast_PlayDetectMontage(Montage);
+	}
+}
+
+void AEnemyCharacter::Multicast_PlayDetectMontage_Implementation(UAnimMontage* Montage)
+{
+	if (!Montage || !GetMesh()) return;
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance)
+	{
+		AnimInstance->Montage_Play(Montage);
+	}
 }

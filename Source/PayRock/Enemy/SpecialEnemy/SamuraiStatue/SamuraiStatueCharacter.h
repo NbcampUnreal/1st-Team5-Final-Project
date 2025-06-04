@@ -32,6 +32,4 @@ virtual void Die(FVector HitDiretion) override;
 	UCapsuleComponent* WeaponCollision;
 
 	
-	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "Dead State")
-	bool bisDead = false;
 };

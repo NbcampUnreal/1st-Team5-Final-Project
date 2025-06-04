@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
+#include "GeometryCacheComponent.h"
 #include "NiagaraComponent.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/Actor.h"
@@ -24,9 +25,12 @@ protected:
 
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<USphereComponent> PullRange;
-
+	
 	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<UNiagaraComponent> CycloneVFX;
+	TObjectPtr<UGeometryCacheComponent> GeometryCacheComp;
+	
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<UGeometryCache> GeometryCacheAsset;
 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class ALightningStrikeActor> LightningClass;
@@ -53,11 +57,10 @@ protected:
 
 	UFUNCTION()
 	void OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-					  UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+						UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 	void SpawnLightning();
 
-	
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_ActivateCycloneVFX();
 
