@@ -30,6 +30,10 @@ public:
 
 	virtual void Tick(float DeltaSeconds) override;
 
+	bool GetbIsDead() const { return bIsDead; }
+	bool GetbIsExtracted() const { return bIsExtracted; }
+	bool GetbIsInvisible() const { return bIsInvisible; }
+	
 	/* Death */
 	virtual void Die(FVector HitDirection = FVector::ZeroVector) override;
 	UPROPERTY(Replicated)

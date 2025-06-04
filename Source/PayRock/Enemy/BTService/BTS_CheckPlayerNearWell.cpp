@@ -21,13 +21,20 @@ void UBTS_CheckPlayerNearWell::TickNode(UBehaviorTreeComponent& OwnerComp, uint8
 	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
 	if (!BB) return;
 
-	AActor* Player = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
-	if (!Player) return;
+	AActor* PlayerActor = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+	if (!PlayerActor ) return;
 
 	APawn* Controlled = OwnerComp.GetAIOwner()->GetPawn();
 	if (!Controlled) return;
 
-	const float Distance = FVector::Dist(Controlled->GetActorLocation(), Player->GetActorLocation());
+	const float Distance = FVector::Dist(Controlled->GetActorLocation(), PlayerActor ->GetActorLocation());
+
+	APRCharacter* Player = Cast<APRCharacter>(PlayerActor);
+	if (!Player || Player->GetbIsDead() || Player->GetbIsExtracted() || Player->GetbIsInvisible())
+	{
+		return;
+	}
+
 	
 	bool bInRange = Distance <= DetectionRadius;
 	BB->SetValueAsBool(TEXT("bPlayerNearWell"), bInRange);

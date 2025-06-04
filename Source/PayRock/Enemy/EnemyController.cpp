@@ -106,7 +106,22 @@ void AEnemyController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stim
 		SensedActors.Remove(Actor);
 		return;
 	}
+	
+	if (APRCharacter* Player = Cast<APRCharacter>(Actor))
+	{
+		if (Player->GetbIsDead() || Player->GetbIsExtracted() || Player->GetbIsInvisible())
+		{
+			SensedActors.Remove(Actor);
 
+			if (BlackboardComponent)
+			{
+				BlackboardComponent->ClearValue(TEXT("TargetActor"));
+				BlackboardComponent->SetValueAsBool(TEXT("bPlayerDetect"), false);
+			}
+			return;
+		}
+	}
+	
 	if (!SensedActors.Contains(Actor))
 	{
 		SensedActors.Add(Actor);
