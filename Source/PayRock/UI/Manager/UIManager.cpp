@@ -85,7 +85,6 @@ void UUIManager::RemoveAllWidgetControllers()
 	{
 		UBaseWidgetController* ControllerToRemove = nullptr;
 		WidgetControllerMap.RemoveAndCopyValue(Key, ControllerToRemove);
-		if (IsValid(ControllerToRemove)) ControllerToRemove->BeginDestroy();
 	}
 }
 
