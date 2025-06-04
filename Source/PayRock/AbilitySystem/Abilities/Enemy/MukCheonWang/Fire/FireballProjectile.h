@@ -1,16 +1,15 @@
-﻿// PayRockGames
-
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayEffect.h"
+#include "GameplayTagContainer.h"
 #include "GameFramework/Actor.h"
-#include "Kismet/GameplayStaticsTypes.h"
-#include "PayRock/AbilitySystem/Abilities/BaseDamageGameplayAbility.h"
 #include "FireballProjectile.generated.h"
 
-class UProjectileMovementComponent;
+class UNiagaraSystem;
 class UNiagaraComponent;
 class USphereComponent;
+class UProjectileMovementComponent;
 class AFireDOTArea;
 
 UCLASS()
@@ -23,19 +22,20 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+
+public:
 	virtual void Tick(float DeltaTime) override;
 
-
-	UPROPERTY(VisibleAnywhere, Category = "Components")
+protected:
+	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<USphereComponent> CollisionComponent;
 
-	UPROPERTY(VisibleAnywhere, Category = "Components")
+	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UProjectileMovementComponent> ProjectileMovement;
 
-	UPROPERTY(VisibleAnywhere, Category = "Components")
+	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UNiagaraComponent> NiagaraComponent;
 
-	
 	UPROPERTY(EditDefaultsOnly, Category = "Damage")
 	TSubclassOf<UGameplayEffect> DamageEffectClass;
 
@@ -43,57 +43,48 @@ protected:
 	FGameplayTag DamageTag;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Damage")
-	float DamageAmount = 50.f;
+	float DamageAmount = 5.f;
 
-	
-	UPROPERTY(EditDefaultsOnly, Category = "DOT")
+	UPROPERTY(EditDefaultsOnly, Category = "Effect")
+	TObjectPtr<UNiagaraSystem> ImpactVFX;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Effect")
 	TSubclassOf<AFireDOTArea> DOTAreaClass;
 
-	UPROPERTY(EditDefaultsOnly, Category = "DOT")
-	float SpawnHeightOffset = 50.f;
+	UPROPERTY(EditDefaultsOnly, Category = "Effect")
+	float SpawnHeightOffset = 10.f;
 
-	
-	UPROPERTY(EditDefaultsOnly, Category = "Timer")
+	UPROPERTY(EditDefaultsOnly, Category = "Projectile")
 	float FireRate = 1.0f;
 
-	
+	UPROPERTY(EditDefaultsOnly, Category = "Projectile")
+	float FloatSpeed = 4.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Projectile")
+	float FloatHeight = 15.0f;
+
+private:
+	bool bHit = false;
+	FVector LaunchVelocity;
+	FTimerHandle LaunchDelayHandle;
 	float FloatElapsedTime = 0.f;
 
-	UPROPERTY(EditDefaultsOnly, Category = "FloatEffect")
-	float FloatDuration = 1.5f;
-
-	UPROPERTY(EditDefaultsOnly, Category = "FloatEffect")
-	float FloatHeight = 60.f;
-
-	UPROPERTY(EditDefaultsOnly, Category = "FloatEffect")
-	float FloatSpeed = 6.f;
-	
-	
-	UPROPERTY()
-	FVector LaunchVelocity;
-
-	UPROPERTY()
-	bool bHit = false;
-
-	UPROPERTY()
-	FTimerHandle LaunchDelayHandle;
-
-	
-	UFUNCTION()
 	void LaunchToTargetPlayer();
-
-	UFUNCTION()
 	void HandleImpact(bool bSpawnDOT);
-
-	UFUNCTION()
 	void EnableReplication();
 
-	
 	UFUNCTION()
 	void OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-						 UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	                     UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
+	                     const FHitResult& SweepResult);
 
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,
-			   UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+	           UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+	void PlayImpactVFX();
+	
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_PlayImpactVFX();
+	void Multicast_PlayImpactVFX_Implementation();
 };

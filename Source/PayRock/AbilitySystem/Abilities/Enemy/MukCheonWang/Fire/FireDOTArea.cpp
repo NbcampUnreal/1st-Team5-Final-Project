@@ -9,29 +9,32 @@
 AFireDOTArea::AFireDOTArea()
 {
 	PrimaryActorTick.bCanEverTick = true;
+	bReplicates = true;
 
 	AreaCollision = CreateDefaultSubobject<USphereComponent>(TEXT("AreaCollision"));
 	AreaCollision->InitSphereRadius(0.f);
 	AreaCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	AreaCollision->SetCollisionResponseToAllChannels(ECR_Overlap);
+	AreaCollision->SetGenerateOverlapEvents(true);
 	AreaCollision->OnComponentBeginOverlap.AddDynamic(this, &AFireDOTArea::OnActorEnter);
 	RootComponent = AreaCollision;
 
 	VFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("Niagara"));
 	VFX->SetupAttachment(RootComponent);
-	VFX->SetRelativeScale3D(FVector(0.1f)); 
+	VFX->SetRelativeScale3D(FVector(0.1f));
+	VFX->SetAutoActivate(true); 
 }
 
 void AFireDOTArea::BeginPlay()
 {
 	Super::BeginPlay();
-	SetLifeSpan(Lifetime);
 
+	SetLifeSpan(Lifetime);
 
 	AreaCollision->SetSphereRadius(0.f);
 	CurrentRadius = 0.f;
 	TimeElapsed = 0.f;
-
+	
 	GetWorld()->GetTimerManager().SetTimer(
 		DamageStartTimerHandle, this, &AFireDOTArea::ApplyDotToOverlappingActors, 0.05f, false);
 }
@@ -42,17 +45,27 @@ void AFireDOTArea::Tick(float DeltaTime)
 
 	TimeElapsed += DeltaTime;
 
-	
 	CurrentRadius = FMath::Min(MaxRadius, CurrentRadius + ExpansionSpeed * DeltaTime);
 	AreaCollision->SetSphereRadius(CurrentRadius);
 
-	float Scale = CurrentRadius / MaxRadius; 
-	VFX->SetWorldScale3D(FVector(Scale));
+	float Scale = CurrentRadius / MaxRadius;
+
+	if (HasAuthority())
+	{
+		Multicast_SetVFXScale(Scale);
+	}
 
 	if (FMath::Fmod(TimeElapsed, DamageInterval) <= DeltaTime)
 	{
 		ApplyDotToOverlappingActors();
 	}
+}
+
+void AFireDOTArea::OnActorEnter(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+                                UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
+                                bool bFromSweep, const FHitResult& SweepResult)
+{
+	ApplyEffectToActor(OtherActor);
 }
 
 void AFireDOTArea::ApplyDotToOverlappingActors()
@@ -66,16 +79,10 @@ void AFireDOTArea::ApplyDotToOverlappingActors()
 	}
 }
 
-void AFireDOTArea::OnActorEnter(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	ApplyEffectToActor(OtherActor);
-}
-
 void AFireDOTArea::ApplyEffectToActor(AActor* Actor)
 {
-	if (!Actor) return;
-	
+	if (!Actor || DamagedActors.Contains(Actor)) return;
+
 	if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Actor))
 	{
 		if (DamageEffectClass)
@@ -83,11 +90,18 @@ void AFireDOTArea::ApplyEffectToActor(AActor* Actor)
 			FGameplayEffectSpecHandle SpecHandle = TargetASC->MakeOutgoingSpec(DamageEffectClass, 1.f, TargetASC->MakeEffectContext());
 			if (SpecHandle.IsValid())
 			{
-				UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(
-					SpecHandle, DamageTypeTag, Damage);
+				UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, DamageTypeTag, Damage);
 				TargetASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 				DamagedActors.Add(Actor);
 			}
 		}
+	}
+}
+
+void AFireDOTArea::Multicast_SetVFXScale_Implementation(float Scale)
+{
+	if (VFX)
+	{
+		VFX->SetWorldScale3D(FVector(Scale));
 	}
 }

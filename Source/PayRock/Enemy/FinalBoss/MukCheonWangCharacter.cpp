@@ -7,9 +7,12 @@
 #include "Perception/AISenseConfig_Hearing.h"
 #include "Perception/AISenseConfig_Damage.h"
 #include "AIController.h"
+#include "NiagaraComponent.h"
+#include "NiagaraFunctionLibrary.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "PayRock/AbilitySystem/PRAttributeSet.h"
 #include "PayRock/Character/PRCharacter.h"
+#include "PayRock/Enemy/EBossPhase.h"
 
 
 AMukCheonWangCharacter::AMukCheonWangCharacter()
@@ -76,11 +79,28 @@ void AMukCheonWangCharacter::Tick(float DeltaTime)
         NewPhase = EBossPhase::Phase3;
     else if (HPPercent <= 0.6f)
         NewPhase = EBossPhase::Phase2;
+    
 
     if (NewPhase != CurrentPhase)
     {
         CurrentPhase = NewPhase;
         OnPhaseChanged(NewPhase);
+        if (AAIController* AICon = Cast<AAIController>(GetController()))
+        {
+            if (UBlackboardComponent* BB = AICon->GetBlackboardComponent())
+            {
+                BB->SetValueAsInt(TEXT("CurrentPhase_Int"), static_cast<int32>(NewPhase));
+                
+                if (NewPhase == EBossPhase::Phase2)
+                {
+                    BB->SetValueAsBool(TEXT("bIsSpecialPattern1"), true);
+                }
+                if (NewPhase == EBossPhase::Phase3)
+                {
+                    BB->SetValueAsBool(TEXT("bIsSpecialPattern2"), true);
+                }
+            }
+        }
     }
 }
 
@@ -128,22 +148,32 @@ void AMukCheonWangCharacter::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulu
 
 void AMukCheonWangCharacter::UpdateRandomTarget()
 {
-    if (!AIPerception) return;
-
     DetectedActors.Empty();
-    AIPerception->GetCurrentlyPerceivedActors(UAISense_Sight::StaticClass(), DetectedActors);
+    TArray<AActor*> AllDetected;
+    AIPerception->GetCurrentlyPerceivedActors(UAISense_Sight::StaticClass(), AllDetected);
+
+    for (AActor* Actor : AllDetected)
+    {
+        if (Actor && Actor->IsA(APRCharacter::StaticClass()))
+        {
+            DetectedActors.Add(Actor);
+        }
+    }
 
     if (DetectedActors.Num() > 0)
     {
         int32 Index = FMath::RandRange(0, DetectedActors.Num() - 1);
         AActor* ChosenTarget = DetectedActors[Index];
 
-        AAIController* AICon = Cast<AAIController>(GetController());
-        if (AICon && AICon->GetBlackboardComponent())
+        if (AAIController* AICon = Cast<AAIController>(GetController()))
         {
-            AICon->GetBlackboardComponent()->SetValueAsObject(TEXT("TargetActor"), ChosenTarget);
+            if (UBlackboardComponent* BB = AICon->GetBlackboardComponent())
+            {
+                BB->SetValueAsObject(TEXT("TargetActor"), ChosenTarget);
+            }
         }
     }
+
 }
 
 void AMukCheonWangCharacter::OnPhaseChanged(EBossPhase NewPhase)
@@ -169,4 +199,58 @@ float AMukCheonWangCharacter::GetHealthPercent() const
     const float MaxHealth = ASC->GetNumericAttribute(UPRAttributeSet::GetMaxHealthAttribute());
 
     return (MaxHealth > 0.f) ? (CurrentHealth / MaxHealth) : 0.f;
+}
+
+void AMukCheonWangCharacter::Multicast_PlayAuraEffect_Implementation(UNiagaraSystem* InAuraEffect, TSubclassOf<AActor> InFontlClass, float InAuraRate)
+{
+    
+    if (InAuraEffect)
+    {
+        UNiagaraComponent* NiagaraComp = UNiagaraFunctionLibrary::SpawnSystemAttached(
+            InAuraEffect,
+            GetRootComponent(),
+            NAME_None,
+            FVector::ZeroVector,
+            FRotator::ZeroRotator,
+            EAttachLocation::KeepRelativeOffset,
+            true
+        );
+
+        if (NiagaraComp)
+        {
+            FTimerHandle DestroyHandle;
+            FTimerDelegate DestroyDelegate = FTimerDelegate::CreateLambda([NiagaraComp]()
+            {
+                if (NiagaraComp)
+                {
+                    NiagaraComp->DestroyComponent();
+                }
+            });
+
+            GetWorld()->GetTimerManager().SetTimer(
+                DestroyHandle,
+                DestroyDelegate,
+                InAuraRate,
+                false
+            );
+        }
+    }
+    
+    if (InFontlClass)
+    {
+        FActorSpawnParameters SpawnParams;
+        SpawnParams.Owner = this;
+
+        AActor* AuraDecal = GetWorld()->SpawnActor<AActor>(
+            InFontlClass,
+            GetActorLocation(),
+            FRotator::ZeroRotator,
+            SpawnParams
+        );
+
+        if (AuraDecal)
+        {
+            AuraDecal->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);
+        }
+    }
 }

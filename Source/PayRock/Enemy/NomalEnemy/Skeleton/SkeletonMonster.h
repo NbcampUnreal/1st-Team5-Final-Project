@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Components/BoxComponent.h"
 #include "Components/SphereComponent.h"
 #include "PayRock/Enemy/EnemyCharacter.h"
 #include "SkeletonMonster.generated.h"
@@ -19,9 +20,9 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	UPROPERTY(VisibleAnywhere, Category = "Combat")
+	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "Combat")
 	TObjectPtr<USphereComponent> WeaponCollision;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Combat")
+	
+		UPROPERTY(EditDefaultsOnly,BlueprintReadWrite, Category = "Combat")
 	FName CollisionSocketName = FName("CollisionSocket");
 };

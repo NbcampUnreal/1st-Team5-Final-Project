@@ -123,6 +123,16 @@ void APRCharacter::OnRep_PlayerState()
     Super::OnRep_PlayerState();
 
     InitAbilityActorInfo();
+
+    if (IsLocallyControlled())
+    {
+        APRGameState* PRGameState = GetWorld()->GetGameState<APRGameState>();
+        APRPlayerController* PRPlayerController = Cast<APRPlayerController>(GetController());
+        if (!PRGameState || !PRPlayerController) return;
+        
+        // MatchFlowState 강제 적용
+        PRPlayerController->HandleMatchFlowStateChanged(PRGameState->GetMatchFlowState());
+    }
 }
 
 int32 APRCharacter::GetCharacterLevel()
@@ -232,8 +242,6 @@ void APRCharacter::OnRep_MaxWalkSpeed()
         (ReplicatedMaxWalkSpeed > NormalSpeed)
         ? SpeedInterpRateSprint
         : SpeedInterpRateWalk;
-
-    UE_LOG(LogTemp, Log, TEXT("OnRep_MaxWalkSpeed: MaxWalkSpeed = %f"), CurrentTargetSpeed);
 }
 
 void APRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -602,11 +610,7 @@ void APRCharacter::ServerStopSprint_Implementation()
 void APRCharacter::ServerRequestFootstep_Implementation(FVector Location, USoundBase* Sound)
 {
     if (IsLocallyControlled()) return;
-
-    FVector ActorLoc = GetActorLocation();
-    UE_LOG(LogTemp, Warning, TEXT("[Footstep] Server - SoundLocation: %s | ActorLocation: %s"),
-        *Location.ToString(), *ActorLoc.ToString());
-
+    
     UGameplayStatics::PlaySoundAtLocation(
         this,
         Sound,
@@ -622,11 +626,7 @@ void APRCharacter::ServerRequestFootstep_Implementation(FVector Location, USound
 void APRCharacter::MulticastPlayFootstep_Implementation(FVector Location, USoundBase* Sound)
 {
     float Volume = IsLocallyControlled() ? 0.3f : 1.0f;
-
-    FVector ActorLoc = GetActorLocation();
-    UE_LOG(LogTemp, Warning, TEXT("[Footstep] Multicast - SoundLocation: %s | ActorLocation: %s | Local: %d"),
-        *Location.ToString(), *ActorLoc.ToString(), IsLocallyControlled());
-
+    
     UGameplayStatics::PlaySoundAtLocation(
         this,
         Sound,
@@ -754,26 +754,13 @@ AActor* APRCharacter::FindInteractableActor() const
 
     FHitResult Hit;
     bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params);
-
-    DrawDebugLine(GetWorld(), Start, End, bHit ? FColor::Green : FColor::Red, false, 1.f, 0, 1.f);
-
+    
     if (bHit && Hit.GetActor())
     {
-        UE_LOG(LogTemp, Warning, TEXT("Hit Actor: %s"), *Hit.GetActor()->GetName());
-
         if (Hit.GetActor()->Implements<UPRInterface>())
         {
-            UE_LOG(LogTemp, Warning, TEXT("Interactable interface detected!"));
             return Hit.GetActor();
         }
-        else
-        {
-            UE_LOG(LogTemp, Warning, TEXT("Hit Actor has no PRInterface"));
-        }
-    }
-    else
-    {
-        UE_LOG(LogTemp, Warning, TEXT("No actor hit by line trace"));
     }
 
     return nullptr;
@@ -781,32 +768,18 @@ AActor* APRCharacter::FindInteractableActor() const
 
 void APRCharacter::Interact(const FInputActionValue& value)
 {
-    UE_LOG(LogTemp, Warning, TEXT("Interact key pressed"));
-
     AActor* Target = FindInteractableActor();
     if (!Target)
     {
-        UE_LOG(LogTemp, Warning, TEXT("No interactable actor found"));
         return;
     }
-
-    UE_LOG(LogTemp, Warning, TEXT("Found Actor: %s"), *Target->GetName());
-
+    
     if (IPRInterface* Interactable = Cast<IPRInterface>(Target))
     {
         if (Interactable->CanInteract(this))
         {
-            UE_LOG(LogTemp, Warning, TEXT("Can interact with: %s"), *Target->GetName());
             Interactable->Interact(this);
         }
-        else
-        {
-            UE_LOG(LogTemp, Warning, TEXT("Cannot interact (CanInteract() returned false)"));
-        }
-    }
-    else
-    {
-        UE_LOG(LogTemp, Error, TEXT("Target does not implement IPRInterface"));
     }
 }
 
@@ -907,7 +880,6 @@ void APRCharacter::Tick(float DeltaSeconds)
     {
         GetCharacterMovement()->MaxWalkSpeed = DesiredTargetSpeed;
     }
-    /*UE_LOG(LogTemp, Log, TEXT("CurrentTargetSpeed: %f, MaxWalkSpeed: %f"), CurrentTargetSpeed, GetCharacterMovement()->MaxWalkSpeed);*/
 
     /* SPIN - early return */
     if (bShouldSpin)
