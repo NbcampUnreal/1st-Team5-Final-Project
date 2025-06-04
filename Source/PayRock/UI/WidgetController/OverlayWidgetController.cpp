@@ -8,7 +8,19 @@
 
 void UOverlayWidgetController::BroadcastInitialValues()
 {
+	if (!AttributeSet)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[OverlayWidgetController] AttributeSet is null!"));
+		return;
+	}
+
 	const UPRAttributeSet* PRAttributeSet = Cast<UPRAttributeSet>(AttributeSet);
+	if (!PRAttributeSet)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[OverlayWidgetController] Failed to cast AttributeSet to UPRAttributeSet!"));
+		return;
+	}
+
 	OnHealthChanged.Broadcast(PRAttributeSet->GetHealth());
 	OnMaxHealthChanged.Broadcast(PRAttributeSet->GetMaxHealth());
 	OnManaChanged.Broadcast(PRAttributeSet->GetMana());
@@ -17,7 +29,20 @@ void UOverlayWidgetController::BroadcastInitialValues()
 
 void UOverlayWidgetController::BindCallbacksToDependencies()
 {
+	if (!AttributeSet)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[OverlayWidgetController] AttributeSet is null in BindCallbacksToDependencies!"));
+		return;
+	}
+
 	const UPRAttributeSet* PRAttributeSet = Cast<UPRAttributeSet>(AttributeSet);
+
+	if (!PRAttributeSet)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[OverlayWidgetController] Failed to cast AttributeSet in BindCallbacksToDependencies!"));
+		return;
+	}
+
 	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
 		PRAttributeSet->GetHealthAttribute()).AddUObject(this, &UOverlayWidgetController::HealthChanged);
 	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
