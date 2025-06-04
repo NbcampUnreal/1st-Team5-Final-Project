@@ -276,7 +276,8 @@ void APRPlayerController::HandleMatchFlowStateChanged(EMatchFlowState NewState)
 		// 추가 UI 업데이트 원하면 여기에
 		break;
 	case EMatchFlowState::MatchEnded:
-		UIManager->HideAllWidgets();
+		UIManager->RemoveAllWidgets();
+		UIManager->RemoveAllWidgetControllers();
 		break;
 	}
 }
