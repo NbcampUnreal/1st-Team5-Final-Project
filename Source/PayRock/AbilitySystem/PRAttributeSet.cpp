@@ -78,23 +78,23 @@ void UPRAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
 	{
 		SetHealth(FMath::Clamp(GetHealth(), 0.f, GetMaxHealth()));
 
-		const float HealthCurrent = GetHealth();
+		/*const float HealthCurrent = GetHealth();
 		const float HealthBase = GetOwningAbilitySystemComponent()->GetNumericAttributeBase(GetHealthAttribute());
 		UE_LOG(LogTemp, Warning, TEXT(
 			"[Health] AvatarActor: %s / Amount: %f / Health(Current): %f / Health(Base): %f"),
 			*GetOwningAbilitySystemComponent()->GetAvatarActor()->GetName(),
-			Data.EvaluatedData.Magnitude, HealthCurrent, HealthBase);
+			Data.EvaluatedData.Magnitude, HealthCurrent, HealthBase);*/
 	}
 	else if (Data.EvaluatedData.Attribute == GetManaAttribute())
 	{
 		SetMana(FMath::Clamp(GetMana(), 0.f, GetMaxMana()));
 
-		const float ManaCurrent = GetMana();
+		/*const float ManaCurrent = GetMana();
 		const float ManaBase = GetOwningAbilitySystemComponent()->GetNumericAttributeBase(GetManaAttribute());
 		UE_LOG(LogTemp, Warning, TEXT(
 			"[Mana] AvatarActor: %s / Amount: %f / Mana(Current): %f / Mana(Base): %f"),
 			*GetOwningAbilitySystemComponent()->GetAvatarActor()->GetName(),
-			Data.EvaluatedData.Magnitude, ManaCurrent, ManaBase);
+			Data.EvaluatedData.Magnitude, ManaCurrent, ManaBase);*/
 	}
 	else if (Data.EvaluatedData.Attribute == GetIncomingDamageAttribute())
 	{
@@ -128,11 +128,11 @@ float UPRAttributeSet::HandleIncomingDamage(const FEffectProperties& Props, cons
 		SetHealth(NewHealth);
 		Props.TargetASC->GetGameplayAttributeValueChangeDelegate(GetHealthAttribute()).Broadcast(AttributeChangeData);
 
-		const float HealthCurrent = GetHealth();
+		/*const float HealthCurrent = GetHealth();
 		UE_LOG(LogTemp, Warning, TEXT(
 			"[DAMAGE] AvatarActor: %s / IncomingDamage: %f / CalculatedDamage: %f / GetHealth: %f / GetMaxHealth: %f"),
 			*GetOwningAbilitySystemComponent()->GetAvatarActor()->GetName(),
-			LocalIncomingDamage, CalculatedDamage, HealthCurrent, GetMaxHealth());
+			LocalIncomingDamage, CalculatedDamage, HealthCurrent, GetMaxHealth());*/
 
 		// Activate Hit React
 		FGameplayTagContainer TagContainer;

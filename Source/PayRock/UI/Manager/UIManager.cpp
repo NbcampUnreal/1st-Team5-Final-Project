@@ -30,7 +30,7 @@ UUserWidget* UUIManager::ShowWidget(EWidgetCategory Category)
 	{
 		Widget = InitializeWidget(Category);
 	}
-	ensure(Widget);
+	if (!Widget) return nullptr;
 	Widget->SetVisibility(ESlateVisibility::Visible);
 	return Widget;
 }
@@ -105,7 +105,7 @@ UUserWidget* UUIManager::InitializeWidget(EWidgetCategory Category)
 	}
 	
 	UUserWidget* Widget = CreateWidget<UUserWidget>(GetGameInstance(), WidgetClass);
-
+	if (!Widget) return nullptr;
 	InitializeWidgetController(Widget, Category);
 
 	if (Widget)
