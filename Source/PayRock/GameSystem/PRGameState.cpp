@@ -248,7 +248,7 @@ void APRGameState::ForceStartMatch()
 		bForceStarted = true;
 		MatchStart_CountDown = 5;
 		GetWorld()->GetTimerManager().SetTimer(MatchStartTimerHandle, this, &APRGameState::TickMatchCountdown, 1.0f, true);
-		UE_LOG(LogTemp, Warning, TEXT("40 Second ForceStartMatch"));
+		UE_LOG(LogTemp, Warning, TEXT("60 Second ForceStartMatch"));
 	}
 }
 
@@ -351,8 +351,8 @@ void APRGameState::OnRep_MatchFlowState()
 	//}
 
 
-	// UE_LOG(LogTemp, Error, TEXT("Client OnRep_MatchFlowState called! State: %d"), static_cast<int32>(MatchFlowState));
-	// ...
+	//UE_LOG(LogTemp, Error, TEXT("Client OnRep_MatchFlowState called! State: %d"), static_cast<int32>(MatchFlowState));
+	//UE_LOG(LogTemp, Error, TEXT("Client OnRep_MatchFlowState called! State: %d"), static_cast<int32>(MatchFlowState));
 
 	if (APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0))
 	{
