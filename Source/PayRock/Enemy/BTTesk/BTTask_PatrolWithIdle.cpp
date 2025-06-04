@@ -7,10 +7,12 @@
 #include "NavigationPath.h"
 #include "DrawDebugHelpers.h"
 #include "Navigation/PathFollowingComponent.h"
+#include "GameFramework/Actor.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 UBTTask_PatrolWithIdle::UBTTask_PatrolWithIdle()
 {
-	NodeName = "Patrol With Idle (Tick Accumulation)";
+	NodeName = "Patrol With Idle (Obstacle Check)";
 	bNotifyTick = true;
 	bNotifyTaskFinished = true;
 	bCreateNodeInstance = true;
@@ -30,23 +32,59 @@ EBTNodeResult::Type UBTTask_PatrolWithIdle::ExecuteTask(UBehaviorTreeComponent& 
 	if (!BB) return EBTNodeResult::Failed;
 
 	FVector StartPosition = BB->GetValueAsVector("StartPosition");
-
-	FNavLocation RandomLocation;
 	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(GetWorld());
 
-	if (NavSys && NavSys->GetRandomReachablePointInRadius(StartPosition, PatrolRadius, RandomLocation))
+	if (!NavSys) return EBTNodeResult::Failed;
+
+	const int32 MaxRetryCount = 5;
+
+	for (int32 Attempt = 0; Attempt < MaxRetryCount; ++Attempt)
 	{
-		if (ACharacter* Character = Cast<ACharacter>(Pawn))
+		FNavLocation RandomLocation;
+		if (!NavSys->GetRandomReachablePointInRadius(StartPosition, PatrolRadius, RandomLocation))
+			continue;
+
+		UNavigationPath* Path = NavSys->FindPathToLocationSynchronously(GetWorld(), Pawn->GetActorLocation(), RandomLocation.Location);
+		if (!Path || !Path->IsValid() || Path->PathPoints.Num() < 2)
+			continue;
+
+		
+		bool bBlocked = false;
+		for (int32 i = 0; i < Path->PathPoints.Num() - 1; ++i)
 		{
-			if (UCharacterMovementComponent* Move = Character->GetCharacterMovement())
+			FHitResult Hit;
+			if (GetWorld()->LineTraceSingleByChannel(
+				Hit,
+				Path->PathPoints[i],
+				Path->PathPoints[i + 1],
+				ECC_Visibility,
+				FCollisionQueryParams(FName(TEXT("PatrolObstacleCheck")), false, Pawn)))
 			{
-				Move->MaxWalkSpeed = PatrolMoveSpeed;
+				if (AActor* HitActor = Hit.GetActor())
+				{
+					if (HitActor != Pawn)
+					{
+						bBlocked = true;
+						break;
+					}
+				}
 			}
 		}
-		AICon->MoveToLocation(RandomLocation.Location, 50.f, true);
-		return EBTNodeResult::InProgress;
-	}
 
+		if (!bBlocked)
+		{
+			if (ACharacter* Character = Cast<ACharacter>(Pawn))
+			{
+				if (UCharacterMovementComponent* Move = Character->GetCharacterMovement())
+				{
+					Move->MaxWalkSpeed = PatrolMoveSpeed;
+				}
+			}
+
+			AICon->MoveToLocation(RandomLocation.Location, 50.f, true);
+			return EBTNodeResult::InProgress;
+		}
+	}
 	return EBTNodeResult::Failed;
 }
 
