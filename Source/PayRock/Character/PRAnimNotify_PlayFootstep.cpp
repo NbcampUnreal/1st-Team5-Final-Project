@@ -16,14 +16,14 @@ void UPRAnimNotify_PlayFootstep::Notify(USkeletalMeshComponent* MeshComp, UAnimS
     APRCharacter* PRChar = Cast<APRCharacter>(Owner);
     if (!PRChar) return;
 
-    FVector FootLocation = MeshComp->GetSocketLocation(TEXT("foot_l")); // ¶Ç´Â "foot_r"
+    FVector FootLocation = MeshComp->GetSocketLocation(TEXT("foot_l")); // ï¿½Ç´ï¿½ "foot_r"
 
     if (!MeshComp->DoesSocketExist("foot_l"))
     {
         UE_LOG(LogTemp, Error, TEXT("[Footstep] foot_l socket NOT FOUND!"));
     }
 
-    // ¶óÀÎÆ®·¹ÀÌ½º
+    // ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½Ì½ï¿½
     FHitResult Hit;
     FCollisionQueryParams Params;
     Params.AddIgnoredActor(Owner);
@@ -32,26 +32,21 @@ void UPRAnimNotify_PlayFootstep::Notify(USkeletalMeshComponent* MeshComp, UAnimS
         Hit,
         FootLocation,
         FootLocation - FVector(0, 0, 100.f),
-        ECC_WorldStatic, // Ã¤³Î º¯°æ: Áö¸é°ú Ãæµ¹ÇÏµµ·Ï
+        ECC_WorldStatic, // Ã¤ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½: ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½æµ¹ï¿½Ïµï¿½ï¿½ï¿½
         Params
     );
 
-    UE_LOG(LogTemp, Warning, TEXT("[Footstep] FootSocketLocation: %s | Hit: %d"), *FootLocation.ToString(), bHit);
-
-    // µð¹ö±× ½Ã°¢È­ (¼±ÅÃ)
-    DrawDebugLine(Owner->GetWorld(), FootLocation, FootLocation - FVector(0, 0, 100.f), bHit ? FColor::Green : FColor::Red, false, 1.5f, 0, 1.0f);
-
-    // ÃÖÁ¾ ¹ß¼Ò¸® Àç»ý À§Ä¡
+    // ï¿½ï¿½ï¿½ï¿½ ï¿½ß¼Ò¸ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡
     FVector FinalLocation = FootLocation;
     FinalLocation.Z = FMath::Max(FinalLocation.Z - 10.f, 0.f);
 
-    // Ç¥¸é Å¸ÀÔ ÃßÃâ (¾øÀ¸¸é ±âº»°ª)
+    // Ç¥ï¿½ï¿½ Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½âº»ï¿½ï¿½)
     EPhysicalSurface SurfaceType = bHit ? UPhysicalMaterial::DetermineSurfaceType(Hit.PhysMaterial.Get()) : SurfaceType_Default;
     USoundBase* FootstepSound = PRChar->GetFootstepSoundBySurface(SurfaceType);
 
     if (!FootstepSound) return;
 
-    // ¼­¹ö or Å¬¶óÀÌ¾ðÆ®¿¡¼­ ¹ß¼Ò¸® Àç»ý ¿äÃ»
+    // ï¿½ï¿½ï¿½ï¿½ or Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ß¼Ò¸ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½Ã»
     if (Owner->HasAuthority())
     {
         PRChar->MulticastPlayFootstep(FinalLocation, FootstepSound);
