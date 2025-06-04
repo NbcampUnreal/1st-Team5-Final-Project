@@ -26,8 +26,6 @@ void UBTS_CheckAttackRange::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* N
 	AActor* Target = Cast<AActor>(BB->GetValueAsObject("TargetActor"));
 	if (!Target) return;
 	
-	DrawDebugSphere(GetWorld(), AIPawn->GetActorLocation(), AttackRange, 12, FColor::Red, false, 1.0f, 0, 2.0f);
-	
 	const float Distance = FVector::Dist(AIPawn->GetActorLocation(), Target->GetActorLocation());
 	BB->SetValueAsBool(FName("bInAttackRange"), Distance <= AttackRange);
 }

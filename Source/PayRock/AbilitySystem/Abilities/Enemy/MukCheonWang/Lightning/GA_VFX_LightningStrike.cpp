@@ -6,7 +6,7 @@
 
 UGA_VFX_LightningStrike::UGA_VFX_LightningStrike()
 {
-	AbilityTags.AddTag(FGameplayTag::RequestGameplayTag("Event.Montage.Boss.Lightning"));
+	SetAssetTags(FGameplayTagContainer(FGameplayTag::RequestGameplayTag("Event.Montage.Boss.Lightning")));
 	ActivationOwnedTags.AddTag(FGameplayTag::RequestGameplayTag("Boss.State.Attacking"));
 }
 
@@ -26,14 +26,11 @@ void UGA_VFX_LightningStrike::ActivateAbility(
 		return;
 	}
 
-	
 	CurrentSpecHandle = Handle;
 	CurrentActorInfo = const_cast<FGameplayAbilityActorInfo*>(ActorInfo);
 	CurrentActivationInfo = ActivationInfo;
 
-	
-	PlayAuraVFX(AvatarActor);
-
+	Boss->Multicast_PlayAuraEffect(AuraEffect, FontlClass, AuraRate);
 
 	if (UWorld* World = GetWorld())
 	{
@@ -46,51 +43,64 @@ void UGA_VFX_LightningStrike::ActivateAbility(
 		);
 	}
 }
+
+
 void UGA_VFX_LightningStrike::SpawnLightningAfterAura()
 {
 	GetWorld()->GetTimerManager().ClearTimer(AuraDelayTimerHandle);
 
 	AMukCheonWangCharacter* Boss = Cast<AMukCheonWangCharacter>(AvatarActor);
-	if (!Boss || !LightningClass || Boss->GetDetectedActors().Num() == 0)
+	if (!Boss || !LightningClass) return;
+
+	LightningTargets = Boss->GetDetectedActors();
+	CurrentTargetIndex = 0;
+
+	SpawnLightningForTarget();
+}
+
+void UGA_VFX_LightningStrike::SpawnLightningForTarget()
+{
+	if (!LightningTargets.IsValidIndex(CurrentTargetIndex))
 	{
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 		return;
 	}
 
-	AActor* Target = Boss->GetDetectedActors()[FMath::RandRange(0, Boss->GetDetectedActors().Num() - 1)];
+	AActor* Target = LightningTargets[CurrentTargetIndex];
 	if (!Target)
 	{
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+		++CurrentTargetIndex;
+		SpawnLightningForTarget();
 		return;
 	}
-	
-	const FVector PredictedLocation = Target->GetActorLocation() + Target->GetVelocity() * PredictDelay;
-	LightningCenter = FVector(PredictedLocation.X, PredictedLocation.Y, Target->GetActorLocation().Z);
 
-	NumLightningToSpawn = FMath::RandRange(2, 4);
-	SpawnedLightningCount = 0;
+	const FVector PredictedLocation = Target->GetActorLocation() + Target->GetVelocity() * PredictDelay;
+	CurrentLightningCenter = FVector(PredictedLocation.X, PredictedLocation.Y, Target->GetActorLocation().Z);
+	NumLightningPerTarget = FMath::RandRange(2, 4);
+	CurrentLightningCount = 0;
 
 	SpawnNextLightning();
 }
 
 void UGA_VFX_LightningStrike::SpawnNextLightning()
 {
-	if (SpawnedLightningCount >= NumLightningToSpawn)
+	if (CurrentLightningCount >= NumLightningPerTarget)
 	{
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+		++CurrentTargetIndex;
+		SpawnLightningForTarget(); 
 		return;
 	}
 
 	AMukCheonWangCharacter* Boss = Cast<AMukCheonWangCharacter>(AvatarActor);
 	if (!Boss || !LightningClass) return;
-	
+
 	const FVector Offset2D = FVector(
 		FMath::FRandRange(-200.f, 200.f),
 		FMath::FRandRange(-200.f, 200.f),
 		0.f
 	);
 
-	FVector SpawnLoc = LightningCenter + Offset2D;
+	FVector SpawnLoc = CurrentLightningCenter + Offset2D;
 
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = Boss;
@@ -103,7 +113,7 @@ void UGA_VFX_LightningStrike::SpawnNextLightning()
 		Lightning->SetInstigatorAbility(this);
 	}
 
-	SpawnedLightningCount++;
+	++CurrentLightningCount;
 
 	GetWorld()->GetTimerManager().SetTimer(
 		LightningChainTimer,

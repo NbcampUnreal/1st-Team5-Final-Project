@@ -1,6 +1,4 @@
-﻿// PayRockGames
-
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "Perception/AIPerceptionComponent.h"
@@ -21,15 +19,17 @@ class PAYROCK_API AEnemyController : public AAIController
 
 public:
 	AEnemyController();
-	
+
 	virtual void BeginPlay() override;
 	virtual void OnPossess(APawn* InPawn) override;
 	virtual void OnUnPossess() override;
 	void ClearBlackboardKeys();
 
-
 	UFUNCTION()
 	virtual void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
+
+	const TArray<AActor*>& GetSensedActors() const;
+
 protected:
 	UPROPERTY(EditAnywhere, Category = "AI")
 	TObjectPtr<UBehaviorTree> DefaultBehaviorTree;
@@ -45,27 +45,33 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI|Perception")
 	UAISenseConfig_Sight* SightConfig;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI|Perception")
 	UAISenseConfig_Damage* DamageConfig;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI|Perception")
 	UAISenseConfig_Hearing* HearingConfig;
 
-protected:
-	
 	UPROPERTY(EditAnywhere, Category = "AI|Sight")
 	float SightRadius = 1500.f;
+
 	UPROPERTY(EditAnywhere, Category = "AI|Sight")
 	float LoseSightRadius = 1800.f;
+
 	UPROPERTY(EditAnywhere, Category = "AI|Sight")
 	float PeripheralVisionAngle = 90.f;
-	
+
 	UPROPERTY(EditAnywhere, Category = "AI|Hearing")
-	float LoudnessThreshold = 0.8f;  
+	float LoudnessThreshold = 0.8f;
+
 	UPROPERTY(EditAnywhere, Category = "AI|Hearing")
 	float MinLoudnessToReact = 0.3f;
-	
+
 	FTimerHandle ForgetPlayerTimerHandle;
-	
+
 	void ClearDetectedPlayer();
 
+private:
+	UPROPERTY()
+	TArray<AActor*> SensedActors;
 };

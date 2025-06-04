@@ -7,7 +7,7 @@
 
 UGA_VFX_Fireball::UGA_VFX_Fireball()
 {
-	AbilityTags.AddTag(FGameplayTag::RequestGameplayTag("Event.Montage.Boss.Fire"));
+	SetAssetTags(FGameplayTagContainer(FGameplayTag::RequestGameplayTag("Event.Montage.Boss.Fire")));
 	ActivationOwnedTags.AddTag(FGameplayTag::RequestGameplayTag("Boss.State.Attacking"));
 }
 
@@ -22,7 +22,10 @@ void UGA_VFX_Fireball::ActivateAbility(
 	Caster = Cast<AMukCheonWangCharacter>(GetAvatarActorFromActorInfo());
 	if (!Caster.IsValid()) return;
 
-	PlayAuraVFX(Caster.Get());
+	if (AMukCheonWangCharacter* Boss = Cast<AMukCheonWangCharacter>(GetAvatarActorFromActorInfo()))
+	{
+		Boss->Multicast_PlayAuraEffect(AuraEffect, FontlClass, AuraRate);
+	}
 
 	
 	GetWorld()->GetTimerManager().SetTimer(

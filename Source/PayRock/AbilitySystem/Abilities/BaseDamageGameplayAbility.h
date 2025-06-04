@@ -18,8 +18,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void CauseDamage(AActor* TargetActor, bool bIsBackAttack = false /*, const FHitResult& HitResult*/);
 
-	UFUNCTION(BlueprintCallable, Category="VFX")
-	void PlayAuraVFX(AActor* TargetActor);
 	
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage")
@@ -44,7 +42,7 @@ protected:
 	TObjectPtr<UNiagaraSystem> AuraEffect;
 
 	UPROPERTY(EditDefaultsOnly, Category = "VFX")
-	TSubclassOf<AActor> AuraDecalClass;
+	TSubclassOf<AActor> FontlClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "VFX")
 	float AuraRate = 2.5f;

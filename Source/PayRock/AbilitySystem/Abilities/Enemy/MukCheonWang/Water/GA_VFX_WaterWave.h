@@ -51,7 +51,7 @@ protected:
 	int32 SpawnedWaveCount = 0;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Timing")
-	float WaveSpawnDelay = 0.3f;
+	float WaveSpawnDelay = 1.8f;
 	
 	UPROPERTY()
 	TObjectPtr<AActor> AvatarActor;

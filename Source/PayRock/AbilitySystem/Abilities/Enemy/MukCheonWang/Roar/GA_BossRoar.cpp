@@ -1,11 +1,12 @@
 ﻿#include "GA_BossRoar.h"
 #include "AbilitySystemComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/Character.h"
 
 UGA_BossRoar::UGA_BossRoar()
 {
-	AbilityTags.AddTag(FGameplayTag::RequestGameplayTag("Event.Montage.Boss.Roar"));
+	SetAssetTags(FGameplayTagContainer(FGameplayTag::RequestGameplayTag("Event.Montage.Boss.Roar")));
 	ActivationOwnedTags.AddTag(FGameplayTag::RequestGameplayTag("Boss.State.Roaring"));
 	ActiveRoarTag = FGameplayTag::RequestGameplayTag("Boss.State.Roaring");
 }
@@ -40,10 +41,23 @@ void UGA_BossRoar::ActivateAbility(
 
 void UGA_BossRoar::OnRoarMontageEnded()
 {
+	ResetNearPlayerBlackboardFlag();
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
 void UGA_BossRoar::OnRoarMontageCancelled()
 {
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+}
+
+void UGA_BossRoar::ResetNearPlayerBlackboardFlag()
+{
+	AController* Controller = Cast<AController>(GetActorInfo().OwnerActor->GetInstigatorController());
+	if (!Controller) return;
+
+	UBlackboardComponent* BB = Controller->FindComponentByClass<UBlackboardComponent>();
+	if (BB)
+	{
+		BB->SetValueAsBool(FName("bIsNearPlayer"), false);
+	}
 }

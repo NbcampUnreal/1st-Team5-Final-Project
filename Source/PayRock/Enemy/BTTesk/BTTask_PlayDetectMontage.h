@@ -15,26 +15,10 @@ class PAYROCK_API UBTTask_PlayDetectMontage : public UBTTask_BlackboardBase
 
 public:
 	UBTTask_PlayDetectMontage();
-
-protected:
+	
+	UPROPERTY(EditAnywhere, Category = "GAS")
+	TSubclassOf<class UGameplayAbility> DetectAbility;
+	
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
-	virtual void OnTaskFinished(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, EBTNodeResult::Type TaskResult) override;
-
-private:
-	UFUNCTION()
-	void OnMontageEnded(UAnimMontage* Montage, bool bInterrupted);
-
-	UPROPERTY()
-	UBehaviorTreeComponent* CachedOwnerComp;
-
-	UPROPERTY()
-	AAIController* CachedController;
-
-	UPROPERTY()
-	class AEnemyCharacter* CachedCharacter;
-
-	UPROPERTY()
-	UAnimMontage* DetectMontage;
-
-	FDelegateHandle MontageEndedHandle;
+	
 };
