@@ -39,14 +39,14 @@ void UInGameWidget::UpdateTimeInfo()
 		// 남은 매치 시간 표시
 		if (Text_RemainingTime)
 		{
-			const FString TimeStr = FString::Printf(TEXT("%d초"), RemainingTime);
+			const FString TimeStr = FString::Printf(TEXT("%d"), RemainingTime);
 			Text_RemainingTime->SetText(FText::FromString(TimeStr));
 		}
 
 		// 탈출 시간 표시
 		if (Text_ExtractionTime)
 		{
-			const FString ExtractionStr = FString::Printf(TEXT("%d초"), ExtractionTime);
+			const FString ExtractionStr = FString::Printf(TEXT("%d"), ExtractionTime);
 			Text_ExtractionTime->SetText(FText::FromString(ExtractionStr));
 		}
 	}
