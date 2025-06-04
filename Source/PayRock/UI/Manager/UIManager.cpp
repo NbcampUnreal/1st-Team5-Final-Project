@@ -106,6 +106,7 @@ UUserWidget* UUIManager::InitializeWidget(EWidgetCategory Category)
 	
 	UUserWidget* Widget = CreateWidget<UUserWidget>(GetGameInstance(), WidgetClass);
 	if (!Widget) return nullptr;
+
 	InitializeWidgetController(Widget, Category);
 
 	if (Widget)
@@ -171,6 +172,8 @@ UBaseWidgetController* UUIManager::GetWidgetController(const FWidgetControllerPa
 	}
 
 	UBaseWidgetController* WidgetController = NewObject<UBaseWidgetController>(this, LoadedClass);
+	if (!IsValid(WidgetController)) return nullptr;
+	
 	WidgetController->SetWidgetControllerParams(WCParams);
 	WidgetController->BindCallbacksToDependencies();
 	WidgetControllerMap.Add(Category, WidgetController);
