@@ -27,6 +27,8 @@ public:
 	void RemoveAllWidgets();
 	UFUNCTION(BlueprintCallable, Category = "UI")
 	void RemoveAllWidgetsInLobby();
+	UFUNCTION(BlueprintCallable, Category = "UI")
+	void RemoveAllWidgetControllers();
 	UFUNCTION(BlueprintPure, Category = "UI")
 	UUserWidget* FindWidget(EWidgetCategory Category);
 

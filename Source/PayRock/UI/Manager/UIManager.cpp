@@ -77,6 +77,17 @@ void UUIManager::RemoveAllWidgetsInLobby()
 	}
 }
 
+void UUIManager::RemoveAllWidgetControllers()
+{
+	TArray<EWidgetCategory> Keys;
+	WidgetControllerMap.GenerateKeyArray(Keys);
+	for (const auto& Key : Keys)
+	{
+		UBaseWidgetController* ControllerToRemove = nullptr;
+		WidgetControllerMap.RemoveAndCopyValue(Key, ControllerToRemove);
+	}
+}
+
 UUserWidget* UUIManager::FindWidget(EWidgetCategory Category)
 {
 	if (UUserWidget** WidgetPtr = WidgetMap.Find(Category))
