@@ -12,7 +12,7 @@ void UManaBar::OnWidgetControllerSet()
 	if (UOverlayWidgetController* OverlayWidgetController = Cast<UOverlayWidgetController>(WidgetController))
 	{
 		OverlayWidgetController->OnManaChanged.AddDynamic(this, &UManaBar::OnManaChanged);
-		OverlayWidgetController->OnMaxManaChanged.AddDynamic(this, &UManaBar::OnManaChanged);
+		OverlayWidgetController->OnMaxManaChanged.AddDynamic(this, &UManaBar::OnMaxManaChanged);
 	}
 }
 

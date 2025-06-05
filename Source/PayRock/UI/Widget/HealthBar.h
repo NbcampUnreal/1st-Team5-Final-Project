@@ -17,7 +17,7 @@ public:
 	virtual void OnWidgetControllerSet() override;
 
 	UPROPERTY(meta=(BindWidget))
-	class UProgressBar* HealthBar;
+	class UTextBlock* HealthPercentText;
 
 
 private:
@@ -26,13 +26,13 @@ private:
 	UPROPERTY()
 	float MaxHealth;
 
-	// Ã¼·Â¹Ù-> ½ÉÀåÀÌ¹ÌÁö·Î ¹Ù²Þ
+	// Ã¼ï¿½Â¹ï¿½-> ï¿½ï¿½ï¿½ï¿½ï¿½Ì¹ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ù²ï¿½
 	UPROPERTY(meta = (BindWidget))
 	UImage* HeartImage;
 
 
-	// À§Á¬ ¿¡µðÅÍ¿¡¼­ °¢°¢ÀÇ ÀÌ¹ÌÁö¸¦ ÀÌ º¯¼ö¿¡ ¿¬°á
-	// ¸ÓÆ¼¸®¾ó ÀÎ½ºÅÏ½º¸¦ ¿¬°áÇÒ º¯¼öµé
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	// ï¿½ï¿½Æ¼ï¿½ï¿½ï¿½ï¿½ ï¿½Î½ï¿½ï¿½Ï½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	UPROPERTY(EditAnywhere, Category = "Health Materials")
 	UMaterialInterface* HeartMatFull;
 
