@@ -1,5 +1,7 @@
 // PayRockGames
 #include "MapSpawner.h"
+
+#include "NavigationSystem.h"
 #include "Engine/LevelStreamingDynamic.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
@@ -52,6 +54,11 @@ void AMapSpawner::Multicast_SpawnModules_Implementation(const TArray<int32>& InM
 			}
 			++Index;
 		}
+	}
+	UNavigationSystemV1* NavSys = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
+	if (NavSys)
+	{
+		NavSys->OnNavigationBoundsUpdated(nullptr);
 	}
 }
 
