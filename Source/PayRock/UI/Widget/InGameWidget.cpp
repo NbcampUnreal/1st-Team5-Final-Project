@@ -10,21 +10,20 @@
 void UInGameWidget::OnWidgetControllerSet()
 {
 	Super::OnWidgetControllerSet();
-
-
-	// UI ÃÊ±â Ç¥½Ã
+	
+	// UI ï¿½Ê±ï¿½ Ç¥ï¿½ï¿½
 	UpdateTimeInfo();
 
-	// 1ÃÊ¸¶´Ù °»½Å (Å¸ÀÌ¸Ó ¼³Á¤)
+	// 1ï¿½Ê¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (Å¸ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½)
 	GetWorld()->GetTimerManager().SetTimer(
 		UpdateTimerHandle,
 		this,
 		&UInGameWidget::UpdateTimeInfo,
-		1.0f,
+		0.5f,
 		true
 	);
 
-	// °³ÀÎ À§Á¬ ÄÁÆ®·Ñ·¯ !!!!! Áß¿ä (GAS ¿¡¼­ ¹Þ¾Æ¿Àµµ·Ï µî·Ï)
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ®ï¿½Ñ·ï¿½ !!!!! ï¿½ß¿ï¿½ (GAS ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¾Æ¿ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½)
 	HealthBar->SetWidgetController(WidgetController);
 	ManaBar->SetWidgetController(WidgetController);
 }
@@ -36,19 +35,18 @@ void UInGameWidget::UpdateTimeInfo()
 		 const int32 RemainingTime = GS->GetRemainingTime();
 		 const int32 ExtractionTime = GS->GetExtractionActivationTime();
 
-		// ³²Àº ¸ÅÄ¡ ½Ã°£ Ç¥½Ã
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½Ã°ï¿½ Ç¥ï¿½ï¿½
 		if (Text_RemainingTime)
 		{
 			const FString TimeStr = FString::Printf(TEXT("%d"), RemainingTime);
 			Text_RemainingTime->SetText(FText::FromString(TimeStr));
 		}
 
-		// Å»Ãâ ½Ã°£ Ç¥½Ã
+		// Å»ï¿½ï¿½ ï¿½Ã°ï¿½ Ç¥ï¿½ï¿½
 		if (Text_ExtractionTime)
 		{
 			const FString ExtractionStr = FString::Printf(TEXT("%d"), ExtractionTime);
 			Text_ExtractionTime->SetText(FText::FromString(ExtractionStr));
 		}
 	}
-
 }
