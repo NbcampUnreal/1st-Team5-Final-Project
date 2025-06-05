@@ -20,6 +20,7 @@ void UHealthBar::OnWidgetControllerSet()
 void UHealthBar::OnHealthChanged(float NewHealth)
 {
 	Health = NewHealth;
+	if (!IsValid(HealthPercentText)) return;
 	HealthPercentText->SetText(FText::FromString(FString::Printf(TEXT("%d%%"),
 		static_cast<uint8>(Health / (MaxHealth == 0 ? 1 : MaxHealth) * 100))));
 	UpdateHeartIcon();
@@ -28,6 +29,7 @@ void UHealthBar::OnHealthChanged(float NewHealth)
 void UHealthBar::OnMaxHealthChanged(float NewMaxHealth)
 {
 	MaxHealth = NewMaxHealth;
+	if (!IsValid(HealthPercentText)) return;
 	HealthPercentText->SetText(FText::FromString(FString::Printf(TEXT("%d%%"),
 		static_cast<uint8>(Health / (MaxHealth == 0 ? 1 : MaxHealth) * 100))));
 	UpdateHeartIcon();
