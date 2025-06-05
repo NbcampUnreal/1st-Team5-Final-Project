@@ -3,6 +3,7 @@
 #include "AIController.h"
 #include "BrainComponent.h"
 #include "GenericTeamAgentInterface.h"
+#include "NavigationInvokerComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/PawnNoiseEmitterComponent.h"
@@ -29,6 +30,7 @@ AEnemyCharacter::AEnemyCharacter()
 	
 	PawnNoiseEmitterComp = CreateDefaultSubobject<UPawnNoiseEmitterComponent>(TEXT("PawnNoiseEmitter"));
 
+	NavInvoker = CreateDefaultSubobject<UNavigationInvokerComponent>(TEXT("NavInvoker"));
 }
 
 void AEnemyCharacter::ToggleWeaponCollision(bool bEnable)
