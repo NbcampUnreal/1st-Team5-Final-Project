@@ -1,6 +1,7 @@
 // PayRockGames
 
 #include "SaveDataSubsystem.h"
+#include "GameFramework/GameUserSettings.h"
 
 void USaveDataSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -29,6 +30,20 @@ void USaveDataSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	for (const auto Blessing : BlessingDataAsset->PassiveBlessings)
 	{
 		SaveBlessing(Blessing.Value);
+	}
+
+	UGameUserSettings* UserSettings = GEngine->GetGameUserSettings();
+	if (UserSettings)
+	{
+		UserSettings->SetScreenResolution(FIntPoint(1280, 720));
+
+		UserSettings->SetFullscreenMode(EWindowMode::Windowed);
+
+		UserSettings->SetOverallScalabilityLevel(0);
+		UserSettings->SetVisualEffectQuality(2);
+
+		UserSettings->ApplySettings(false);
+		UserSettings->SaveSettings();
 	}
 }
 
