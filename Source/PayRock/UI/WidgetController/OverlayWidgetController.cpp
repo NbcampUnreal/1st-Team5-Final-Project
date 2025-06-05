@@ -52,22 +52,10 @@ void UOverlayWidgetController::BindCallbacksToDependencies()
 	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
 		PRAttributeSet->GetMaxManaAttribute()).AddUObject(this, &UOverlayWidgetController::MaxManaChanged);
 
-	Cast<UPRAbilitySystemComponent>(AbilitySystemComponent)->EffectAssetTagsDelegate.AddLambda(
-		[this](const FGameplayTagContainer& AssetTags)
-		{
-			if (!IsValid(MessageWidgetDataTable)) return;
-			for (const FGameplayTag& Tag : AssetTags)
-			{
-				FUIWidgetRow* Row = GetDataTableRowByTag<FUIWidgetRow>(MessageWidgetDataTable, Tag);
-			}
-		}
-	);
-
 	if (APRPlayerState* PS = Cast<APRPlayerState>(PlayerState))
 	{
 		PS->OnDeathDelegate.AddUObject(this, &UOverlayWidgetController::BroadcastDeath);
 		PS->OnExtractionDelegate.AddUObject(this, &UOverlayWidgetController::BroadcastExtraction);
-		PS->OnLevelChangeDelegate.AddUObject(this, &UOverlayWidgetController::BroadcastLevelChange);
 	}
 }
 
@@ -99,9 +87,4 @@ void UOverlayWidgetController::BroadcastDeath() const
 void UOverlayWidgetController::BroadcastExtraction() const
 {
 	OnExtraction.Broadcast();
-}
-
-void UOverlayWidgetController::BroadcastLevelChange(int32 NewLevel) const
-{
-	OnLevelChange.Broadcast(NewLevel);
 }
