@@ -14,22 +14,6 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnManaChangedSignature, float, NewM
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMaxManaChangedSignature, float, NewMaxMana);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDeathSignature);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnExtractionSignature);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLevelChangeSignature, int32, NewLevel);
-
-USTRUCT(BlueprintType)
-struct FUIWidgetRow : public FTableRowBase
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	FGameplayTag MessageTag = FGameplayTag();
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	FText Message = FText();
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSubclassOf<class UBaseUserWidget> MessageWidget;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	UTexture2D* Image = nullptr;
-};
 
 UCLASS(BlueprintType, Blueprintable)
 class PAYROCK_API UOverlayWidgetController : public UBaseWidgetController
@@ -52,27 +36,13 @@ public:
 	FOnDeathSignature OnDeath;
 	UPROPERTY(BlueprintAssignable)
 	FOnExtractionSignature OnExtraction;
-	UPROPERTY(BlueprintAssignable)
-	FOnLevelChangeSignature OnLevelChange;
 
 protected:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GAS|WidgetData")
-	TObjectPtr<UDataTable> MessageWidgetDataTable;
-	
 	void HealthChanged(const FOnAttributeChangeData& Data) const;
 	void MaxHealthChanged(const FOnAttributeChangeData& Data) const;
 	void ManaChanged(const FOnAttributeChangeData& Data) const;
 	void MaxManaChanged(const FOnAttributeChangeData& Data) const;
 	void BroadcastDeath() const;
 	void BroadcastExtraction() const;
-	void BroadcastLevelChange(int32 NewLevel) const;
-
-	template<typename T>
-	T* GetDataTableRowByTag(UDataTable* DataTable, const FGameplayTag& Tag);
 };
 
-template <typename T>
-T* UOverlayWidgetController::GetDataTableRowByTag(UDataTable* DataTable, const FGameplayTag& Tag)
-{
-	return DataTable->FindRow<T>(Tag.GetTagName(), TEXT(""));
-}

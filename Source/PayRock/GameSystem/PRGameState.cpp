@@ -90,6 +90,9 @@ void APRGameState::Notify_PlayerConnection_Implementation()
 			bHasStartedCountdown = true;
 			MatchStart_CountDown = 20;
 			GetWorld()->GetTimerManager().SetTimer(MatchStartTimerHandle, this, &APRGameState::TickMatchCountdown, 1.0f, true);
+
+			//; 대기시간에 플레이어컨트롤러에 알리기
+			SetMatchFlowState(EMatchFlowState::WaitingToStart);
 		}
 		else
 		{
@@ -100,9 +103,6 @@ void APRGameState::Notify_PlayerConnection_Implementation()
 			}
 		}
 	}
-
-	//; 대기시간에 플레이어컨트롤러에 알리기
-	SetMatchFlowState(EMatchFlowState::WaitingToStart);
 }
 
 
@@ -324,7 +324,7 @@ void APRGameState::TickMatchTimer()
 void APRGameState::OnRep_RemainingMatchTime() const
 {
 	if (!HasAuthority())
-	UE_LOG(LogTemp, Warning, TEXT("남은 매치 시간: %d초"), RemainingMatchTime);
+	// UE_LOG(LogTemp, Warning, TEXT("남은 매치 시간: %d초"), RemainingMatchTime);
 	OnRemainingMatchTime.Broadcast(RemainingMatchTime);
 }
 
