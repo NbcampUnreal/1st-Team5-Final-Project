@@ -88,7 +88,7 @@ void APRGameState::Notify_PlayerConnection_Implementation()
 		{
 			// 카운트다운 시작
 			bHasStartedCountdown = true;
-			MatchStart_CountDown = 20;
+			MatchStart_CountDown = 30;
 			GetWorld()->GetTimerManager().SetTimer(MatchStartTimerHandle, this, &APRGameState::TickMatchCountdown, 1.0f, true);
 
 			//; 대기시간에 플레이어컨트롤러에 알리기
@@ -97,9 +97,9 @@ void APRGameState::Notify_PlayerConnection_Implementation()
 		else
 		{
 			// 이미 카운트다운 중이라면: 남은 시간이 15초보다 크면 15초로 "줄임"
-			if (MatchStart_CountDown > 20)
+			if (MatchStart_CountDown > 30)
 			{
-				MatchStart_CountDown = 20;
+				MatchStart_CountDown = 30;
 			}
 		}
 	}
