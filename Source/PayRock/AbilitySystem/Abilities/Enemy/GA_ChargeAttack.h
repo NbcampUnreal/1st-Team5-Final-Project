@@ -29,19 +29,13 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void OnChargeStart();
 
-	UFUNCTION()
-	void OnChargeHit(
-		UPrimitiveComponent* OverlappedComponent,
-		AActor* OtherActor,
-		UPrimitiveComponent* OtherComp,
-		int32 BodyIndex,
-		bool bFromSweep,
-		const FHitResult& SweepResult);
-
+	UFUNCTION(BlueprintCallable)
+	void DoChargeSweep();
 	
 	UFUNCTION(BlueprintCallable)
 	void EndCharge();
 
+	FTimerHandle SweepTimerHandle;
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Charge")
 	float TelegraphDuration = 3.0f;
@@ -62,6 +56,7 @@ private:
 
 	UPROPERTY()
 	TSet<AActor*> HitActors;
-
+	UPROPERTY(EditDefaultsOnly, Category = "Collsion Box")
+	FVector BoxExtent = {300.0f,100.0f,200.0f};
 	
 };

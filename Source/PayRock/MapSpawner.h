@@ -17,6 +17,12 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	void SpawnOnServer();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_StartModuleStreaming(const TArray<int32>& InModuleIndexes);
+
+	void StreamNextModule();
+
 public:	
 	UPROPERTY(EditAnywhere, Category = "Modules")
 	TArray<TSoftObjectPtr<UWorld>> ModuleLevels;
@@ -31,6 +37,12 @@ private:
 	UPROPERTY()
 	TArray<int32> SelectedModuleIndexes;
 
-	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_SpawnModules(const TArray<int32>& InModuleIndexes);
+	UPROPERTY()
+	TArray<int32> StreamingIndexes;
+
+	UPROPERTY()
+	int32 NextSpawnIndex;
+
+	/*UFUNCTION(NetMulticast, Reliable)
+	void Multicast_SpawnModules(const TArray<int32>& InModuleIndexes);*/
 };
