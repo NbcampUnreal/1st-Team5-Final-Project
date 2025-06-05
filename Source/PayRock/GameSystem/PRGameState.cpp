@@ -324,7 +324,7 @@ void APRGameState::TickMatchTimer()
 void APRGameState::OnRep_RemainingMatchTime() const
 {
 	if (!HasAuthority())
-	UE_LOG(LogTemp, Warning, TEXT("남은 매치 시간: %d초"), RemainingMatchTime);
+	// UE_LOG(LogTemp, Warning, TEXT("남은 매치 시간: %d초"), RemainingMatchTime);
 	OnRemainingMatchTime.Broadcast(RemainingMatchTime);
 }
 
