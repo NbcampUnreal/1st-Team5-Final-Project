@@ -29,12 +29,9 @@ void ALightningStrikeActor::BeginPlay()
 {
     Super::BeginPlay();
 
-    UE_LOG(LogTemp, Warning, TEXT("⚡ BeginPlay on %s | NetMode: %d"), *GetName(), (int32)GetNetMode());
 
     if (HasAuthority())
     {
-        UE_LOG(LogTemp, Warning, TEXT("⚡ Server activated timer for %s"), *GetName());
-
         GetWorld()->GetTimerManager().SetTimer(
             TimerHandle_Activate, this, &ALightningStrikeActor::ActivateStrike, DelayBeforeStrike, false
         );
@@ -76,7 +73,6 @@ void ALightningStrikeActor::Multicast_PlayLightningVFX_Implementation()
 {
     if (LightningVFX && GetNetMode() != NM_DedicatedServer)
     {
-        LightningVFX->SetWorldLocation(GetActorLocation());
         LightningVFX->Activate(true);
     }
 }
