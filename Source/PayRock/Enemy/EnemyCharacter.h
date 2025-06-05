@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "NavigationInvokerComponent.h"
 #include "PayRock/Character/BaseCharacter.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "EnemyCharacter.generated.h"
@@ -49,7 +50,6 @@ public:
 	void Multicast_PlayDetectMontage(UAnimMontage* Montage);
 	void PlayDetectMontage(UAnimMontage* Montage);
 	
-
 	//Sound
 	UFUNCTION(BlueprintCallable,NetMulticast, Unreliable)
 	void Multicast_PlayAttackSound(USoundBase* Sound);
@@ -80,4 +80,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
 	TObjectPtr<UPawnNoiseEmitterComponent> PawnNoiseEmitterComp;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Navigation")
+	UNavigationInvokerComponent* NavInvoker;
 };
