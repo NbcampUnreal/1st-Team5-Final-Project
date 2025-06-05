@@ -77,11 +77,7 @@ void UBlessingComponent::Client_SaveAddedBlessing_Implementation(const FBlessing
 void UBlessingComponent::Server_EquipActiveBlessing_Implementation(const FBlessingData& Blessing)
 {
 	if (!GetAbilitySystemComponent()) return;
-	if (Blessing.ActiveAbilityClass == nullptr)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Blessing %s: ActiveAbilityClass is not set. Check DA_Blessings"), *Blessing.BlessingName.ToString());
-		return;
-	}
+	if (!IsValid(Blessing.ActiveAbilityClass)) return;
 
 	Server_UnequipActiveBlessing();
 
@@ -99,11 +95,7 @@ void UBlessingComponent::Server_EquipActiveBlessing_Implementation(const FBlessi
 void UBlessingComponent::Server_EquipPassiveBlessing_Implementation(const FBlessingData& Blessing)
 {
 	if (!GetAbilitySystemComponent()) return;
-	if (Blessing.PassiveEffectClass == nullptr)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Blessing %s: PassiveEffectClass is not set. Check DA_Blessings"), *Blessing.BlessingName.ToString());
-		return;
-	}
+	if (!IsValid(Blessing.PassiveEffectClass)) return;
 
 	Server_UnequipPassiveBlessing();
 	

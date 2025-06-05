@@ -965,7 +965,7 @@ void APRCharacter::Tick(float DeltaSeconds)
             }
         }
 
-        GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Cyan, FString::Printf(TEXT("Current Mana: %.1f"), Mana));
+        // GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Cyan, FString::Printf(TEXT("Current Mana: %.1f"), Mana));
     }
 }
 

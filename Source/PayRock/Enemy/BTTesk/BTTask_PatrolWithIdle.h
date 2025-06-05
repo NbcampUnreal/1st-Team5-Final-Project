@@ -9,12 +9,12 @@ struct FPatrolIdleMemory
 {
 	GENERATED_BODY()
 
-	float ElapsedTime = 0.f;
-	bool bWaitingForIdle = false;
+	float ElapsedTime;
+	bool bWaitingForIdle;
 };
 
 UCLASS()
-class PAYROCK_API UBTTask_PatrolWithIdle : public UBTTask_BlackboardBase
+class PAYROCK_API UBTTask_PatrolWithIdle : public UBTTaskNode
 {
 	GENERATED_BODY()
 
@@ -23,18 +23,18 @@ public:
 
 protected:
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
+	
 	virtual void TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
-	virtual void OnTaskFinished(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, EBTNodeResult::Type TaskResult) override {}
-
+	
 	virtual uint16 GetInstanceMemorySize() const override;
 
-protected:
-	UPROPERTY(EditAnywhere, Category = "AI")
-	float PatrolRadius = 500.f;
+public:
+	UPROPERTY(EditAnywhere, Category = "Patrol")
+	float PatrolRadius = 1000.f;
+	
+	UPROPERTY(EditAnywhere, Category = "Patrol")
+	float PatrolMoveSpeed = 300.f;
 
-	UPROPERTY(EditAnywhere, Category = "AI")
-	float IdleDuration = 2.0f;
-
-	UPROPERTY(EditAnywhere, Category = "AI")
-	float PatrolMoveSpeed = 200.f;
+	UPROPERTY(EditAnywhere, Category = "Patrol")
+	float IdleDuration = 2.f;
 };
