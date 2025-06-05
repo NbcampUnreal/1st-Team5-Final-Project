@@ -108,8 +108,8 @@ void UGA_ChargeAttack::DoChargeSweep()
 		Params
 	);
 
-	const FColor BoxColor = bHit ? FColor::Red : FColor::Green;
-	DrawDebugBox(GetWorld(), Location, BoxExtent, Rotation, BoxColor, false, 1.0f);
+	// const FColor BoxColor = bHit ? FColor::Red : FColor::Green;
+	// DrawDebugBox(GetWorld(), Location, BoxExtent, Rotation, BoxColor, false, 1.0f);
 
 	if (bHit)
 	{
