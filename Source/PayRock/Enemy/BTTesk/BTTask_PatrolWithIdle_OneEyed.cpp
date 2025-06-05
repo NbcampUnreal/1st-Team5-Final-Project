@@ -42,7 +42,6 @@ void UBTTask_PatrolWithIdle_OneEyed::TickTask(UBehaviorTreeComponent& OwnerComp,
 
 		if (Memory->ElapsedTime >= IdleDuration)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("[BT OneEyed] Idle Complete → %s"), *GetNameSafe(Pawn));
 			FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 		}
 	}
