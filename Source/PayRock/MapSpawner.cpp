@@ -19,7 +19,7 @@ void AMapSpawner::BeginPlay()
 	if (HasAuthority())
 	{
 		FTimerHandle TimerHandle;
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AMapSpawner::SpawnOnServer, 5.0f, false);
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AMapSpawner::SpawnOnServer, 15.0f, false);
 	}
 }
 
