@@ -11,16 +11,11 @@ AJasnSanTiger::AJasnSanTiger()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	TelegraphDecal = CreateDefaultSubobject<UDecalComponent>(TEXT("TelegraphDecal"));
-	TelegraphDecal->SetupAttachment(RootComponent);
-	TelegraphDecal->SetRelativeLocation(FVector(300.f, 0.f, 10.f));
-	TelegraphDecal->SetRelativeRotation(FRotator(-90.f, 0.f, 0.f));
-	TelegraphDecal->DecalSize = FVector(1000.f, 200.f, 200.f);
-	TelegraphDecal->SetVisibility(false);
 
 	ChargeCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("ChargeCollision"));
-	ChargeCollision->SetupAttachment(RootComponent);
+	ChargeCollision->SetupAttachment(GetMesh(),"CollisionSocket");
 	ChargeCollision->SetBoxExtent(FVector(50.f, 100.f, 100.f));
+	ChargeCollision->SetIsReplicated(true);
 	ChargeCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	ChargeCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
 	ChargeCollision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
@@ -29,7 +24,6 @@ AJasnSanTiger::AJasnSanTiger()
 	AIControllerClass = AEnemyController::StaticClass();
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 
-	
 }
 
 void AJasnSanTiger::BeginTelegraph()
