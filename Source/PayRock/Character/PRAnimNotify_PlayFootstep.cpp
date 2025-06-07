@@ -16,14 +16,14 @@ void UPRAnimNotify_PlayFootstep::Notify(USkeletalMeshComponent* MeshComp, UAnimS
     APRCharacter* PRChar = Cast<APRCharacter>(Owner);
     if (!PRChar) return;
 
-    FVector FootLocation = MeshComp->GetSocketLocation(TEXT("foot_l")); // �Ǵ� "foot_r"
-
     if (!MeshComp->DoesSocketExist("foot_l"))
     {
         UE_LOG(LogTemp, Error, TEXT("[Footstep] foot_l socket NOT FOUND!"));
+        return;
     }
 
-    // ����Ʈ���̽�
+    FVector FootLocation = MeshComp->GetSocketLocation(TEXT("foot_l"));
+
     FHitResult Hit;
     FCollisionQueryParams Params;
     Params.AddIgnoredActor(Owner);
@@ -32,26 +32,23 @@ void UPRAnimNotify_PlayFootstep::Notify(USkeletalMeshComponent* MeshComp, UAnimS
         Hit,
         FootLocation,
         FootLocation - FVector(0, 0, 100.f),
-        ECC_WorldStatic, // ä�� ����: ����� �浹�ϵ���
+        ECC_WorldStatic,
         Params
     );
 
-    // ���� �߼Ҹ� ��� ��ġ
     FVector FinalLocation = FootLocation;
     FinalLocation.Z = FMath::Max(FinalLocation.Z - 10.f, 0.f);
 
-    // ǥ�� Ÿ�� ���� (������ �⺻��)
     EPhysicalSurface SurfaceType = bHit ? UPhysicalMaterial::DetermineSurfaceType(Hit.PhysMaterial.Get()) : SurfaceType_Default;
     USoundBase* FootstepSound = PRChar->GetFootstepSoundBySurface(SurfaceType);
 
     if (!FootstepSound) return;
 
-    // ���� or Ŭ���̾�Ʈ���� �߼Ҹ� ��� ��û
     if (Owner->HasAuthority())
     {
         PRChar->MulticastPlayFootstep(FinalLocation, FootstepSound);
     }
-    else
+    else if (PRChar->IsLocallyControlled())
     {
         PRChar->ServerRequestFootstep(FinalLocation, FootstepSound);
     }

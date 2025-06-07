@@ -37,6 +37,8 @@ void UBaseDamageGameplayAbility::EndAbility(const FGameplayAbilitySpecHandle Han
 
 void UBaseDamageGameplayAbility::CauseDamage(AActor* TargetActor, bool bIsBackAttack)
 {
+	if (!IsValid(GetAvatarActorFromActorInfo())) return;
+
 	if (!GetAvatarActorFromActorInfo()->HasAuthority()) return;
 	// HitResult = InHitResult;
 
