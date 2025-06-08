@@ -31,7 +31,6 @@ void UPRAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
     bShouldMove = (Speed > 10.f) && !bIsInAir;
 
     // 전투 관련
-    bIsAttacking = OwnerCharacter->bIsAttacking;
     bIsGuarding = OwnerCharacter->bIsGuarding;
     bIsAiming = OwnerCharacter->bIsAiming;
 

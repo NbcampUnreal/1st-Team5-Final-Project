@@ -6,7 +6,6 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "PayRock/PRGameplayTags.h"
 #include "PayRock/Enemy/SpecialEnemy/MarketClown/MarketClownMonster.h"
-#include "PayRock/AbilitySystem/PRAttributeSet.h"
 
 ABaseCharacter::ABaseCharacter()
 {
@@ -69,8 +68,6 @@ void ABaseCharacter::Die(FVector HitDirection)
 		// Remove ALL active gameplay effects
 		FGameplayEffectQuery Query = FGameplayEffectQuery::MakeQuery_MatchAllEffectTags(FGameplayTagContainer());
 		GetAbilitySystemComponent()->RemoveActiveEffects(Query);
-
-		GetAbilitySystemComponent()->ClearActorInfo();
 	}
 	
 	MulticastRagdoll(HitDirection);

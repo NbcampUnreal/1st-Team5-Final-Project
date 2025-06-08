@@ -936,6 +936,11 @@ void APRCharacter::Die(FVector HitDirection)
     
     if (HasAuthority())
     {
+        if (GetAbilitySystemComponent())
+        {
+            GetAbilitySystemComponent()->ClearActorInfo();
+        }
+        
         if (APRPlayerState* PS = GetPlayerState<APRPlayerState>())
         {
             PS->SetIsDead(true);
