@@ -143,10 +143,6 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Input")
 	float MouseSensitivity;
 
-	/** Combat Interface */
-	virtual int32 GetCharacterLevel() override;
-	/** end Combat Interface */
-
 	//애니메이션 상태 리플리케이션용 변수들
 	//캐릭터 방향 계산
 	UFUNCTION(BlueprintCallable, Category = "Movement")
@@ -170,10 +166,6 @@ public:
 	// 공중 여부 (점프/낙하)
 	UPROPERTY(ReplicatedUsing = OnRep_InAir, VisibleAnywhere, BlueprintReadOnly, Category = "Anim|Movement")
 	bool bIsInAir = false;
-
-	// 공격 중인지
-	UPROPERTY(ReplicatedUsing = OnRep_Attacking, VisibleAnywhere, BlueprintReadOnly, Category = "Anim|Combat")
-	bool bIsAttacking = false;
 
 	// 방어 중인지
 	UPROPERTY(ReplicatedUsing = OnRep_Guarding, VisibleAnywhere, BlueprintReadOnly, Category = "Anim|Combat")
@@ -348,10 +340,6 @@ protected:
 	UFUNCTION()
 	void StopCrouch(const FInputActionValue& value);
 	UFUNCTION()
-	void StartAttack(const FInputActionValue& value);
-	UFUNCTION()
-	void StopAttack(const FInputActionValue& value);
-	UFUNCTION()
 	void StartGuard(const FInputActionValue& value);
 	UFUNCTION()
 	void StopGuard(const FInputActionValue& value);
@@ -371,9 +359,6 @@ protected:
 
 	UFUNCTION()
 	void OnRep_InAir();
-
-	UFUNCTION()
-	void OnRep_Attacking();
 
 	UFUNCTION()
 	void OnRep_Guarding();

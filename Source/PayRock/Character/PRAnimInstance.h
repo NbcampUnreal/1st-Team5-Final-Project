@@ -19,11 +19,9 @@ public:
     virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
 protected:
-    // 현재 소유 캐릭터
     UPROPERTY(EditAnywhere, Category = "Anim|Character")
     APRCharacter* OwnerCharacter;
 
-    // 캐릭터 상태들 (AnimBP에서 사용)
     UPROPERTY(BlueprintReadWrite, Category = "Anim|Movement")
     float Speed;
 
@@ -46,9 +44,6 @@ protected:
     bool bIsInAir;
 
     UPROPERTY(BlueprintReadWrite, Category = "Anim|Combat")
-    bool bIsAttacking;
-
-    UPROPERTY(BlueprintReadWrite, Category = "Anim|Combat")
     bool bIsGuarding;
 
     UPROPERTY(BlueprintReadWrite, Category = "Anim|Movement")
@@ -56,8 +51,7 @@ protected:
 
     UPROPERTY(BlueprintReadWrite, Category = "Anim|Combat")
     bool bIsAiming;
-
-    // 이동 방향 기반 골반 회전 오프셋
+    
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
     float PelvisYawOffset = 0.f;
 
