@@ -125,13 +125,6 @@ void APRCharacter::OnRep_PlayerState()
     InitAbilityActorInfo();
 }
 
-int32 APRCharacter::GetCharacterLevel()
-{
-    const APRPlayerState* PRPlayerState = GetPlayerState<APRPlayerState>();
-    if (!PRPlayerState) return 1;
-    return PRPlayerState->GetCharacterLevel();
-}
-
 void APRCharacter::AddCharacterAbilities()
 {
     UPRAbilitySystemComponent* PR_ASC = CastChecked<UPRAbilitySystemComponent>(AbilitySystemComponent);
@@ -145,21 +138,16 @@ void APRCharacter::InitAbilityActorInfo()
 {
     APRPlayerState* PRPlayerState = GetPlayerState<APRPlayerState>();
     if (!PRPlayerState) return;
+    
     AbilitySystemComponent = PRPlayerState->GetAbilitySystemComponent();
+    if (!AbilitySystemComponent) return;
+    
     AbilitySystemComponent->InitAbilityActorInfo(PRPlayerState, this);
     Cast<UPRAbilitySystemComponent>(AbilitySystemComponent)->OnAbilityActorInfoInitialized();
     AttributeSet = PRPlayerState->GetAttributeSet();
 
     PRAttributeSet = Cast<UPRAttributeSet>(AttributeSet);
-
-    if (APRPlayerController* PC = GetController<APRPlayerController>())
-    /*if (APRPlayerController* PC = GetController<APRPlayerController>())
-    {
-        if (ABaseHUD* HUD = PC->GetHUD<ABaseHUD>())
-        {
-            HUD->InitInGameHUD(PC, GetPlayerState(), AbilitySystemComponent, AttributeSet);
-        }
-    }*/
+    
     InitializeDefaultAttributes();
     BindToTagChange();
 }
@@ -324,23 +312,6 @@ void APRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
                     ETriggerEvent::Completed,
                     this,
                     &APRCharacter::StopAim
-                );
-            }
-
-            if (PlayerController->AttackAction)
-            {
-                // ����
-                EnhancedInput->BindAction(
-                    PlayerController->AttackAction,
-                    ETriggerEvent::Triggered,
-                    this,
-                    &APRCharacter::StartAttack
-                );
-                EnhancedInput->BindAction(
-                    PlayerController->AttackAction,
-                    ETriggerEvent::Completed,
-                    this,
-                    &APRCharacter::StopAttack
                 );
             }
 
@@ -715,14 +686,6 @@ void APRCharacter::StopCrouch(const FInputActionValue& value)
     }
 }
 
-void APRCharacter::StartAttack(const FInputActionValue& value)
-{
-}
-
-void APRCharacter::StopAttack(const FInputActionValue& value)
-{
-}
-
 void APRCharacter::StartGuard(const FInputActionValue& value)
 {
 }
@@ -787,7 +750,6 @@ void APRCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
     DOREPLIFETIME(APRCharacter, bIsSprinting);
     DOREPLIFETIME(APRCharacter, bIsCrouching);
     DOREPLIFETIME(APRCharacter, bIsInAir);
-    DOREPLIFETIME(APRCharacter, bIsAttacking);
     DOREPLIFETIME(APRCharacter, bIsGuarding);
     DOREPLIFETIME(APRCharacter, bJustJumped);
     DOREPLIFETIME(APRCharacter, bIsDoubleJumping)
@@ -814,10 +776,6 @@ void APRCharacter::OnRep_Crouching()
 }
 
 void APRCharacter::OnRep_InAir()
-{
-}
-
-void APRCharacter::OnRep_Attacking()
 {
 }
 
@@ -978,6 +936,11 @@ void APRCharacter::Die(FVector HitDirection)
     
     if (HasAuthority())
     {
+        if (GetAbilitySystemComponent())
+        {
+            GetAbilitySystemComponent()->ClearActorInfo();
+        }
+        
         if (APRPlayerState* PS = GetPlayerState<APRPlayerState>())
         {
             PS->SetIsDead(true);
@@ -1014,6 +977,8 @@ void APRCharacter::OnExtraction()
         // Remove ALL active gameplay effects
         FGameplayEffectQuery Query = FGameplayEffectQuery::MakeQuery_MatchAllEffectTags(FGameplayTagContainer());
         GetAbilitySystemComponent()->RemoveActiveEffects(Query);
+
+        GetAbilitySystemComponent()->ClearActorInfo();
 
         MulticastExtraction();
     }

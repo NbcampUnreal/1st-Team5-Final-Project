@@ -56,7 +56,7 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> ToggleMenuAction;
 
-
+	// 관전
 	UPROPERTY(EditAnywhere, Category = "Input|Spector")
 	TObjectPtr<UInputMappingContext> SpectorIMC;
 	
@@ -66,14 +66,13 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Input|Spectate")
 	TObjectPtr<UInputAction> SpectatePrevAction;
 
-
-	
-	
+	// 사망/탈출 UI
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UUserWidget> DeathOptionsWidgetClass;
 	
 	UFUNCTION(Client, Reliable)
 	void Client_ShowDeathOptions();
+	void RemoveDeathOptions();
 
 	UFUNCTION(BlueprintCallable)
 	void StartSpectating();
@@ -86,15 +85,16 @@ public:
 	void Client_OnSpectateTargetDied(AActor* DeadActor);
 	
 	void OnSpectateTargetDied(AActor* DeadActor); // 관전 타겟 사망시 그 타겟 제거
+
 protected:
 	virtual void BeginPlay() override;
 
 	// esc 바인딩 위한 함수 
 	virtual void SetupInputComponent() override;
 	void BindingSpector(); // 스펙터
+
 private:
 	void SetSpectateTarget(AActor* NewTarget); // 관전 타겟 설정
-
 	
 	UPROPERTY()
 	TArray<AActor*> SpectateTargets;
@@ -103,8 +103,7 @@ private:
 
 	UPROPERTY()
 	UUserWidget* DeathOptionsWidget;
-
-
+	
 //=========================================================================
 	// 컨트롤러 내부에 추가:
 private:
@@ -125,5 +124,11 @@ public:
 	// 매칭, 매치후 인게임 UI 다르게 표시 
 	void HandleMatchFlowStateChanged(EMatchFlowState NewState);
 
-
+	/*
+	 *	Necro Character
+	 */
+	UFUNCTION(BlueprintCallable, Server, Reliable)
+	void ServerRequestNecroCharacter();
+	UFUNCTION(Client, Reliable)
+	void ClientOnNecroPossessed();
 };
