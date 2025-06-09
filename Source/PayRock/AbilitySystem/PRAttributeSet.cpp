@@ -119,14 +119,7 @@ float UPRAttributeSet::HandleIncomingDamage(const FEffectProperties& Props, cons
 			NewHealth = 1.f;
 		}
 		
-		FOnAttributeChangeData AttributeChangeData;
-		AttributeChangeData.Attribute = GetHealthAttribute();
-		AttributeChangeData.GEModData = &Data;
-		AttributeChangeData.OldValue = GetHealth();
-		AttributeChangeData.NewValue = NewHealth;
-		
 		SetHealth(NewHealth);
-		Props.TargetASC->GetGameplayAttributeValueChangeDelegate(GetHealthAttribute()).Broadcast(AttributeChangeData);
 
 		/*const float HealthCurrent = GetHealth();
 		UE_LOG(LogTemp, Warning, TEXT(
@@ -137,13 +130,16 @@ float UPRAttributeSet::HandleIncomingDamage(const FEffectProperties& Props, cons
 		// Activate Hit React
 		FGameplayTagContainer TagContainer;
 		TagContainer.AddTag(FPRGameplayTags::Get().Effects_HitReact);
-		Props.TargetASC->TryActivateAbilitiesByTag(TagContainer);
+		if (Props.TargetASC)
+		{
+			Props.TargetASC->TryActivateAbilitiesByTag(TagContainer);	
+		}
 
 		if (NewHealth <= 0.f)
 		{
 			// Handle death
 			ABaseCharacter* Character = Cast<ABaseCharacter>(Props.TargetCharacter);
-			if (Character && Character->HasAuthority())
+			if (Character && Character->HasAuthority() && Props.SourceCharacter)
 			{
 				Character->Die((Props.TargetCharacter->GetActorLocation() - Props.SourceCharacter->GetActorLocation()).GetSafeNormal());
 			}
@@ -155,6 +151,8 @@ float UPRAttributeSet::HandleIncomingDamage(const FEffectProperties& Props, cons
 float UPRAttributeSet::GetCalculatedDamage(float LocalIncomingDamage, const FEffectProperties& Props)
 {
 	// TODO: Block
+
+	if (!Props.SourceASC) return 0.f;
 	
 	const UPRAttributeSet* AttackerAttributeSet =
 		Cast<UPRAttributeSet>(Props.SourceASC->GetAttributeSet(UPRAttributeSet::StaticClass()));
@@ -196,7 +194,7 @@ float UPRAttributeSet::GetCalculatedDamage(float LocalIncomingDamage, const FEff
 void UPRAttributeSet::HandleLifeSteal(const FEffectProperties& Props, float DealtDamage)
 {
 	FGameplayTag LifeStealTag = FPRGameplayTags::Get().Status_Buff_LifeSteal;
-	if (!Props.SourceASC->HasMatchingGameplayTag(LifeStealTag)) return;
+	if (!Props.SourceASC || !Props.SourceASC->HasMatchingGameplayTag(LifeStealTag)) return;
 
 	int32 LifeStealLevel = 1;
 	TSubclassOf<UGameplayEffect> LifeStealEffectClass = nullptr;

@@ -936,11 +936,6 @@ void APRCharacter::Die(FVector HitDirection)
     
     if (HasAuthority())
     {
-        if (GetAbilitySystemComponent())
-        {
-            GetAbilitySystemComponent()->ClearActorInfo();
-        }
-        
         if (APRPlayerState* PS = GetPlayerState<APRPlayerState>())
         {
             PS->SetIsDead(true);
@@ -977,9 +972,7 @@ void APRCharacter::OnExtraction()
         // Remove ALL active gameplay effects
         FGameplayEffectQuery Query = FGameplayEffectQuery::MakeQuery_MatchAllEffectTags(FGameplayTagContainer());
         GetAbilitySystemComponent()->RemoveActiveEffects(Query);
-
-        GetAbilitySystemComponent()->ClearActorInfo();
-
+        
         MulticastExtraction();
     }
     
