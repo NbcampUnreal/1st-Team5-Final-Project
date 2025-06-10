@@ -1,6 +1,8 @@
 #include "GA_ChargeStamp.h"
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "NiagaraFunctionLibrary.h"
 #include "TimerManager.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AIController.h"
@@ -66,6 +68,43 @@ void UGA_ChargeStamp::JumpToTarget(ACharacter* Avatar)
 
 void UGA_ChargeStamp::ApplyStampDamage(ACharacter* Avatar)
 {
+
+	FVector Start = Avatar->GetActorLocation();
+	FVector End = Start - FVector(0, 0, 1000.f);
+
+	FHitResult HitResult;
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(Avatar);
+
+	bool bHit = GetWorld()->LineTraceSingleByChannel(
+		HitResult,
+		Start,
+		End,
+		ECC_WorldStatic,
+		Params
+	);
+
+	FVector SpawnLocation = bHit ? HitResult.ImpactPoint + FVector(0, 0, 50.f) : Avatar->GetActorLocation();
+
+	if (AuraEffect)
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+			GetWorld(),
+			AuraEffect,
+			SpawnLocation,
+			FRotator::ZeroRotator,
+			FVector(2, 2, 2)
+		);
+	}
+	UKismetSystemLibrary::DrawDebugLine(
+		GetWorld(),
+		Start,
+		End,
+		FLinearColor::Red,
+		5.0f,
+		5.0f
+		);
+	
 	TArray<AActor*> HitActors;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APRCharacter::StaticClass(), HitActors);
 
