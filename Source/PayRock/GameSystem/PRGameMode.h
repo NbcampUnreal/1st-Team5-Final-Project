@@ -23,12 +23,20 @@ protected: // For Class Member variable
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Spawning")
 	TSubclassOf<AActor> MatchStartClass;
 
+	// Necro Character
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Spawning")
+	TSubclassOf<APawn> NecroCharacterClass;
+
 	
 public: // For Class Member Function
 	
 	virtual AActor* ChooseMatchStartSpot();
 
 	void EndThisMatch();
+
+	// Necro Character
+	void SpawnAndPossessNecroCharacter(APlayerController* RequestingController);
+	
 protected: // For Class Member Function
 
 	APRGameMode();

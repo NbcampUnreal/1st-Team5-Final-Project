@@ -3,7 +3,6 @@
 #include "PRPlayerController.h"
 #include "PRPlayerState.h"
 #include "GameFramework/PlayerState.h"
-#include "Kismet/GameplayStatics.h"
 #include "GameFramework/Character.h"
 #include "EngineUtils.h"
 #include "Blueprint/UserWidget.h"
@@ -15,9 +14,11 @@
 #include "PayRock/Character/PRCharacter.h"
 #include "PayRock/UI/Widget/BaseUserWidget.h"
 //#include "PayRock/GameSystem/PRGameState.h"
+#include "PayRock/GameSystem/PRGameMode.h"
 #include "PayRock/UI/Manager/UIManager.h"
 
 APRPlayerController::APRPlayerController()
+	: DeathOptionsWidget(nullptr)
 {
 	bReplicates = true;
 	// DeathOptionsWidgetClass = nullptr;
@@ -81,6 +82,15 @@ void APRPlayerController::Client_ShowDeathOptions_Implementation()
 			SetShowMouseCursor(true);
 			SetInputMode(FInputModeUIOnly());
 		}
+	}
+}
+
+void APRPlayerController::RemoveDeathOptions()
+{
+	if (DeathOptionsWidget && IsLocalController())
+	{
+		DeathOptionsWidget->RemoveFromParent();
+		DeathOptionsWidget = nullptr;
 	}
 }
 
@@ -296,3 +306,30 @@ void APRPlayerController::HandleMatchFlowStateChanged(EMatchFlowState NewState)
 		break;
 	}
 }
+
+/*
+ *	Necro Character
+ */
+void APRPlayerController::ServerRequestNecroCharacter_Implementation()
+{
+	if (!HasAuthority()) return;
+	if (!GetWorld() || GetWorld()->bIsTearingDown) return;
+
+	if (APRGameMode* GameMode = GetWorld()->GetAuthGameMode<APRGameMode>())
+	{
+		GameMode->SpawnAndPossessNecroCharacter(this);
+	}
+
+	ClientOnNecroPossessed();
+}
+
+void APRPlayerController::ClientOnNecroPossessed_Implementation()
+{
+	if (IsLocalController())
+	{
+		SetInputMode(FInputModeGameOnly());
+		EnableInput(this);
+		SetShowMouseCursor(false);
+	}
+}
+

@@ -19,8 +19,6 @@ class PAYROCK_API ICombatInterface
 	GENERATED_BODY()
 
 public:
-	virtual int32 GetCharacterLevel();
-
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	FVector GetCombatSocketLocation(const FGameplayTag& SocketTag);
 };

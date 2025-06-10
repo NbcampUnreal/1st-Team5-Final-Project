@@ -26,7 +26,6 @@ void APRPlayerState::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>&
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(APRPlayerState, Level);
 	DOREPLIFETIME(APRPlayerState, bIsDead);
 	DOREPLIFETIME(APRPlayerState, bIsExtracted);
 }
@@ -88,14 +87,6 @@ void APRPlayerState::Extract()
 	if (APRCharacter* Character = Cast<APRCharacter>(GetPawn()))
 	{
 		Character->OnExtraction();
-	}
-}
-
-void APRPlayerState::OnRep_Level(int32 OldLevel)
-{
-	if (Level != OldLevel)
-	{
-		OnLevelChangeDelegate.Broadcast(Level);
 	}
 }
 

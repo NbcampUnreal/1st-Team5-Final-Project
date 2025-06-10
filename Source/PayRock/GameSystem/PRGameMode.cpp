@@ -6,7 +6,6 @@
 #include "PRIGameState.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerController.h"
-#include "GameFramework/PlayerStart.h"
 #include "GameFramework/Pawn.h"
 
 APRGameMode::APRGameMode()
@@ -56,7 +55,6 @@ void APRGameMode::EndThisMatch()
 	}
 }
 
-
 AActor* APRGameMode::ChooseMatchStartSpot()
 {
 	if (!MatchStartClass)
@@ -64,7 +62,6 @@ AActor* APRGameMode::ChooseMatchStartSpot()
 		UE_LOG(LogTemp, Error, TEXT("MatchStartClass is NULL!"));
 		return nullptr;
 	}
-
 
 	TArray<AActor*> FoundSpots;
 	UGameplayStatics::GetAllActorsOfClass(this, MatchStartClass, FoundSpots);
@@ -90,3 +87,50 @@ AActor* APRGameMode::ChooseMatchStartSpot()
 	return Chosen;
 }
 
+void APRGameMode::SpawnAndPossessNecroCharacter(APlayerController* RequestingController)
+{
+	if (!IsValid(RequestingController))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("APRGameMode::SpawnAndPossessNecroCharacter(): PlayerController is invalid!"));
+		return;
+	}
+
+	FVector SpawnLocation = FVector::ZeroVector;
+	FRotator SpawnRotation = FRotator::ZeroRotator;
+	if (MatchStartClass)
+	{
+		TArray<AActor*> FoundSpots;
+		UGameplayStatics::GetAllActorsOfClass(this, MatchStartClass, FoundSpots);
+
+		if (FoundSpots.Num() != 0)
+		{
+			AActor* RandomSpot = FoundSpots[FMath::RandRange(0, FoundSpots.Num() - 1)];
+			SpawnLocation = RandomSpot->GetActorLocation();
+			SpawnRotation = RandomSpot->GetActorRotation();
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("APRGameMode::SpawnAndPossessNecroCharacter(): FoundSpots is empty. Spawning at (0, 0, 0)"))
+		}
+	}
+	SpawnLocation.Z += 300;
+
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = RequestingController;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+	APawn* NecroCharacter = GetWorld()->SpawnActor<APawn>(
+		NecroCharacterClass,
+		SpawnLocation,
+		SpawnRotation,
+		SpawnParams
+	);
+
+	if (!IsValid(NecroCharacter))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("APRGameMode::SpawnAndPossessNecroCharacter(): spawned NecroCharacter is not valid"))
+		return;
+	}
+
+	RequestingController->Possess(NecroCharacter);
+}
