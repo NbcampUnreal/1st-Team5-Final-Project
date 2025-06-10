@@ -35,7 +35,6 @@ public:
 	virtual void Die(FVector HitDirection = FVector::ZeroVector);
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastRagdoll(const FVector& HitDirection);
-
 	UFUNCTION(BlueprintCallable)
 	void ForceDeath();
 	UFUNCTION(BlueprintImplementableEvent)
@@ -55,8 +54,6 @@ protected:
 	virtual void AddCharacterAbilities();
 	void ApplyEffectToSelf(const TSubclassOf<UGameplayEffect>& EffectClass, const float& EffectLevel) const;
 	virtual void BindToTagChange();
-
-	
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")

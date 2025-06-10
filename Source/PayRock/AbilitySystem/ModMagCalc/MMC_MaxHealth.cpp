@@ -33,11 +33,11 @@ float UMMC_MaxHealth::CalculateBaseMagnitude_Implementation(const FGameplayEffec
 	Vitality = FMath::Max(Vitality, 0.f);
 	Strength = FMath::Max(Strength, 0.f);
 
-	int32 Level = 0;
+	/*int32 Level = 0;
 	if (TScriptInterface<ICombatInterface> CombatInterface = Spec.GetContext().GetSourceObject())
 	{
 		Level = CombatInterface->GetCharacterLevel();
-	}
+	}*/
 
-	return Vitality * 10 + Strength * 5 + Level * 10;
+	return Vitality * 10 + Strength * 5; // + Level * 10;
 }

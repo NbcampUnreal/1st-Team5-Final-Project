@@ -6,7 +6,6 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "PayRock/PRGameplayTags.h"
 #include "PayRock/Enemy/SpecialEnemy/MarketClown/MarketClownMonster.h"
-#include "PayRock/AbilitySystem/PRAttributeSet.h"
 
 ABaseCharacter::ABaseCharacter()
 {
@@ -72,6 +71,8 @@ void ABaseCharacter::Die(FVector HitDirection)
 	}
 	
 	MulticastRagdoll(HitDirection);
+
+	PrimaryActorTick.bCanEverTick = false;
 }
 
 void ABaseCharacter::MulticastRagdoll_Implementation(const FVector& HitDirection)
@@ -89,7 +90,7 @@ void ABaseCharacter::MulticastRagdoll_Implementation(const FVector& HitDirection
 	USkeletalMeshComponent* CharacterMesh = GetMesh();
 	if (!CharacterMesh->IsRegistered())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Component not registered yet"));
+		UE_LOG(LogTemp, Warning, TEXT("Component not registered"));
 		return;
 	}
 	CharacterMesh->SetSimulatePhysics(true);
@@ -108,6 +109,8 @@ void ABaseCharacter::MulticastRagdoll_Implementation(const FVector& HitDirection
 	{
 		SpawnLootContainer();
 	}, 0.5f, false);
+
+	PrimaryActorTick.bCanEverTick = false;
 }
 
 void ABaseCharacter::ForceDeath()

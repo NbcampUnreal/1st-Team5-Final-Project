@@ -43,7 +43,7 @@ public:
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category = "Telegraph")
 	float maxLength=10.0f;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Charge")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Charge")
 	UBoxComponent* ChargeCollision;
 protected:
 	virtual void Tick(float DeltaTime) override;
