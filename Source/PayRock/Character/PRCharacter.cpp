@@ -58,7 +58,7 @@ APRCharacter::APRCharacter()
     Weapon2->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     BlessingComponent = CreateDefaultSubobject<UBlessingComponent>(TEXT("BlessingComponent"));
 
-    NormalSpeed = 350.0f;
+    NormalSpeed = 300.0f;
     SprintSpeedMultiplier = 2.0f;
     CrouchSpeed = 200.0f;
     SprintSpeed = NormalSpeed * SprintSpeedMultiplier;
