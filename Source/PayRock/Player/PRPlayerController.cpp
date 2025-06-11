@@ -291,7 +291,7 @@ void APRPlayerController::HandleMatchFlowStateChanged(EMatchFlowState NewState)
 	switch (NewState)
 	{
 	case EMatchFlowState::WaitingToStart:
-		UIManager->ShowWidget(EWidgetCategory::MatchHUD);
+		OnWaitStart();
 		break;
 	case EMatchFlowState::MatchInProgress:
 		UIManager->RemoveWidget(EWidgetCategory::MatchHUD);
@@ -305,6 +305,28 @@ void APRPlayerController::HandleMatchFlowStateChanged(EMatchFlowState NewState)
 		UIManager->RemoveAllWidgetControllers();
 		break;
 	}
+}
+
+void APRPlayerController::Client_OnTwentySecondsLeft_Implementation()
+{
+	if (!IsLocalController()) return;
+
+	UUIManager* UIManager = GetGameInstance()->GetSubsystem<UUIManager>();
+	if (!UIManager) return;
+
+	UIManager->RemoveWidget(EWidgetCategory::Loading);
+	UIManager->ShowWidget(EWidgetCategory::MatchHUD);
+}
+
+void APRPlayerController::OnWaitStart()
+{
+	if (!IsLocalController()) return;
+	
+	UUIManager* UIManager = GetGameInstance()->GetSubsystem<UUIManager>();
+	if (!UIManager) return;
+
+	UIManager->RemoveAllWidgets();
+	UIManager->ShowWidget(EWidgetCategory::Loading);
 }
 
 /*
