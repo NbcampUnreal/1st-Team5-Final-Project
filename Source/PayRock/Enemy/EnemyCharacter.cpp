@@ -131,17 +131,29 @@ void AEnemyCharacter::Die(FVector HitDirection)
 
 	if (!bIsClone && ContainerClass)
 	{
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+		FVector Start = GetActorLocation() + FVector(0.f, 0.f, 100.f);
+		FVector End = GetActorLocation() - FVector(0.f, 0.f, 500.f);   
 
-		GetWorld()->SpawnActor<AActor>(
-			ContainerClass,
-			GetActorLocation(),
-			FRotator::ZeroRotator,
-			SpawnParams
-		);
+		FHitResult Hit;
+		FCollisionQueryParams Params;
+		Params.AddIgnoredActor(this);
+
+		if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params))
+		{
+			FVector GroundLocation = Hit.ImpactPoint;
+
+			FActorSpawnParameters SpawnParams;
+			SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+			AActor* Spawned = GetWorld()->SpawnActor<AActor>(
+				ContainerClass,
+				GroundLocation,
+				FRotator::ZeroRotator,
+				SpawnParams
+			);
+		}
 	}
-	SetLifeSpan(5.0f);
+	SetLifeSpan(2.0f);
 	
 }
 
