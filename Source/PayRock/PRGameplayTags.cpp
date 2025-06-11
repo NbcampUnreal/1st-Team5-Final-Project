@@ -194,6 +194,13 @@ void FPRGameplayTags::InitializeNativeGameplayTags()
     GameplayTags.Status_Debuff_Poison = UGameplayTagsManager::Get().AddNativeGameplayTag(
         FName("Status.Debuff.Poison")
         );
+
+    /*
+     *  Cooldown
+     */
+    GameplayTags.Ability_Blessing_Cooldown = UGameplayTagsManager::Get().AddNativeGameplayTag(
+        FName("Ability.Blessing.Cooldown")
+        );
     
     /*
      * Effects
