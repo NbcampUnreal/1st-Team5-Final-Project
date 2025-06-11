@@ -31,7 +31,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Boss Phase")
 	EBossPhase CurrentPhase;
 
-	TArray<AActor*> GetDetectedActors() {return  DetectedActors;}
+	TArray<TWeakObjectPtr<AActor>> GetDetectedActors() {return  DetectedActors;}
 	
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_PlayAuraEffect(UNiagaraSystem* InAuraEffect, TSubclassOf<AActor> InFontlClass, float InAuraRate);
@@ -49,7 +49,7 @@ protected:
 	UPROPERTY()
 	TObjectPtr<UAISenseConfig_Damage> DamageConfig;
 	
-	TArray<AActor*> DetectedActors;
+	TArray<TWeakObjectPtr<AActor>> DetectedActors;
 
 
 
@@ -61,14 +61,45 @@ protected:
 	bool bIsSit;
 
 	UFUNCTION(BlueprintCallable, Category = "Mesh")
-	void ToggleVisibleSkeletalMesh(bool isActive);
-	
+	void ToggleVisibleChairMesh(bool isActive);
+
+	//왕관
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
 	USkeletalMeshComponent* KingCrown;
 	
 	UPROPERTY(EditAnywhere, Category = "Mesh")
 	FName CrownSocketName = FName("HeadCapSocket");
 
+	// 주먹 충돌처리
+//region Boss Melee Attack
+protected:
+	UPROPERTY()
+	TArray<TWeakObjectPtr<AActor>> HitActors;
+
+	// Sweep Params
+	UPROPERTY(EditDefaultsOnly, Category = "Combat")
+	float AttackRadius = 50.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Combat")
+	float AttackRange = 100.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Combat")
+	TSubclassOf<UDamageType> DamageType;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Combat")
+	float AttackDamage = 30.f;
+
+public:
+	UFUNCTION(BlueprintCallable, Category = "Combat")
+	void PerformMeleeSweep(FName SocketName, UBaseDamageGameplayAbility* Ablilty);
+
+	UFUNCTION(BlueprintCallable, Category = "Combat")
+	void ClearHitActors();
+	
+//endregion
+
+	
+	
 	
 	UFUNCTION()
 	void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
@@ -90,9 +121,9 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "AI|Hearing")
 	float MinLoudnessToReact = 50.f;
-
-
-
+	
 	
 	FTimerHandle TimerHandle;
+
+	
 };

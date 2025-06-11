@@ -25,9 +25,9 @@ void UBTS_CheckAnyPlayerNearby::TickNode(UBehaviorTreeComponent& OwnerComp, uint
 	const FVector BossLocation = Boss->GetActorLocation();
 	bool bIsAnyPlayerNear = false;
 
-	for (AActor* Actor : Boss->GetDetectedActors())
+	for (auto Actor : Boss->GetDetectedActors())
 	{
-		if (!Actor) continue;
+		if (!Actor.IsValid()) continue;
 
 		const float Distance = FVector::Dist(BossLocation, Actor->GetActorLocation());
 		if (Distance <= NearDistance)

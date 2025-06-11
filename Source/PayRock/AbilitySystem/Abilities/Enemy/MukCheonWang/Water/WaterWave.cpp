@@ -1,10 +1,8 @@
 ﻿#include "WaterWave.h"
 #include "Components/BoxComponent.h"
-#include "Net/UnrealNetwork.h"
-#include "PayRock/Character/PRCharacter.h"
-#include "Kismet/GameplayStatics.h"
 #include "GeometryCacheComponent.h"
 #include "GeometryCache.h"
+#include "PayRock/Character/PRCharacter.h"
 
 AWaterWave::AWaterWave()
 {
@@ -12,19 +10,20 @@ AWaterWave::AWaterWave()
 	bReplicates = true;
 
 	CollisionBox = CreateDefaultSubobject<UBoxComponent>(TEXT("CollisionBox"));
-	SetRootComponent(CollisionBox);
-
 	CollisionBox->InitBoxExtent(FVector(100.f, 300.f, 100.f));
 	CollisionBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	CollisionBox->SetCollisionResponseToAllChannels(ECR_Overlap);
+	SetRootComponent(CollisionBox);
 
-	CollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AWaterWave::OnOverlapBegin);
+	CollisionComponent = CollisionBox;
+
+	CollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AWaterWave::OnEffectOverlap);
 
 	GeometryCacheComp = CreateDefaultSubobject<UGeometryCacheComponent>(TEXT("GeometryCacheComp"));
 	GeometryCacheComp->SetupAttachment(RootComponent);
-	GeometryCacheComp->SetRelativeLocation(FVector::ZeroVector); // 필요 시 조정
+	GeometryCacheComp->SetRelativeLocation(FVector::ZeroVector);
 	GeometryCacheComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	GeometryCacheComp->SetRelativeScale3D(FVector(0.5f, 0.5f, 0.5f));
+	GeometryCacheComp->SetRelativeScale3D(FVector(0.5f));
 }
 
 void AWaterWave::BeginPlay()
@@ -45,9 +44,9 @@ void AWaterWave::Tick(float DeltaTime)
 	AddActorWorldOffset(DeltaMove, true);
 }
 
-void AWaterWave::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-								UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
-								bool bFromSweep, const FHitResult& SweepResult)
+void AWaterWave::OnEffectOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+                                 UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
+                                 bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (APRCharacter* Character = Cast<APRCharacter>(OtherActor))
 	{

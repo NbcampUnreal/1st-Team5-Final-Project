@@ -39,6 +39,7 @@ EBTNodeResult::Type UBTTask_Attack::ExecuteTask(UBehaviorTreeComponent& OwnerCom
 		{
 			BB->SetValueAsBool(FName("bIsBusy"), true);
 			BB->SetValueAsBool(FName("bInAttackRange"), false);
+			BB->SetValueAsBool(FName("bIsAttacking"), true);
 		}
 
 		return EBTNodeResult::Succeeded;

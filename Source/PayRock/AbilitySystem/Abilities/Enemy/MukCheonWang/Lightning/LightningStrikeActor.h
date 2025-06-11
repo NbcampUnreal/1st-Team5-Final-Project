@@ -1,16 +1,14 @@
-﻿// PayRockGames
-
+﻿// LightningStrikeActor.h
 #pragma once
 
 #include "CoreMinimal.h"
-#include "NiagaraComponent.h"
-#include "Components/CapsuleComponent.h"
-#include "GameFramework/Actor.h"
-#include "PayRock/AbilitySystem/Abilities/BaseDamageGameplayAbility.h"
+#include "PayRock/AbilitySystem/Abilities/Enemy/MukCheonWang/BaseCombatEffectActor.h"
 #include "LightningStrikeActor.generated.h"
 
+class UCapsuleComponent;
+
 UCLASS()
-class PAYROCK_API ALightningStrikeActor : public AActor
+class PAYROCK_API ALightningStrikeActor : public ABaseCombatEffectActor
 {
 	GENERATED_BODY()
 
@@ -19,40 +17,26 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-
-	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<UCapsuleComponent> StrikeCollision;
-
-	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<UNiagaraComponent> LightningVFX;
-
-	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<UGameplayEffect> DamageEffectClass;
-
-	UPROPERTY(EditDefaultsOnly)
-	FGameplayTag DamageTypeTag;
-
-	UPROPERTY(EditDefaultsOnly)
-	float Damage = 10.f;
-
-	UPROPERTY(EditDefaultsOnly)
-	float DelayBeforeStrike = 1.5f;
-
-	FTimerHandle TimerHandle_Activate;
-
-	UPROPERTY()
-	TObjectPtr<UBaseDamageGameplayAbility> InstigatorAbility;
+	virtual void OnEffectOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+								 UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
+								 bool bFromSweep, const FHitResult& SweepResult) override;
 
 	UFUNCTION()
-	void OnStrikeOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-						 UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
-						 bool bFromSweep, const FHitResult& SweepResult);
-
 	void ActivateStrike();
-	
+
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_PlayLightningVFX();
 
-public:
-	void SetInstigatorAbility(UBaseDamageGameplayAbility* InAbility);
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<UCapsuleComponent> StrikeCollision;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<UNiagaraComponent> LightningVFX;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Timing")
+	float DelayBeforeStrike = 1.5f;
+
+private:
+	FTimerHandle TimerHandle_Activate;
 };
