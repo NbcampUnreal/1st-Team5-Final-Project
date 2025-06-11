@@ -1073,6 +1073,7 @@ void APRCharacter::SetWeaponType(EWeaponType NewType)
 {
     CurrentWeaponType = NewType;
     // 애니메이션 블루프린트에도 알릴 수 있도록 필요하면 이벤트 호출
+    // Client_ForceUpdateWeaponType(NewType);
 }
 
 void APRCharacter::ResetJustJumped()
