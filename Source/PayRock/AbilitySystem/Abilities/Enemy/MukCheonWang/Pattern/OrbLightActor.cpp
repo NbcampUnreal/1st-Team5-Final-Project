@@ -1,31 +1,38 @@
 ﻿#include "OrbLightActor.h"
-#include "Components/SphereComponent.h"
-#include "NiagaraComponent.h"
 #include "Components/PointLightComponent.h"
-#include "Kismet/GameplayStatics.h"
-#include "NavigationSystem.h"
 #include "PayRock/Character/PRCharacter.h"
+#include "NavigationSystem.h"
+#include "Kismet/GameplayStatics.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "AIController.h"
-#include "DrawDebugHelpers.h"
+#include "NiagaraComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "Components/SphereComponent.h"
 
 AOrbLightActor::AOrbLightActor()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	DetectionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("DetectionSphere"));
-	SetRootComponent(DetectionSphere);
-	DetectionSphere->InitSphereRadius(RequiredProximity);
+	OuterDamageSphere = CreateDefaultSubobject<USphereComponent>(TEXT("OuterDamageSphere"));
+	OuterDamageSphere->InitSphereRadius(600.f);
+	OuterDamageSphere->SetCollisionProfileName(TEXT("OverlapAll"));
+	OuterDamageSphere->SetGenerateOverlapEvents(true);
+	SetRootComponent(OuterDamageSphere);
 
-	LightVFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("LightVFX"));
-	LightVFX->SetupAttachment(RootComponent);
-
+	InnerSafeSphere = CreateDefaultSubobject<USphereComponent>(TEXT("InnerSafeSphere"));
+	InnerSafeSphere->InitSphereRadius(200.f);
+	InnerSafeSphere->SetupAttachment(RootComponent);
+	InnerSafeSphere->SetCollisionProfileName(TEXT("OverlapAll"));
+	InnerSafeSphere->SetGenerateOverlapEvents(true);
+	
 	LightSource = CreateDefaultSubobject<UPointLightComponent>(TEXT("PointLight"));
 	LightSource->SetupAttachment(RootComponent);
 	LightSource->SetIntensity(8000.f);
 	LightSource->SetAttenuationRadius(1000.f);
+	
+	VFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("VFX"));
+	VFX->SetupAttachment(RootComponent);
 }
 
 void AOrbLightActor::BeginPlay()
@@ -34,11 +41,11 @@ void AOrbLightActor::BeginPlay()
 
 	if (HasAuthority())
 	{
-		Multicast_ActivateVisuals();
-
+		Multicast_PlayVFX();
+		
 		GetWorldTimerManager().SetTimer(DamageTimerHandle, this, &AOrbLightActor::ApplyLightSurvivalDOT, DamageTickInterval, true);
 		GetWorldTimerManager().SetTimer(MoveTimerHandle, this, &AOrbLightActor::MoveToRandomLocation, MoveInterval, true);
-
+		
 		TArray<AActor*> FoundPlayers;
 		UGameplayStatics::GetAllActorsOfClass(GetWorld(), APRCharacter::StaticClass(), FoundPlayers);
 		for (AActor* Player : FoundPlayers)
@@ -74,71 +81,64 @@ void AOrbLightActor::ApplyLightSurvivalDOT()
 {
 	for (APRCharacter* Player : CachedPlayers)
 	{
-		if (IsPlayerInNavAndOutOfRange(Player))
-		{
-			ApplyEffectToActor(Player);
-		}
+		if (!IsValid(Player)) continue;
+		
+		if (!OuterDamageSphere->IsOverlappingActor(Player)) continue;
+		
+		if (InnerSafeSphere->IsOverlappingActor(Player)) continue;
+		
+		ApplyDamageEffect(Player);
 	}
 }
 
+
 void AOrbLightActor::MoveToRandomLocation()
 {
-	FNavLocation RandomPoint;
+	FNavLocation GroundPoint;
 	UNavigationSystemV1* NavSys = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
 
-	if (NavSys && NavSys->GetRandomReachablePointInRadius(GetActorLocation(), MoveRadius, RandomPoint))
+	
+	if (NavSys && NavSys->GetRandomReachablePointInRadius(GetActorLocation(), MoveRadius, GroundPoint))
 	{
+		FVector DesiredLocation = GroundPoint.Location;
 		
+		DesiredLocation.Z = FixedHeight;
+
+		FVector CurrentLocation = GetActorLocation();
+		CurrentLocation.Z = FixedHeight;
+
 		FHitResult Hit;
 		FCollisionQueryParams Params;
 		Params.AddIgnoredActor(this);
 
-		bool bBlocked = GetWorld()->LineTraceSingleByChannel(Hit, GetActorLocation(), RandomPoint.Location, ECC_WorldStatic, Params);
+		bool bBlocked = GetWorld()->LineTraceSingleByChannel(
+			Hit,
+			CurrentLocation,
+			DesiredLocation,
+			ECC_WorldStatic,
+			Params
+		);
+		if (bBlocked) return;
 
-		if (bBlocked)
-		{
-			return;
-		}
-
-		NextTargetLocation = RandomPoint.Location;
+		NextTargetLocation = DesiredLocation;
 		bIsMoving = true;
 	}
 }
 
-void AOrbLightActor::ApplyEffectToActor(AActor* Actor)
-{
-	APRCharacter* PRChar = Cast<APRCharacter>(Actor);
-	if (!IsValid(PRChar)) return;
 
-	if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Actor))
-	{
-		if (DamageEffectClass)
-		{
-			FGameplayEffectSpecHandle SpecHandle = TargetASC->MakeOutgoingSpec(DamageEffectClass, 1.f, TargetASC->MakeEffectContext());
-			if (SpecHandle.IsValid())
-			{
-				UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, DamageTypeTag, Damage);
-				TargetASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
-				DamagedActors.Add(Actor);
-			}
-		}
-	}
-}
 
 bool AOrbLightActor::IsPlayerInNavAndOutOfRange(APRCharacter* Player)
 {
 	if (!IsValid(Player)) return false;
 
 	const float Dist = FVector::Dist(Player->GetActorLocation(), GetActorLocation());
-
-	if (Dist <= RequiredProximity)
-		return false;
+	if (Dist <= RequiredProximity) return false;
 
 	FNavLocation Dummy;
 	UNavigationSystemV1* NavSys = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
 	if (!NavSys) return false;
 
-	return NavSys->ProjectPointToNavigation(Player->GetActorLocation(), Dummy, FVector(10.f, 10.f, 10.f));
+	return NavSys->ProjectPointToNavigation(Player->GetActorLocation(), Dummy, FVector(10.f));
 }
 
 float AOrbLightActor::GetCurrentSpeed() const
@@ -147,33 +147,31 @@ float AOrbLightActor::GetCurrentSpeed() const
 	return FMath::Lerp(MinSpeed, MaxSpeed, Alpha);
 }
 
-void AOrbLightActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
+void AOrbLightActor::Multicast_PlayVFX_Implementation()
 {
-	Super::EndPlay(EndPlayReason);
-
-	APawn* OwnerPawn = Cast<APawn>(GetOwner());
-	if (OwnerPawn)
-	{
-		AAIController* AICon = Cast<AAIController>(OwnerPawn->GetController());
-		if (AICon && AICon->GetBlackboardComponent())
-		{
-			AICon->GetBlackboardComponent()->SetValueAsBool(TEXT("bIsSpecialPattern2"), false);
-		}
-	}
-
-	GetWorldTimerManager().ClearTimer(DamageTimerHandle);
-	GetWorldTimerManager().ClearTimer(MoveTimerHandle);
-}
-
-void AOrbLightActor::Multicast_ActivateVisuals_Implementation()
-{
-	if (LightVFX)
-	{
-		LightVFX->Activate(true);
-	}
+	Super::Multicast_PlayVFX_Implementation();
 
 	if (LightSource)
 	{
-		LightSource->SetVisibility(true); 
+		LightSource->SetVisibility(true);
 	}
+}
+
+void AOrbLightActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	GetWorldTimerManager().ClearTimer(DamageTimerHandle);
+	GetWorldTimerManager().ClearTimer(MoveTimerHandle);
+	
+	if (APawn* OwnerPawn = Cast<APawn>(GetOwner()))
+	{
+		if (AAIController* AICon = Cast<AAIController>(OwnerPawn->GetController()))
+		{
+			if (UBlackboardComponent* BB = AICon->GetBlackboardComponent())
+			{
+				BB->SetValueAsBool(TEXT("bIsSpecialPattern2"), false);
+			}
+		}
+	}
+
+	Super::EndPlay(EndPlayReason);
 }

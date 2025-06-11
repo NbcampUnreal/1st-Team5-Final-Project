@@ -9,54 +9,15 @@ UGA_VFX_WaterWave::UGA_VFX_WaterWave()
 	ActivationOwnedTags.AddTag(FGameplayTag::RequestGameplayTag("Boss.State.Attacking"));
 }
 
-void UGA_VFX_WaterWave::ActivateAbility(
-	const FGameplayAbilitySpecHandle Handle,
-	const FGameplayAbilityActorInfo* ActorInfo,
-	const FGameplayAbilityActivationInfo ActivationInfo,
-	const FGameplayEventData* TriggerEventData)
+void UGA_VFX_WaterWave::OnAuraEffectComplete()
 {
-	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-
-	AvatarActor = GetAvatarActorFromActorInfo();
-	if (!AvatarActor || !WaveClass)
+	if (!AvatarActor.IsValid() || !WaveClass)
 	{
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+		FinishAbility();
 		return;
 	}
 
-	CurrentSpecHandle = Handle;
-	CurrentActorInfo = const_cast<FGameplayAbilityActorInfo*>(ActorInfo);
-	CurrentActivationInfo = ActivationInfo;
-	
-	if (AMukCheonWangCharacter* Boss = Cast<AMukCheonWangCharacter>(GetAvatarActorFromActorInfo()))
-	{
-		Boss->Multicast_PlayAuraEffect(AuraEffect, FontlClass, AuraRate);
-	}
-
-
-	if (UWorld* World = GetWorld())
-	{
-		World->GetTimerManager().SetTimer(
-			AuraDelayTimerHandle,
-			this,
-			&UGA_VFX_WaterWave::SpawnWaterWaveAfterAura,
-			AuraDelayTime,
-			false
-		);
-	}
-}
-
-void UGA_VFX_WaterWave::SpawnWaterWaveAfterAura()
-{
-	GetWorld()->GetTimerManager().ClearTimer(AuraDelayTimerHandle);
-
-	if (!AvatarActor || !WaveClass)
-	{
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
-		return;
-	}
-
-	NumWavesToSpawn = FMath::RandRange(1, 2);
+	NumWavesToSpawn = 1;
 	SpawnedWaveCount = 0;
 
 	SpawnNextWave();
@@ -64,7 +25,7 @@ void UGA_VFX_WaterWave::SpawnWaterWaveAfterAura()
 
 void UGA_VFX_WaterWave::SpawnNextWave()
 {
-	if (!AvatarActor || !WaveClass || !AvatarActor->HasAuthority())
+	if (!AvatarActor.IsValid() || !WaveClass || !AvatarActor->HasAuthority())
 	{
 		return;
 	}
@@ -73,7 +34,7 @@ void UGA_VFX_WaterWave::SpawnNextWave()
 	FRotator SpawnRot = AvatarActor->GetActorRotation();
 
 	FActorSpawnParameters SpawnParams;
-	SpawnParams.Owner = AvatarActor;
+	SpawnParams.Owner = AvatarActor.Get();
 
 	AWaterWave* Wave = GetWorld()->SpawnActor<AWaterWave>(WaveClass, SpawnLoc, SpawnRot, SpawnParams);
 	if (Wave)
@@ -96,6 +57,6 @@ void UGA_VFX_WaterWave::SpawnNextWave()
 	}
 	else
 	{
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+		FinishAbility();
 	}
 }

@@ -22,11 +22,12 @@ public:
 	FGameplayAbilitySpecHandle AddAbility(TSubclassOf<UGameplayAbility> AbilityClass, bool bIsPassive = false, int32 AbilityLevel = 1);
 	UFUNCTION(BlueprintCallable)
 	void RemoveAbility(const FGameplayAbilitySpecHandle& AbilitySpecHandle);
-
-
+	
 	void AbilityInputTagPressed(const FGameplayTag& InputTag);
 	void AbilityInputTagHeld(const FGameplayTag& InputTag);
 	void AbilityInputTagReleased(const FGameplayTag& InputTag);
+
+	float GetCooldownRemainingTimeForTag(const FGameplayTag CooldownTag) const;
 
 protected:
 	UFUNCTION(Client, Reliable)
