@@ -21,10 +21,11 @@ private:
 	UHealthBar* HealthBar;
 	UPROPERTY(meta = (BindWidget))
 	UManaBar* ManaBar;
+	UPROPERTY(meta = (BindWidget))
+	UBaseUserWidget* BlessingIcon;
 
 
-
-	// ³²Àº ½Ã°£ UI
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ UI
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* Text_RemainingTime;
 
@@ -33,6 +34,6 @@ private:
 
 	FTimerHandle UpdateTimerHandle;
 
-	// ÁÖ±âÀû °»½Å ÇÔ¼ö
+	// ï¿½Ö±ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½
 	void UpdateTimeInfo();
 };

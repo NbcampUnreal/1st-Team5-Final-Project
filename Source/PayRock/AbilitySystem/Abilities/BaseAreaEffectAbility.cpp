@@ -74,7 +74,7 @@ void UBaseAreaEffectAbility::EndAbility(const FGameplayAbilitySpecHandle Handle,
 
 void UBaseAreaEffectAbility::SpawnEffectArea()
 {
-	if (!IsValid(EffectToApply)) return;
+	if (!IsValid(EffectToApplyToOverlapActors)) return;
 	
 	AActor* SourceActor = GetAvatarActorFromActorInfo();
 	FGameplayAbilityTargetDataHandle TargetDataHandle =
@@ -92,7 +92,7 @@ void UBaseAreaEffectAbility::SpawnEffectArea()
 			if (AApplyEffectZone* SpawnedArea = Cast<AApplyEffectZone>(SpawnedActor))
 			{
 				FGameplayEffectSpecHandle SpecHandle =
-					MakeOutgoingGameplayEffectSpec(EffectToApply, GetAbilityLevel());
+					MakeOutgoingGameplayEffectSpec(EffectToApplyToOverlapActors, GetAbilityLevel());
 				if (bIsSetByCaller)
 				{
 					UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(
@@ -118,7 +118,7 @@ void UBaseAreaEffectAbility::SpawnEffectArea()
 
 void UBaseAreaEffectAbility::ApplyEffectToActorsWithinRadius()
 {
-	if (!IsValid(EffectToApply)) return;
+	if (!IsValid(EffectToApplyToOverlapActors)) return;
 	
 	FVector Origin = GetAvatarActorFromActorInfo()->GetActorLocation();
 	float RadiusFloat = Radius.GetValueAtLevel(GetAbilityLevel());
@@ -143,7 +143,7 @@ void UBaseAreaEffectAbility::ApplyEffectToActorsWithinRadius()
 	
 	if (bHit)
 	{
-		FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(EffectToApply, GetAbilityLevel());
+		FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(EffectToApplyToOverlapActors, GetAbilityLevel());
 		for (const FOverlapResult& Result : Overlaps)
 		{
 			if (AActor* Actor = Result.GetActor())

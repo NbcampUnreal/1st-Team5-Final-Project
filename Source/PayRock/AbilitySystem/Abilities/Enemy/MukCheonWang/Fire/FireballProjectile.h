@@ -1,19 +1,16 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "GameplayEffect.h"
-#include "GameplayTagContainer.h"
-#include "GameFramework/Actor.h"
+#include "Components/CapsuleComponent.h"
+#include "PayRock/AbilitySystem/Abilities/Enemy/MukCheonWang/BaseCombatEffectActor.h"
 #include "FireballProjectile.generated.h"
 
-class UNiagaraSystem;
-class UNiagaraComponent;
-class USphereComponent;
 class UProjectileMovementComponent;
 class AFireDOTArea;
+class UNiagaraSystem;
 
 UCLASS()
-class PAYROCK_API AFireballProjectile : public AActor
+class PAYROCK_API AFireballProjectile : public ABaseCombatEffectActor
 {
 	GENERATED_BODY()
 
@@ -22,69 +19,52 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-
-public:
 	virtual void Tick(float DeltaTime) override;
-
-protected:
-	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<USphereComponent> CollisionComponent;
-
-	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<UProjectileMovementComponent> ProjectileMovement;
-
-	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<UNiagaraComponent> NiagaraComponent;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Damage")
-	TSubclassOf<UGameplayEffect> DamageEffectClass;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Damage")
-	FGameplayTag DamageTag;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Damage")
-	float DamageAmount = 5.f;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Effect")
-	TObjectPtr<UNiagaraSystem> ImpactVFX;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Effect")
-	TSubclassOf<AFireDOTArea> DOTAreaClass;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Effect")
-	float SpawnHeightOffset = 10.f;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Projectile")
-	float FireRate = 1.0f;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Projectile")
-	float FloatSpeed = 4.0f;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Projectile")
-	float FloatHeight = 15.0f;
-
-private:
-	bool bHit = false;
-	FVector LaunchVelocity;
-	FTimerHandle LaunchDelayHandle;
-	float FloatElapsedTime = 0.f;
-
-	void LaunchToTargetPlayer();
-	void HandleImpact(bool bSpawnDOT);
-	void EnableReplication();
-
-	UFUNCTION()
-	void OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	                     UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
-	                     const FHitResult& SweepResult);
+	virtual void OnEffectOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+								 UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
+								 bool bFromSweep, const FHitResult& SweepResult) override;
 
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,
-	           UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+			   UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+	void EnableReplication();
+	void LaunchToTargetPlayer();
+	void HandleImpact(bool bSpawnDOT);
 
 	void PlayImpactVFX();
-	
+
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_PlayImpactVFX();
-	void Multicast_PlayImpactVFX_Implementation();
+
+protected:
+	UPROPERTY(EditDefaultsOnly, Category = "Movement")
+	float FireRate = 0.5f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Movement")
+	float FloatHeight = 40.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Movement")
+	float FloatSpeed = 4.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "DOT")
+	TSubclassOf<AFireDOTArea> DOTAreaClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "DOT")
+	float SpawnHeightOffset = 10.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "VFX")
+	UNiagaraSystem* ImpactVFX;
+
+
+	UPROPERTY(VisibleAnywhere)
+	UProjectileMovementComponent* ProjectileMovement;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<UCapsuleComponent> CapsuleCollision;
+private:
+	FVector LaunchVelocity;
+	float FloatElapsedTime = 0.f;
+	bool bHit = false;
+	FTimerHandle LaunchDelayHandle;
 };

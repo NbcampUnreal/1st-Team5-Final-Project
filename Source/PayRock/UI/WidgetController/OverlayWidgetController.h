@@ -14,6 +14,9 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnManaChangedSignature, float, NewM
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMaxManaChangedSignature, float, NewMaxMana);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDeathSignature);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnExtractionSignature);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnActiveBlessingChangedSignature, const FBlessingData&, Blessing);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCooldownChanged, float, RemainingTime);
+
 
 UCLASS(BlueprintType, Blueprintable)
 class PAYROCK_API UOverlayWidgetController : public UBaseWidgetController
@@ -32,17 +35,31 @@ public:
 	FOnManaChangedSignature OnManaChanged;
 	UPROPERTY(BlueprintAssignable, Category = "GAS|Attributes")
 	FOnMaxManaChangedSignature OnMaxManaChanged;
+
 	UPROPERTY(BlueprintAssignable)
 	FOnDeathSignature OnDeath;
 	UPROPERTY(BlueprintAssignable)
 	FOnExtractionSignature OnExtraction;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnActiveBlessingChangedSignature OnActiveBlessingChanged;
+	UPROPERTY()
+	TMap<FGameplayTag, FOnCooldownChanged> CooldownDelegates;
 
 protected:
 	void HealthChanged(const FOnAttributeChangeData& Data) const;
 	void MaxHealthChanged(const FOnAttributeChangeData& Data) const;
 	void ManaChanged(const FOnAttributeChangeData& Data) const;
 	void MaxManaChanged(const FOnAttributeChangeData& Data) const;
+
 	void BroadcastDeath() const;
 	void BroadcastExtraction() const;
+
+	void CooldownChanged(const FGameplayTag Tag, int32 TagCount);
+	void BroadcastCooldown(const FGameplayTag& Tag);
+
+private:
+	UPROPERTY()
+	TMap<FGameplayTag, FTimerHandle> CooldownUpdateTimers;
 };
 

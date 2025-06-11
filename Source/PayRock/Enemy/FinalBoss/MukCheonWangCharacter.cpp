@@ -10,7 +10,9 @@
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "PayRock/AbilitySystem/PRAttributeSet.h"
+#include "PayRock/AbilitySystem/Abilities/BaseDamageGameplayAbility.h"
 #include "PayRock/Character/PRCharacter.h"
 #include "PayRock/Enemy/EBossPhase.h"
 
@@ -104,9 +106,63 @@ void AMukCheonWangCharacter::Tick(float DeltaTime)
     }
 }
 
-void AMukCheonWangCharacter::ToggleVisibleSkeletalMesh(bool isActive)
+void AMukCheonWangCharacter::ToggleVisibleChairMesh(bool isActive)
 {
     ChairMesh->SetVisibility(isActive);
+}
+
+void AMukCheonWangCharacter::PerformMeleeSweep(FName SocketName, UBaseDamageGameplayAbility* Ablilty)
+{
+    if (!GetMesh()) return;
+
+    FVector Start = GetMesh()->GetSocketLocation(SocketName);
+    FVector End = Start + GetActorForwardVector() * AttackRange;
+
+    FCollisionQueryParams Params;
+    Params.AddIgnoredActor(this);
+    Params.bReturnPhysicalMaterial = false;
+
+    TArray<FHitResult> HitResults;
+    bool bHit = GetWorld()->SweepMultiByChannel(
+        HitResults,
+        Start,
+        End,
+        FQuat::Identity,
+        ECC_Pawn,
+        FCollisionShape::MakeSphere(AttackRadius),
+        Params
+    );
+
+    //이 부분 공격 GA-에 들어가서 켜주고 애니메이션 끝나는지점에 Clear해주기
+    if (bHit)
+    {
+        for (const FHitResult& Hit : HitResults)
+        {
+            AActor* HitActor = Hit.GetActor();
+            if (HitActor && !HitActors.Contains(HitActor))
+            {
+                HitActors.Add(HitActor);
+
+                if (HitActor && !HitActors.Contains(HitActor))
+                {
+                    HitActors.Add(HitActor);
+                    Ablilty->CauseDamage(HitActor);
+                }
+            }
+        }
+    }
+
+    // Debug Sphere
+    //에디터에서만 디버깅용도
+#if WITH_EDITOR
+    DrawDebugSphere(GetWorld(), End, AttackRadius, 12, FColor::Red, false, 1.0f);
+#endif
+}
+
+void AMukCheonWangCharacter::ClearHitActors()
+{
+    HitActors.Empty();
+   
 }
 
 void AMukCheonWangCharacter::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
@@ -163,7 +219,7 @@ void AMukCheonWangCharacter::UpdateRandomTarget()
     if (DetectedActors.Num() > 0)
     {
         int32 Index = FMath::RandRange(0, DetectedActors.Num() - 1);
-        AActor* ChosenTarget = DetectedActors[Index];
+        AActor* ChosenTarget = DetectedActors[Index].Get();
 
         if (AAIController* AICon = Cast<AAIController>(GetController()))
         {
