@@ -38,49 +38,65 @@ void UBaseDamageGameplayAbility::EndAbility(const FGameplayAbilitySpecHandle Han
 void UBaseDamageGameplayAbility::CauseDamage(AActor* TargetActor, bool bIsBackAttack)
 {
 	if (!IsValid(GetAvatarActorFromActorInfo())) return;
-
 	if (!GetAvatarActorFromActorInfo()->HasAuthority()) return;
-	// HitResult = InHitResult;
 
 	if (GetAvatarActorFromActorInfo()->IsA(AEnemyCharacter::StaticClass()) &&
 		TargetActor->IsA(AEnemyCharacter::StaticClass()))
 	{
 		return;
 	}
-	
+
 	if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor))
 	{
 		UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-		
+
 		FGameplayEffectSpecHandle DamageEffectSpecHandle = MakeOutgoingGameplayEffectSpec(
 			DamageEffectClass, GetAbilityLevel());
+
 		float ScaledDamage = Damage.GetValueAtLevel(GetAbilityLevel());
 
-		// Back Attack Buff Bonus
+		if (bUseComboDamageMultiplier)
+		{
+			float ComboMultiplier = DamageMultipliersPerMontage.IsValidIndex(MontageIndex)
+				? DamageMultipliersPerMontage[MontageIndex]
+				: DefaultComboMultiplier;
+
+			ScaledDamage *= ComboMultiplier;
+
+			//++ Debugging
+			GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Green,
+				FString::Printf(TEXT("Combo Damage Multiplier: %.2f"), ComboMultiplier));
+		}
+
 		float BackAttackMultiplier = 0.f;
 		if (bIsBackAttack && ASC->HasMatchingGameplayTag(FPRGameplayTags::Get().Status_Buff_BackAttack))
 		{
 			BackAttackMultiplier = GetBackAttackMultiplier();
 		}
 		ScaledDamage *= (1.f + BackAttackMultiplier);
+		//++ Debugging
 		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red,
-			FString::Printf(TEXT("BackAttack Multiplier: %f"), BackAttackMultiplier));
-		
+			FString::Printf(TEXT("BackAttack Multiplier: %.2f"), BackAttackMultiplier));
+
 		UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(
 			DamageEffectSpecHandle, DamageTypeTag, ScaledDamage);
-		ASC->ApplyGameplayEffectSpecToTarget(
-			*DamageEffectSpecHandle.Data.Get(), TargetASC);
+		ASC->ApplyGameplayEffectSpecToTarget(*DamageEffectSpecHandle.Data.Get(), TargetASC);
+
+		//++ Debugging
+		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange,
+			FString::Printf(TEXT("Final Scaled Damage Applied: %.2f"), ScaledDamage));
 
 		UAISense_Damage::ReportDamageEvent(
 			GetWorld(),
 			TargetActor,
 			GetAvatarActorFromActorInfo(),
 			ScaledDamage,
-			TargetActor->GetActorLocation(),  
-			GetAvatarActorFromActorInfo()->GetActorLocation() 
-			);
+			TargetActor->GetActorLocation(),
+			GetAvatarActorFromActorInfo()->GetActorLocation()
+		);
 	}
 }
+
 
 float UBaseDamageGameplayAbility::GetBackAttackMultiplier()
 {
