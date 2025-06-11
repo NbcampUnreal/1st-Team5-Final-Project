@@ -57,12 +57,13 @@ void UBaseDamageGameplayAbility::CauseDamage(AActor* TargetActor, bool bIsBackAt
 			ScaledDamage *= 0.5f;
 		}
 		
+		float BackAttackMultiplier = 0.f;
 		if (bIsBackAttack && ASC->HasMatchingGameplayTag(FPRGameplayTags::Get().Status_Buff_BackAttack))
 		{
-			float BackAttackMultiplier = GetBackAttackMultiplier();
-			ScaledDamage *= (1.f + BackAttackMultiplier);
+			BackAttackMultiplier = GetBackAttackMultiplier();
 		}
 		ScaledDamage *= (1.f + BackAttackMultiplier);
+		
 		UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(
 			DamageEffectSpecHandle, DamageTypeTag, ScaledDamage);
 		
