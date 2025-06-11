@@ -20,6 +20,15 @@ public:
 
 	
 protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage|Combo")
+	bool bUseComboDamageMultiplier = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage|Combo")
+	float DefaultComboMultiplier = 1.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage|Combo")
+	TArray<float> DamageMultipliersPerMontage;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage")
 	TSubclassOf<UGameplayEffect> DamageEffectClass;
 
