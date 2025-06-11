@@ -62,7 +62,7 @@ void UBaseDamageGameplayAbility::CauseDamage(AActor* TargetActor, bool bIsBackAt
 			float BackAttackMultiplier = GetBackAttackMultiplier();
 			ScaledDamage *= (1.f + BackAttackMultiplier);
 		}
-
+		ScaledDamage *= (1.f + BackAttackMultiplier);
 		UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(
 			DamageEffectSpecHandle, DamageTypeTag, ScaledDamage);
 		
