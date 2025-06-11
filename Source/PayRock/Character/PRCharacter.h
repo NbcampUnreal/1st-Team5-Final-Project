@@ -241,6 +241,7 @@ public:
 	UPROPERTY(Replicated, BlueprintReadWrite, Category = "Weapon")
 	EWeaponType CurrentWeaponType;
 
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	void SetWeaponType(EWeaponType NewType);
 
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
