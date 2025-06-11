@@ -4,6 +4,7 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
+#include "PayRock/Character/PRCharacter.h"
 
 AStoneSpikeActor::AStoneSpikeActor()
 {
@@ -20,6 +21,7 @@ AStoneSpikeActor::AStoneSpikeActor()
 
 	VFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("VFX"));
 	VFX->SetupAttachment(RootComponent);
+	VFX->SetAutoActivate(false);
 
 	MovementComp = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("MovementComp"));
 	MovementComp->InitialSpeed = BaseSpeed;
@@ -35,6 +37,14 @@ void AStoneSpikeActor::BeginPlay()
 	if (HasAuthority())
 	{
 		Multicast_PlaySpikeVFX();
+		
+		GetWorldTimerManager().SetTimer(
+		VFXRepeatTimerHandle,
+		this,
+		&AStoneSpikeActor::PlayRepeatedSpikeVFX,
+		0.25f,
+		true
+	);
 	}
 
 	SetLifeSpan(15.f);
@@ -46,12 +56,34 @@ void AStoneSpikeActor::Tick(float DeltaTime)
 }
 
 void AStoneSpikeActor::OnEffectOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-                                       UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
-                                       bool bFromSweep, const FHitResult& SweepResult)
+									   UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
+									   bool bFromSweep, const FHitResult& SweepResult)
 {
 	ApplyDamageEffect(OtherActor);
-	Destroy();
+
+	if (APRCharacter* HitCharacter = Cast<APRCharacter>(OtherActor))
+	{
+		const FVector LaunchVelocity = FVector(0.f, 0.f, 500.f);
+		HitCharacter->LaunchCharacter(LaunchVelocity, true, true);
+	}
+	
+	SetActorEnableCollision(false);
+
+	if (VFX)
+	{
+		VFX->Deactivate(); 
+		VFX->ActivateSystem();
+	}
+	
+	GetWorldTimerManager().SetTimer(
+		DestroyDelayHandle,
+		this,
+		&AStoneSpikeActor::DestroySpike,
+		1.0f, 
+		false
+	);
 }
+
 
 void AStoneSpikeActor::SetTarget(AActor* InTarget)
 {
@@ -78,4 +110,28 @@ void AStoneSpikeActor::Multicast_PlaySpikeVFX_Implementation()
 	{
 		VFX->Activate(true);
 	}
+}
+
+void AStoneSpikeActor::PlayRepeatedSpikeVFX()
+{
+	if (VFX)
+	{
+		if (VFX)
+		{
+			VFX->ResetSystem();
+			VFX->Activate(true);
+		}
+	}
+}
+
+void AStoneSpikeActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	GetWorldTimerManager().ClearTimer(VFXRepeatTimerHandle);
+	Super::EndPlay(EndPlayReason);
+}
+
+void AStoneSpikeActor::DestroySpike()
+{
+	GetWorldTimerManager().ClearTimer(DestroyDelayHandle);
+	Destroy();
 }

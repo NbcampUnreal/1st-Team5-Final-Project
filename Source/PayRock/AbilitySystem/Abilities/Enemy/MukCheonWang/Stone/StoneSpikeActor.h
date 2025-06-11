@@ -21,9 +21,12 @@ protected:
 	virtual void OnEffectOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 								 UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
 								 bool bFromSweep, const FHitResult& SweepResult) override;
+	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
+	void DestroySpike();
 
 public:
 	void SetTarget(AActor* InTarget);
+	void PlayRepeatedSpikeVFX();
 
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_SetTarget(AActor* InTarget);
@@ -43,4 +46,7 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<AActor> TargetActor;
+	
+	FTimerHandle VFXRepeatTimerHandle;
+	FTimerHandle DestroyDelayHandle;
 };

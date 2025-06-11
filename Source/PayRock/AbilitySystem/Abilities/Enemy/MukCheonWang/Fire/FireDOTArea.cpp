@@ -91,6 +91,15 @@ void AFireDOTArea::ApplyEffectToActor(AActor* Actor)
 				UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, DamageTypeTag, DamageAmount);
 				TargetASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 				DamagedActors.Add(Actor);
+				
+				FTimerHandle ClearHandle;
+				FTimerDelegate ClearDelegate;
+				ClearDelegate.BindLambda([=, this]()
+				{
+					DamagedActors.Remove(Actor);
+				});
+				GetWorld()->GetTimerManager().SetTimer(ClearHandle, ClearDelegate, DamageInterval, false);
+
 			}
 		}
 	}
