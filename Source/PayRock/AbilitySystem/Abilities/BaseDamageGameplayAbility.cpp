@@ -63,6 +63,8 @@ void UBaseDamageGameplayAbility::CauseDamage(AActor* TargetActor, bool bIsBackAt
 			BackAttackMultiplier = GetBackAttackMultiplier();
 		}
 		ScaledDamage *= (1.f + BackAttackMultiplier);
+		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red,
+			FString::Printf(TEXT("BackAttack Multiplier: %f"), BackAttackMultiplier));
 		
 		UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(
 			DamageEffectSpecHandle, DamageTypeTag, ScaledDamage);
@@ -70,13 +72,13 @@ void UBaseDamageGameplayAbility::CauseDamage(AActor* TargetActor, bool bIsBackAt
 			*DamageEffectSpecHandle.Data.Get(), TargetASC);
 
 		UAISense_Damage::ReportDamageEvent(
-	GetWorld(),
-	TargetActor,
-	GetAvatarActorFromActorInfo(),
-	ScaledDamage,
-	TargetActor->GetActorLocation(),  
-	GetAvatarActorFromActorInfo()->GetActorLocation() 
-	);
+			GetWorld(),
+			TargetActor,
+			GetAvatarActorFromActorInfo(),
+			ScaledDamage,
+			TargetActor->GetActorLocation(),  
+			GetAvatarActorFromActorInfo()->GetActorLocation() 
+			);
 	}
 }
 

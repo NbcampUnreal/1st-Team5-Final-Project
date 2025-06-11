@@ -50,7 +50,8 @@ void UFistAttackAbility::OnFistOverlap(UPrimitiveComponent* OverlappedComponent,
 
 	bool bIsBackAttack = Dot < -0.5f;
 	
-	if (GetAvatarActorFromActorInfo()->HasAuthority())
+	if (GetAvatarActorFromActorInfo()->HasAuthority() ||
+		HasAuthorityOrPredictionKey(GetCurrentActorInfo(), &GetCurrentActivationInfoRef()))
 	{
 		bHit = true;
 		CauseDamage(OtherActor, bIsBackAttack);
