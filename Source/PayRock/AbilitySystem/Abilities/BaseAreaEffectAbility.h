@@ -27,7 +27,7 @@ protected:
 	
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Ability")
-	TSubclassOf<UGameplayEffect> EffectToApply;
+	TSubclassOf<UGameplayEffect> EffectToApplyToOverlapActors;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ability")
 	TSubclassOf<UGameplayEffect> AdditionalEffectToApplyToSelf;
 	UPROPERTY(EditDefaultsOnly, Category = "Ability")

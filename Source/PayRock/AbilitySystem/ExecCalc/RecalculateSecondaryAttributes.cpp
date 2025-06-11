@@ -61,7 +61,7 @@ void URecalculateSecondaryAttributes::Execute_Implementation(
 	EvaluateParams.TargetTags = SpecRef.CapturedTargetTags.GetAggregatedTags();
 
 	/*
-	 *	captured primary attribute current values
+	 *	captured primary attribute "current" values
 	 */
 	float Strength = 0.f;
 	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(StrengthDef, EvaluateParams, Strength);
@@ -77,7 +77,7 @@ void URecalculateSecondaryAttributes::Execute_Implementation(
 	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(LuckDef, EvaluateParams, Luck);
 	
 	/*
-	 *	captured bonus secondary attribute values
+	 *	captured secondary attribute "bonus" values
 	 */
 	float BonusArmor = 0.f;
 	ExecutionParams.AttemptCalculateCapturedAttributeBonusMagnitude(ArmorDef, EvaluateParams, BonusArmor);
@@ -99,7 +99,22 @@ void URecalculateSecondaryAttributes::Execute_Implementation(
 	ExecutionParams.AttemptCalculateCapturedAttributeBaseValue(MaxManaDef, OldMaxMana);
 
 	/*
-	 *	Recalculating Base Values
+	 *	Luck-based primary stat bonus
+	 */
+	float LuckBonus = 0.2f * Luck;
+	Strength += LuckBonus;
+	Intelligence += LuckBonus;
+	Dexterity += LuckBonus;
+	Vitality += LuckBonus;
+	Spirit += LuckBonus;
+	AddOutputModifierForAttribute(UPRAttributeSet::GetStrengthAttribute(), OutExecutionOutput, Strength);
+	AddOutputModifierForAttribute(UPRAttributeSet::GetIntelligenceAttribute(), OutExecutionOutput, Intelligence);
+	AddOutputModifierForAttribute(UPRAttributeSet::GetDexterityAttribute(), OutExecutionOutput, Dexterity);
+	AddOutputModifierForAttribute(UPRAttributeSet::GetVitalityAttribute(), OutExecutionOutput, Vitality);
+	AddOutputModifierForAttribute(UPRAttributeSet::GetSpiritAttribute(), OutExecutionOutput, Spirit);
+	
+	/*
+	 *	Recalculating Base Values (secondary)
 	 */
 	// Armor
 	float NewBaseArmor = Strength * 1.5f + Vitality * 2.f;
@@ -153,18 +168,18 @@ void URecalculateSecondaryAttributes::Execute_Implementation(
 
 	// Carry Weight
 	float NewBaseCarryWeight = Strength * 5.f + 100.f;
-	AddOutputModifierForAttribute(UPRAttributeSet::GetCarryWeightAttribute(), OutExecutionOutput, NewBaseCarryWeight/*, BonusCarryWeight*/);
+	AddOutputModifierForAttribute(UPRAttributeSet::GetCarryWeightAttribute(), OutExecutionOutput, NewBaseCarryWeight);
 
 	// Bonus Damage
- 	AddOutputModifierForAttribute(UPRAttributeSet::GetBonusDamageAttribute(), OutExecutionOutput, 0/*, AddedBonusDamage*/);
+ 	AddOutputModifierForAttribute(UPRAttributeSet::GetBonusDamageAttribute(), OutExecutionOutput, 0);
 
 	// MaxHealth
 	float NewBaseMaxHealth = Vitality * 10.f + Strength * 5.f;
-	AddOutputModifierForAttribute(UPRAttributeSet::GetMaxHealthAttribute(), OutExecutionOutput, NewBaseMaxHealth/*, BonusMaxHealth*/);
+	AddOutputModifierForAttribute(UPRAttributeSet::GetMaxHealthAttribute(), OutExecutionOutput, NewBaseMaxHealth);
 
 	// MaxMana
 	float NewBaseMaxMana = Intelligence * 15.f;
-	AddOutputModifierForAttribute(UPRAttributeSet::GetMaxManaAttribute(), OutExecutionOutput, NewBaseMaxMana/*, BonusMaxMana*/);
+	AddOutputModifierForAttribute(UPRAttributeSet::GetMaxManaAttribute(), OutExecutionOutput, NewBaseMaxMana);
 
 	/*
 	 *	MaxHealth / MaxMana change requires Health / Mana ratio to be maintained
