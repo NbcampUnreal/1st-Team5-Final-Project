@@ -96,7 +96,9 @@ void AMukCheonWangCharacter::Tick(float DeltaTime)
                 if (NewPhase == EBossPhase::Phase2)
                 {
                     BB->SetValueAsBool(TEXT("bIsSpecialPattern1"), true);
+                    ToggleVisibleChairMesh(false);
                 }
+                
                 if (NewPhase == EBossPhase::Phase3)
                 {
                     BB->SetValueAsBool(TEXT("bIsSpecialPattern2"), true);

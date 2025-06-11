@@ -34,17 +34,19 @@ void AStoneSpikeActor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (HasAuthority())
-	{
-		Multicast_PlaySpikeVFX();
-		
-		GetWorldTimerManager().SetTimer(
+	
+	GetWorldTimerManager().SetTimer(
 		VFXRepeatTimerHandle,
 		this,
 		&AStoneSpikeActor::PlayRepeatedSpikeVFX,
-		0.25f,
+		0.18f,
 		true
 	);
+
+	
+	if (HasAuthority())
+	{
+		Multicast_PlaySpikeVFX();
 	}
 
 	SetLifeSpan(15.f);
@@ -108,6 +110,7 @@ void AStoneSpikeActor::Multicast_PlaySpikeVFX_Implementation()
 {
 	if (VFX)
 	{
+		VFX->ResetSystem();
 		VFX->Activate(true);
 	}
 }
@@ -116,13 +119,11 @@ void AStoneSpikeActor::PlayRepeatedSpikeVFX()
 {
 	if (VFX)
 	{
-		if (VFX)
-		{
-			VFX->ResetSystem();
-			VFX->Activate(true);
-		}
+		VFX->ResetSystem();
+		VFX->Activate(true);
 	}
 }
+
 
 void AStoneSpikeActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
