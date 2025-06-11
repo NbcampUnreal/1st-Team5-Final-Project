@@ -1,16 +1,16 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "NavigationSystem.h"
-#include "NiagaraComponent.h"
-#include "Components/PointLightComponent.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/Actor.h"
-#include "PayRock/Character/PRCharacter.h"
+#include "PayRock/AbilitySystem/Abilities/Enemy/MukCheonWang/BaseCombatEffectActor.h"
 #include "OrbLightActor.generated.h"
 
+class UPointLightComponent;
+class APRCharacter;
+
 UCLASS()
-class PAYROCK_API AOrbLightActor : public AActor
+class PAYROCK_API AOrbLightActor : public ABaseCombatEffectActor
 {
 	GENERATED_BODY()
 
@@ -21,65 +21,55 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	virtual void Multicast_PlayVFX_Implementation() override;
 
-	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<USphereComponent> DetectionSphere;
+	void ApplyLightSurvivalDOT();
+	void MoveToRandomLocation();
 
-	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<UNiagaraComponent> LightVFX;
+	bool IsPlayerInNavAndOutOfRange(APRCharacter* Player);
+	float GetCurrentSpeed() const;
 
+protected:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UPointLightComponent> LightSource;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Collision")
+	TObjectPtr<USphereComponent> OuterDamageSphere;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Collision")
+	TObjectPtr<USphereComponent> InnerSafeSphere;
+
 
 	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<UGameplayEffect> DamageEffectClass;
+	float OrbLifetime = 10.f;
 
 	UPROPERTY(EditDefaultsOnly)
-	FGameplayTag DamageTypeTag;
+	float DamageTickInterval = 1.f;
 
 	UPROPERTY(EditDefaultsOnly)
-	float Damage = 2.5f;
+	float MoveInterval = 2.f;
+
+	UPROPERTY(EditDefaultsOnly)
+	float MoveRadius = 1000.f;
 
 	UPROPERTY(EditDefaultsOnly)
 	float RequiredProximity = 800.f;
 
 	UPROPERTY(EditDefaultsOnly)
-	float DamageTickInterval = 1.0f;
+	float MaxSpeed = 500.f;
 
 	UPROPERTY(EditDefaultsOnly)
-	float MoveInterval = 3.0f;
+	float MinSpeed = 150.f;
 
-	UPROPERTY(EditDefaultsOnly)
-	float MoveRadius = 2000.f;
+	UPROPERTY(EditAnywhere, Category = "Movement")
+	float FixedHeight = 150.f;
 
-	UPROPERTY(EditDefaultsOnly)
-	float OrbLifetime = 20.0f;
-
-	UPROPERTY(EditDefaultsOnly)
-	float MinSpeed = 200.f;
-
-	UPROPERTY(EditDefaultsOnly)
-	float MaxSpeed = 800.f;
-
+private:
 	TArray<APRCharacter*> CachedPlayers;
-	TSet<AActor*> DamagedActors;
+	FVector NextTargetLocation;
+	float ElapsedTime = 0.f;
+	bool bIsMoving = false;
+
 	FTimerHandle DamageTimerHandle;
 	FTimerHandle MoveTimerHandle;
-
-	bool bIsMoving = false;
-	float ElapsedTime = 0.f;
-	FVector NextTargetLocation;
-
-	UFUNCTION()
-	void ApplyLightSurvivalDOT();
-
-	UFUNCTION()
-	void MoveToRandomLocation();
-
-	void ApplyEffectToActor(AActor* Actor);
-	bool IsPlayerInNavAndOutOfRange(APRCharacter* Player);
-	float GetCurrentSpeed() const;
-	
-	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_ActivateVisuals();
 };

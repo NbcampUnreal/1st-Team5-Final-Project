@@ -6,47 +6,49 @@
 #include "LightSourceActor.h"
 #include "OrbLightActor.h"
 #include "PayRock/AbilitySystem/Abilities/BaseDamageGameplayAbility.h"
+#include "PayRock/AbilitySystem/Abilities/Enemy/MukCheonWang/GA_Boss_Magic_Base.h"
 #include "GA_Light.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class PAYROCK_API UGA_Light : public UBaseDamageGameplayAbility
+class PAYROCK_API UGA_Light : public UGA_Boss_Magic_Base
 {
 	GENERATED_BODY()
+
 public:
 	UGA_Light();
 
 protected:
-	virtual void ActivateAbility(
-		const FGameplayAbilitySpecHandle Handle,
-		const FGameplayAbilityActorInfo* ActorInfo,
-		const FGameplayAbilityActivationInfo ActivationInfo,
-		const FGameplayEventData* TriggerEventData) override;
+	virtual void OnAuraEffectComplete() override;
 
+private:
 	
-	UPROPERTY()
-	TArray<TObjectPtr<ALightSourceActor>> AffectedLightActors;
-	
-	UPROPERTY(EditDefaultsOnly, Category = "LightSurvival")
-	TSubclassOf<AOrbLightActor> OrbLightClass;
-	
-	UPROPERTY(EditDefaultsOnly, Category = "LightSurvival")
-	float LightDetectionRadius = 3000.f;
-	
-	UPROPERTY(EditDefaultsOnly, Category = "LightSurvival")
-	float PatternDuration = 15.f;
-
-	FTimerHandle EndPatternTimerHandle;
-
-	UFUNCTION()
-	void EndLightSurvivalPattern();
-
 	void DisableNearbyLights(AActor* OriginActor);
-	void RestoreLights();
+	
 	void SpawnLightOrbAtCenter(AActor* OriginActor);
 
+	void EndLightSurvivalPattern();
+	
+	void RestoreLights();
+
+protected:
+	UPROPERTY(EditDefaultsOnly, Category = "Light")
+	TSubclassOf<AOrbLightActor> OrbLightClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Light")
+	float PatternDuration = 10.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Light")
+	float LightDetectionRadius = 3000.f;
+
+private:
 	UPROPERTY()
-	TObjectPtr<AOrbLightActor> SpawnedOrb;
+	TArray<ALightSourceActor*> AffectedLightActors;
+
+	UPROPERTY()
+	TWeakObjectPtr<AOrbLightActor> SpawnedOrb;
+
+	FTimerHandle EndPatternTimerHandle;
 };

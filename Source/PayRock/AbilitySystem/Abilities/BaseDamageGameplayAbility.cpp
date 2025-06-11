@@ -39,12 +39,9 @@ void UBaseDamageGameplayAbility::CauseDamage(AActor* TargetActor, bool bIsBackAt
 {
 	if (!IsValid(GetAvatarActorFromActorInfo())) return;
 	if (!GetAvatarActorFromActorInfo()->HasAuthority()) return;
-
-	if (GetAvatarActorFromActorInfo()->IsA(AEnemyCharacter::StaticClass()) &&
-		TargetActor->IsA(AEnemyCharacter::StaticClass()))
-	{
-		return;
-	}
+	
+	bool bIsMonsterToMonster = GetAvatarActorFromActorInfo()->IsA(AEnemyCharacter::StaticClass()) &&
+						   TargetActor->IsA(AEnemyCharacter::StaticClass());
 
 	if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor))
 	{
@@ -52,8 +49,15 @@ void UBaseDamageGameplayAbility::CauseDamage(AActor* TargetActor, bool bIsBackAt
 
 		FGameplayEffectSpecHandle DamageEffectSpecHandle = MakeOutgoingGameplayEffectSpec(
 			DamageEffectClass, GetAbilityLevel());
+		
 
 		float ScaledDamage = Damage.GetValueAtLevel(GetAbilityLevel());
+		
+		if (bIsMonsterToMonster)
+		{
+			ScaledDamage *= 0.5f;
+		}
+		
 
 		if (bUseComboDamageMultiplier)
 		{
@@ -74,10 +78,7 @@ void UBaseDamageGameplayAbility::CauseDamage(AActor* TargetActor, bool bIsBackAt
 			BackAttackMultiplier = GetBackAttackMultiplier();
 		}
 		ScaledDamage *= (1.f + BackAttackMultiplier);
-		//++ Debugging
-		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red,
-			FString::Printf(TEXT("BackAttack Multiplier: %.2f"), BackAttackMultiplier));
-
+		
 		UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(
 			DamageEffectSpecHandle, DamageTypeTag, ScaledDamage);
 		ASC->ApplyGameplayEffectSpecToTarget(*DamageEffectSpecHandle.Data.Get(), TargetASC);
@@ -91,7 +92,7 @@ void UBaseDamageGameplayAbility::CauseDamage(AActor* TargetActor, bool bIsBackAt
 			TargetActor,
 			GetAvatarActorFromActorInfo(),
 			ScaledDamage,
-			TargetActor->GetActorLocation(),
+			TargetActor->GetActorLocation(),  
 			GetAvatarActorFromActorInfo()->GetActorLocation()
 		);
 	}

@@ -11,51 +11,12 @@ UGA_SpawnHealingTrees::UGA_SpawnHealingTrees()
 	ActivationOwnedTags.AddTag(FGameplayTag::RequestGameplayTag("Boss.State.Attacking"));
 }
 
-void UGA_SpawnHealingTrees::ActivateAbility(
-	const FGameplayAbilitySpecHandle Handle,
-	const FGameplayAbilityActorInfo* ActorInfo,
-	const FGameplayAbilityActivationInfo ActivationInfo,
-	const FGameplayEventData* TriggerEventData)
+void UGA_SpawnHealingTrees::OnAuraEffectComplete()
 {
-	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-	
-	AvatarActor = GetAvatarActorFromActorInfo();
-	AMukCheonWangCharacter* Boss = Cast<AMukCheonWangCharacter>(AvatarActor);
+	AMukCheonWangCharacter* Boss = Cast<AMukCheonWangCharacter>(AvatarActor.Get());
 	if (!Boss || !TreeClass)
 	{
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
-		return;
-	}
-
-	CurrentSpecHandle = Handle;
-	CurrentActorInfo = const_cast<FGameplayAbilityActorInfo*>(ActorInfo);
-	CurrentActivationInfo = ActivationInfo;
-
-	
-
-	Boss->Multicast_PlayAuraEffect(AuraEffect, FontlClass, AuraRate);
-	
-	
-	if (UWorld* World = GetWorld())
-	{
-		World->GetTimerManager().SetTimer(
-			AuraDelayTimerHandle,
-			this,
-			&UGA_SpawnHealingTrees::SpawnTreesAfterAura,
-			AuraDelayTime,
-			false
-		);
-	}
-}
-
-void UGA_SpawnHealingTrees::SpawnTreesAfterAura()
-{
-	GetWorld()->GetTimerManager().ClearTimer(AuraDelayTimerHandle);
-
-	AMukCheonWangCharacter* Boss = Cast<AMukCheonWangCharacter>(AvatarActor);
-	if (!Boss || !TreeClass)
-	{
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+		FinishAbility();
 		return;
 	}
 
@@ -70,7 +31,9 @@ void UGA_SpawnHealingTrees::SpawnTreesAfterAura()
 	const FVector BoxCenter = Origin + Forward * ((MinSpawnDistance + MaxSpawnDistance) * 0.5f);
 	const FVector BoxExtent = FVector((MaxSpawnDistance - MinSpawnDistance) * 0.5f, HalfWidth, 100.f);
 
+#if WITH_EDITOR
 	DrawDebugBox(GetWorld(), BoxCenter, BoxExtent, Boss->GetActorRotation().Quaternion(), FColor::Green, false, 3.f);
+#endif
 
 	for (int32 i = 0; i < Count; ++i)
 	{
@@ -84,7 +47,7 @@ void UGA_SpawnHealingTrees::SpawnTreesAfterAura()
 		FActorSpawnParameters Params;
 		Params.Owner = Boss;
 
-		AHealingTreeActor* Tree = Boss->GetWorld()->SpawnActor<AHealingTreeActor>(
+		AHealingTreeActor* Tree = GetWorld()->SpawnActor<AHealingTreeActor>(
 			TreeClass, SpawnLoc, FRotator::ZeroRotator, Params);
 
 		if (Tree)
@@ -93,6 +56,5 @@ void UGA_SpawnHealingTrees::SpawnTreesAfterAura()
 		}
 	}
 
-
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+	FinishAbility();
 }
