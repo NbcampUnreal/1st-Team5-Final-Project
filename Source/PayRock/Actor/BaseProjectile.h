@@ -8,8 +8,10 @@
 #include "BaseProjectile.generated.h"
 
 class UNiagaraSystem;
+class UNiagaraComponent;
 class USphereComponent;
 class UProjectileMovementComponent;
+class USceneComponent;
 
 UCLASS()
 class PAYROCK_API ABaseProjectile : public AActor
@@ -45,9 +47,15 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	float LifeSpan = 4.f;
+
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<USceneComponent> SceneRoot;
 	
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<USphereComponent> Sphere;
+
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<UNiagaraComponent> Niagara;
 
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UNiagaraSystem> ImpactEffect;
