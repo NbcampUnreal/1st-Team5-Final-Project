@@ -127,7 +127,7 @@ void UOverlayWidgetController::CooldownChanged(const FGameplayTag Tag, int32 Tag
 		GetWorld()->GetTimerManager().SetTimer(
 			TimerHandle,
 			TimerDelegate,
-			0.2f,
+			0.1f,
 			true
 		);
 	}
@@ -137,6 +137,11 @@ void UOverlayWidgetController::CooldownChanged(const FGameplayTag Tag, int32 Tag
 		{
 			GetWorld()->GetTimerManager().ClearTimer(CooldownUpdateTimers[Tag]);
 			CooldownUpdateTimers.Remove(Tag);
+
+			if (FOnCooldownChanged* Delegate = CooldownDelegates.Find(Tag))
+			{
+				Delegate->Broadcast(0.f);	
+			}
 		}
 	}
 }

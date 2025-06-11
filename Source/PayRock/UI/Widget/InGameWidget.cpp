@@ -26,6 +26,7 @@ void UInGameWidget::OnWidgetControllerSet()
 	// ���� ���� ��Ʈ�ѷ� !!!!! �߿� (GAS ���� �޾ƿ����� ���)
 	HealthBar->SetWidgetController(WidgetController);
 	ManaBar->SetWidgetController(WidgetController);
+	BlessingIcon->SetWidgetController(WidgetController);
 }
 
 void UInGameWidget::UpdateTimeInfo()

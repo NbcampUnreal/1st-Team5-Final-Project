@@ -12,11 +12,10 @@ void UBlessingIcon::OnWidgetControllerSet()
 	if (UOverlayWidgetController* OverlayWC = Cast<UOverlayWidgetController>(WidgetController))
 	{
 		OverlayWC->OnActiveBlessingChanged.AddUniqueDynamic(this, &UBlessingIcon::OnActiveBlessingChanged);
-		if (FOnCooldownChanged* DelegatePtr =
-			OverlayWC->CooldownDelegates.Find(FPRGameplayTags::Get().Ability_Blessing_Cooldown))
-		{
-			DelegatePtr->AddUniqueDynamic(this, &UBlessingIcon::UpdateCooldown);
-		}
+
+		FOnCooldownChanged& Delegate =
+			OverlayWC->CooldownDelegates.FindOrAdd(FPRGameplayTags::Get().Ability_Blessing_Cooldown);
+		Delegate.AddUniqueDynamic(this, &UBlessingIcon::UpdateCooldown);
 	}
 }
 
@@ -30,7 +29,7 @@ void UBlessingIcon::OnActiveBlessingChanged(const FBlessingData& Blessing)
 
 void UBlessingIcon::UpdateCooldown(float RemainingTime)
 {
-	bool bIsCooldownValid = RemainingTime > KINDA_SMALL_NUMBER;
+	bool bIsCooldownValid = RemainingTime > 0.1f;
 	
 	if (IsValid(CooldownImage))
 	{
