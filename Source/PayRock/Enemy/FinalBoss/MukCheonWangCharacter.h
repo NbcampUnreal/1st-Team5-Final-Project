@@ -31,7 +31,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Boss Phase")
 	EBossPhase CurrentPhase;
 
-	TArray<AActor*> GetDetectedActors() {return  DetectedActors;}
+	TArray<TWeakObjectPtr<AActor>> GetDetectedActors() {return  DetectedActors;}
 	
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_PlayAuraEffect(UNiagaraSystem* InAuraEffect, TSubclassOf<AActor> InFontlClass, float InAuraRate);
@@ -49,7 +49,7 @@ protected:
 	UPROPERTY()
 	TObjectPtr<UAISenseConfig_Damage> DamageConfig;
 	
-	TArray<AActor*> DetectedActors;
+	TArray<TWeakObjectPtr<AActor>> DetectedActors;
 
 
 

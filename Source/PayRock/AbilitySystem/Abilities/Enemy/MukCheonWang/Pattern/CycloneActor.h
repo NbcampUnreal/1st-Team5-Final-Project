@@ -1,54 +1,32 @@
-﻿#pragma once
+﻿// CycloneActor.h
+
+#pragma once
 
 #include "CoreMinimal.h"
-#include "GeometryCacheComponent.h"
-#include "NiagaraComponent.h"
-#include "Components/SphereComponent.h"
-#include "GameFramework/Actor.h"
-#include "PayRock/AbilitySystem/Abilities/Enemy/MukCheonWang/Lightning/LightningStrikeActor.h"
-#include "PayRock/Character/PRCharacter.h"
+#include "PayRock/AbilitySystem/Abilities/Enemy/MukCheonWang/BaseCombatEffectActor.h"
 #include "CycloneActor.generated.h"
+
+class USphereComponent;
+class UGeometryCacheComponent;
+class UGeometryCache;
+class APRCharacter;
+class ALightningStrikeActor;
+
+DECLARE_DELEGATE(FOnCycloneDestroyedSignature)
 
 
 UCLASS()
-class PAYROCK_API ACycloneActor : public AActor
+class PAYROCK_API ACycloneActor : public ABaseCombatEffectActor
 {
 	GENERATED_BODY()
 
 public:
 	ACycloneActor();
-
+	virtual void InitializeEffectSource(UGameplayAbility* InAbility) override;
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
-
-	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<USphereComponent> PullRange;
-	
-	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<UGeometryCacheComponent> GeometryCacheComp;
-	
-	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<UGeometryCache> GeometryCacheAsset;
-
-	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<class ALightningStrikeActor> LightningClass;
-
-	UPROPERTY(EditDefaultsOnly)
-	float PullStrength = 400.f;
-
-	UPROPERTY(EditDefaultsOnly)
-	float LightningRadius = 800.f;
-
-	UPROPERTY(EditDefaultsOnly)
-	float MinInterval = 1.5f;
-
-	UPROPERTY(EditDefaultsOnly)
-	float MaxInterval = 2.5f;
-
-	FTimerHandle LightningLoopTimer;
-	TArray<APRCharacter*> OverlappingPlayers;
 
 	UFUNCTION()
 	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
@@ -57,13 +35,43 @@ protected:
 
 	UFUNCTION()
 	void OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-						UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+					  UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	virtual void Multicast_PlayVFX_Implementation() override;
 
 	void SpawnLightning();
 
-	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_ActivateCycloneVFX();
+protected:
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	TObjectPtr<USphereComponent> PullRange;
 
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	TObjectPtr<UGeometryCacheComponent> GeometryCacheComp;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Cyclone")
+	TSubclassOf<ALightningStrikeActor> LightningClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Cyclone")
+	float PullStrength = 1000.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Cyclone")
+	float LightningRadius = 800.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Cyclone")
+	float MinInterval = 1.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Cyclone")
+	float MaxInterval = 2.5f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Cyclone")
+	TObjectPtr<UGeometryCache> GeometryCacheAsset;
+
+private:
+	FTimerHandle LightningLoopTimer;
+
+	UPROPERTY()
+	TArray<APRCharacter*> OverlappingPlayers;
+	TWeakObjectPtr<UGameplayAbility> InstigatorAbility;
 public:
-	TFunction<void()> OnCycloneDestroyed;
+	FOnCycloneDestroyedSignature OnCycloneDestroyed;
 };

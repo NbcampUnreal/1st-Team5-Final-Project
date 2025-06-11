@@ -1,19 +1,14 @@
-﻿// PayRockGames
-
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "GameplayTagContainer.h"
-#include "NiagaraComponent.h"
-#include "Components/CapsuleComponent.h"
-#include "Components/TimelineComponent.h"
-#include "GameFramework/Actor.h"
-#include "GameFramework/ProjectileMovementComponent.h"
-#include "PayRock/AbilitySystem/Abilities/BaseDamageGameplayAbility.h"
+#include "PayRock/AbilitySystem/Abilities/Enemy/MukCheonWang/BaseCombatEffectActor.h"
 #include "StoneSpikeActor.generated.h"
 
+class UCapsuleComponent;
+class UProjectileMovementComponent;
+
 UCLASS()
-class PAYROCK_API AStoneSpikeActor : public AActor
+class PAYROCK_API AStoneSpikeActor : public ABaseCombatEffectActor
 {
 	GENERATED_BODY()
 
@@ -23,49 +18,29 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	UProjectileMovementComponent* MovementComp;
-	
-	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<UCapsuleComponent> Collision;
+	virtual void OnEffectOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+								 UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
+								 bool bFromSweep, const FHitResult& SweepResult) override;
 
-	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<UNiagaraComponent> VFX;
+public:
+	void SetTarget(AActor* InTarget);
 
-	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<UGameplayEffect> DamageEffectClass;
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_SetTarget(AActor* InTarget);
 
-	UPROPERTY(EditDefaultsOnly)
-	FGameplayTag DamageTypeTag;
-
-	UPROPERTY(EditDefaultsOnly)
-	float Damage = 8.f;
-
-	UPROPERTY(EditDefaultsOnly)
-	float BaseSpeed = 500.f;
-
-	UPROPERTY()
-	AActor* TargetActor;
-
-	UPROPERTY()
-	UBaseDamageGameplayAbility* InstigatorAbility;
-
-	UFUNCTION()
-	void OnSpikeOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-						UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
-						bool bFromSweep, const FHitResult& SweepResult);
-
-	
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_PlaySpikeVFX();
 
-public:
-	void SetInstigatorAbility(UBaseDamageGameplayAbility* InAbility);
-	
-	UFUNCTION()
-	void SetTarget(AActor* InTarget);
-	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_SetTarget(AActor* InTarget);
-	void Multicast_SetTarget_Implementation(AActor* InTarget);
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<UCapsuleComponent> CapsuleCollision;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<UProjectileMovementComponent> MovementComp;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Movement")
+	float BaseSpeed = 500.f;
+
+	UPROPERTY()
+	TObjectPtr<AActor> TargetActor;
 };

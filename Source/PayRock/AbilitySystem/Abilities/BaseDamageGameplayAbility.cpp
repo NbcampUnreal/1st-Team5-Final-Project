@@ -38,47 +38,48 @@ void UBaseDamageGameplayAbility::EndAbility(const FGameplayAbilitySpecHandle Han
 void UBaseDamageGameplayAbility::CauseDamage(AActor* TargetActor, bool bIsBackAttack)
 {
 	if (!IsValid(GetAvatarActorFromActorInfo())) return;
-
 	if (!GetAvatarActorFromActorInfo()->HasAuthority()) return;
-	// HitResult = InHitResult;
 
-	if (GetAvatarActorFromActorInfo()->IsA(AEnemyCharacter::StaticClass()) &&
-		TargetActor->IsA(AEnemyCharacter::StaticClass()))
-	{
-		return;
-	}
-	
+	bool bIsMonsterToMonster = GetAvatarActorFromActorInfo()->IsA(AEnemyCharacter::StaticClass()) &&
+							   TargetActor->IsA(AEnemyCharacter::StaticClass());
+
 	if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor))
 	{
 		UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 		
 		FGameplayEffectSpecHandle DamageEffectSpecHandle = MakeOutgoingGameplayEffectSpec(
 			DamageEffectClass, GetAbilityLevel());
+		
 		float ScaledDamage = Damage.GetValueAtLevel(GetAbilityLevel());
-
-		// Back Attack Buff Bonus
-		float BackAttackMultiplier = 0.f;
+		
+		if (bIsMonsterToMonster)
+		{
+			ScaledDamage *= 0.5f;
+		}
+		
 		if (bIsBackAttack && ASC->HasMatchingGameplayTag(FPRGameplayTags::Get().Status_Buff_BackAttack))
 		{
-			BackAttackMultiplier = GetBackAttackMultiplier();
+			float BackAttackMultiplier = GetBackAttackMultiplier();
+			ScaledDamage *= (1.f + BackAttackMultiplier);
 		}
-		ScaledDamage *= (1.f + BackAttackMultiplier);
-		
+
 		UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(
 			DamageEffectSpecHandle, DamageTypeTag, ScaledDamage);
+		
 		ASC->ApplyGameplayEffectSpecToTarget(
 			*DamageEffectSpecHandle.Data.Get(), TargetASC);
 
 		UAISense_Damage::ReportDamageEvent(
-	GetWorld(),
-	TargetActor,
-	GetAvatarActorFromActorInfo(),
-	ScaledDamage,
-	TargetActor->GetActorLocation(),  
-	GetAvatarActorFromActorInfo()->GetActorLocation() 
-	);
+			GetWorld(),
+			TargetActor,
+			GetAvatarActorFromActorInfo(),
+			ScaledDamage,
+			TargetActor->GetActorLocation(),  
+			GetAvatarActorFromActorInfo()->GetActorLocation()
+		);
 	}
 }
+
 
 float UBaseDamageGameplayAbility::GetBackAttackMultiplier()
 {

@@ -1,7 +1,6 @@
 ﻿#include "FireDOTArea.h"
-#include "Components/SphereComponent.h"
 #include "NiagaraComponent.h"
-#include "Kismet/GameplayStatics.h"
+#include "Components/CapsuleComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "TimerManager.h"
@@ -9,34 +8,33 @@
 AFireDOTArea::AFireDOTArea()
 {
 	PrimaryActorTick.bCanEverTick = true;
-	bReplicates = true;
 
-	AreaCollision = CreateDefaultSubobject<USphereComponent>(TEXT("AreaCollision"));
-	AreaCollision->InitSphereRadius(0.f);
-	AreaCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	AreaCollision->SetCollisionResponseToAllChannels(ECR_Overlap);
-	AreaCollision->SetGenerateOverlapEvents(true);
-	AreaCollision->OnComponentBeginOverlap.AddDynamic(this, &AFireDOTArea::OnActorEnter);
-	RootComponent = AreaCollision;
+	CapsuleComponent = CreateDefaultSubobject<UCapsuleComponent>(TEXT("CapsuleCollision"));
+	CapsuleComponent->InitCapsuleSize(InitialRadius, InitialHalfHeight);
+	CapsuleComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	CapsuleComponent->SetCollisionObjectType(ECC_WorldDynamic);
+	CapsuleComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
+	CapsuleComponent->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+	CapsuleComponent->OnComponentBeginOverlap.AddDynamic(this, &AFireDOTArea::OnEffectOverlap);
 
-	VFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("Niagara"));
+	SetRootComponent(CapsuleComponent);
+	CollisionComponent = CapsuleComponent;
+
+	VFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("VFX"));
 	VFX->SetupAttachment(RootComponent);
-	VFX->SetRelativeScale3D(FVector(0.1f));
-	VFX->SetAutoActivate(true); 
 }
 
 void AFireDOTArea::BeginPlay()
 {
 	Super::BeginPlay();
 
-	SetLifeSpan(Lifetime);
-
-	AreaCollision->SetSphereRadius(0.f);
 	CurrentRadius = 0.f;
+	CurrentHeight = 0.f;
 	TimeElapsed = 0.f;
-	
-	GetWorld()->GetTimerManager().SetTimer(
-		DamageStartTimerHandle, this, &AFireDOTArea::ApplyDotToOverlappingActors, 0.05f, false);
+
+	CapsuleComponent->SetCapsuleSize(0.f, 0.f);
+
+	GetWorld()->GetTimerManager().SetTimer(DamageStartTimerHandle, this, &AFireDOTArea::ApplyDotToOverlappingActors, 0.05f, false);
 }
 
 void AFireDOTArea::Tick(float DeltaTime)
@@ -46,12 +44,13 @@ void AFireDOTArea::Tick(float DeltaTime)
 	TimeElapsed += DeltaTime;
 
 	CurrentRadius = FMath::Min(MaxRadius, CurrentRadius + ExpansionSpeed * DeltaTime);
-	AreaCollision->SetSphereRadius(CurrentRadius);
+	CurrentHeight = FMath::Min(MaxHalfHeight, CurrentHeight + ExpansionSpeed * DeltaTime * 0.5f);
 
-	float Scale = CurrentRadius / MaxRadius;
+	CapsuleComponent->SetCapsuleSize(CurrentRadius, CurrentHeight);
 
 	if (HasAuthority())
 	{
+		float Scale = CurrentRadius / MaxRadius;
 		Multicast_SetVFXScale(Scale);
 	}
 
@@ -61,19 +60,18 @@ void AFireDOTArea::Tick(float DeltaTime)
 	}
 }
 
-void AFireDOTArea::OnActorEnter(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-                                UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
-                                bool bFromSweep, const FHitResult& SweepResult)
+void AFireDOTArea::OnEffectOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	ApplyEffectToActor(OtherActor);
 }
 
 void AFireDOTArea::ApplyDotToOverlappingActors()
 {
-	TArray<AActor*> Overlapping;
-	AreaCollision->GetOverlappingActors(Overlapping);
+	TArray<AActor*> OverlappingActors;
+	CapsuleComponent->GetOverlappingActors(OverlappingActors);
 
-	for (AActor* Actor : Overlapping)
+	for (AActor* Actor : OverlappingActors)
 	{
 		ApplyEffectToActor(Actor);
 	}
@@ -90,7 +88,7 @@ void AFireDOTArea::ApplyEffectToActor(AActor* Actor)
 			FGameplayEffectSpecHandle SpecHandle = TargetASC->MakeOutgoingSpec(DamageEffectClass, 1.f, TargetASC->MakeEffectContext());
 			if (SpecHandle.IsValid())
 			{
-				UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, DamageTypeTag, Damage);
+				UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, DamageTypeTag, DamageAmount);
 				TargetASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 				DamagedActors.Add(Actor);
 			}

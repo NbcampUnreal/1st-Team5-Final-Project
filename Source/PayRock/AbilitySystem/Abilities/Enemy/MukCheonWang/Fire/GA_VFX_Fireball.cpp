@@ -11,41 +11,26 @@ UGA_VFX_Fireball::UGA_VFX_Fireball()
 	ActivationOwnedTags.AddTag(FGameplayTag::RequestGameplayTag("Boss.State.Attacking"));
 }
 
-void UGA_VFX_Fireball::ActivateAbility(
-	const FGameplayAbilitySpecHandle Handle,
-	const FGameplayAbilityActorInfo* ActorInfo,
-	const FGameplayAbilityActivationInfo ActivationInfo,
-	const FGameplayEventData* TriggerEventData)
+void UGA_VFX_Fireball::OnAuraEffectComplete()
 {
-	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-
-	Caster = Cast<AMukCheonWangCharacter>(GetAvatarActorFromActorInfo());
-	if (!Caster.IsValid()) return;
-
-	if (AMukCheonWangCharacter* Boss = Cast<AMukCheonWangCharacter>(GetAvatarActorFromActorInfo()))
+	if (!Caster.IsValid())
 	{
-		Boss->Multicast_PlayAuraEffect(AuraEffect, FontlClass, AuraRate);
+		FinishAbility();
+		return;
 	}
 
-	
-	GetWorld()->GetTimerManager().SetTimer(
-		AuraDelayTimerHandle, this, &UGA_VFX_Fireball::StartFireballSequence, AuraDelayTime, false);
-}
-
-
-void UGA_VFX_Fireball::StartFireballSequence()
-{
-	if (!Caster.IsValid()) return;
-
 	DetectedTargets.Empty();
-	for (AActor* Actor : Caster->GetDetectedActors())
+	for (auto Actor : Caster->GetDetectedActors())
 	{
-		if (IsValid(Actor)) DetectedTargets.Add(Actor);
+		if (Actor.IsValid())
+		{
+			DetectedTargets.Add(Actor);
+		}
 	}
 
 	if (DetectedTargets.Num() == 0)
 	{
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+		FinishAbility();
 		return;
 	}
 
@@ -59,20 +44,19 @@ void UGA_VFX_Fireball::SpawnNextFireball()
 {
 	if (!Caster.IsValid() || !FireballClass)
 	{
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+		FinishAbility();
 		return;
 	}
 
 	if (CurrentFireballIndex >= TotalFireballsToSpawn)
 	{
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+		FinishAbility();
 		return;
 	}
-	
+
 	FVector Origin = Caster->GetActorLocation();
 	FVector Forward = Caster->GetActorForwardVector();
 	FVector Right = Caster->GetActorRightVector();
-
 
 	const float ForwardOffset = FMath::FRandRange(MinForwardOffset, MaxForwardOffset);
 	const float SideOffset = FMath::FRandRange(-SideOffsetRange, SideOffsetRange);
@@ -81,15 +65,19 @@ void UGA_VFX_Fireball::SpawnNextFireball()
 	FVector SpawnLocation = Origin + (Forward * ForwardOffset) + (Right * SideOffset);
 	SpawnLocation.Z += ZOffset;
 
-	
 	FRotator SpawnRotation = FRotator::ZeroRotator;
 	FActorSpawnParameters Params;
 	Params.Owner = Caster.Get();
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
-	GetWorld()->SpawnActor<AFireballProjectile>(FireballClass, SpawnLocation, SpawnRotation, Params);
-
+	AFireballProjectile* SpawnedFireball = GetWorld()->SpawnActor<AFireballProjectile>(
+		FireballClass, SpawnLocation, SpawnRotation, Params);
 	
+	if (SpawnedFireball)
+	{
+		SpawnedFireball->InitializeEffectSource(this);
+	}
+
 	CurrentFireballIndex++;
 	GetWorld()->GetTimerManager().SetTimer(
 		FireballSequenceTimerHandle,

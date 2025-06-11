@@ -163,7 +163,7 @@ void AMukCheonWangCharacter::UpdateRandomTarget()
     if (DetectedActors.Num() > 0)
     {
         int32 Index = FMath::RandRange(0, DetectedActors.Num() - 1);
-        AActor* ChosenTarget = DetectedActors[Index];
+        AActor* ChosenTarget = DetectedActors[Index].Get();
 
         if (AAIController* AICon = Cast<AAIController>(GetController()))
         {

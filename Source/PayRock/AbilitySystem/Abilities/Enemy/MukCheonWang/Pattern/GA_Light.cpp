@@ -2,36 +2,32 @@
 
 
 #include "GA_Light.h"
+
+#include "AIController.h"
 #include "Kismet/GameplayStatics.h"
 #include "OrbLightActor.h"
 #include "LightSourceActor.h"
 #include "TimerManager.h"
+#include "BehaviorTree/BlackboardComponent.h"
 #include "PayRock/Enemy/FinalBoss/MukCheonWangCharacter.h"
 
 UGA_Light::UGA_Light()
 {
-	AbilityTags.AddTag(FGameplayTag::RequestGameplayTag("Event.Montage.Boss.Light"));
+	SetAssetTags(FGameplayTagContainer(FGameplayTag::RequestGameplayTag("Event.Montage.Boss.Light")));
 	ActivationOwnedTags.AddTag(FGameplayTag::RequestGameplayTag("Boss.State.Attacking"));
 }
 
-void UGA_Light::ActivateAbility(
-	const FGameplayAbilitySpecHandle Handle,
-	const FGameplayAbilityActorInfo* ActorInfo,
-	const FGameplayAbilityActivationInfo ActivationInfo,
-	const FGameplayEventData* TriggerEventData)
+void UGA_Light::OnAuraEffectComplete()
 {
-	if (!CommitAbility(Handle, ActorInfo, ActivationInfo)) return;
-
-	AActor* Avatar = GetAvatarActorFromActorInfo();
-	if (!Avatar || !OrbLightClass) return;
-	
-	if (AMukCheonWangCharacter* Boss = Cast<AMukCheonWangCharacter>(GetAvatarActorFromActorInfo()))
+	AActor* Avatar = AvatarActor.Get();
+	if (!Avatar || !OrbLightClass)
 	{
-		Boss->Multicast_PlayAuraEffect(AuraEffect, FontlClass, AuraRate);
+		FinishAbility();
+		return;
 	}
 
-	DisableNearbyLights(Avatar);
 	
+	DisableNearbyLights(Avatar);
 	SpawnLightOrbAtCenter(Avatar);
 	
 	GetWorld()->GetTimerManager().SetTimer(
@@ -65,27 +61,47 @@ void UGA_Light::DisableNearbyLights(AActor* OriginActor)
 
 void UGA_Light::SpawnLightOrbAtCenter(AActor* OriginActor)
 {
+	if (!IsValid(OriginActor) || !OrbLightClass) return;
+
+	FVector ForwardDir = OriginActor->GetActorForwardVector();
+	FVector SpawnLoc = OriginActor->GetActorLocation() + ForwardDir * 800.f + FVector(0.f, 0.f, 150.f);
+	FRotator SpawnRot = OriginActor->GetActorRotation();
+
 	FActorSpawnParameters Params;
 	Params.Owner = OriginActor;
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-	const FVector SpawnLoc = OriginActor->GetActorLocation();
-	const FRotator SpawnRot = OriginActor->GetActorRotation();
-
 	SpawnedOrb = GetWorld()->SpawnActor<AOrbLightActor>(OrbLightClass, SpawnLoc, SpawnRot, Params);
+	
+	if (SpawnedOrb.IsValid())
+	{
+		SpawnedOrb->InitializeEffectSource(this);
+	}
 }
+
+
 
 void UGA_Light::EndLightSurvivalPattern()
 {
 	RestoreLights();
-
-	if (IsValid(SpawnedOrb))
+	if (SpawnedOrb.IsValid())
 	{
 		SpawnedOrb->Destroy();
+		SpawnedOrb = nullptr;
 	}
-
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+	if (AMukCheonWangCharacter* Boss = Cast<AMukCheonWangCharacter>(AvatarActor.Get()))
+	{
+		if (AAIController* AIController = Cast<AAIController>(Boss->GetController()))
+		{
+			if (UBlackboardComponent* BB = AIController->GetBlackboardComponent())
+			{
+				BB->SetValueAsBool("bIsSpecialPattern2", false);
+			}
+		}
+	}
+	FinishAbility();
 }
+
 
 void UGA_Light::RestoreLights()
 {

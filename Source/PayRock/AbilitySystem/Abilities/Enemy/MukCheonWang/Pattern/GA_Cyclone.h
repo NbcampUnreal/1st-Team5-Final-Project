@@ -5,57 +5,35 @@
 #include "CoreMinimal.h"
 #include "CycloneActor.h"
 #include "PayRock/AbilitySystem/Abilities/BaseDamageGameplayAbility.h"
+#include "PayRock/AbilitySystem/Abilities/Enemy/MukCheonWang/GA_Boss_Magic_Base.h"
 #include "GA_Cyclone.generated.h"
 
 
 UCLASS()
-class PAYROCK_API UGA_Cyclone : public UBaseDamageGameplayAbility
+class PAYROCK_API UGA_Cyclone : public UGA_Boss_Magic_Base
 {
 	GENERATED_BODY()
-	
+
 public:
 	UGA_Cyclone();
-	
-	
-	virtual void ActivateAbility(
-		const FGameplayAbilitySpecHandle Handle,
-		const FGameplayAbilityActorInfo* ActorInfo,
-		const FGameplayAbilityActivationInfo ActivationInfo,
-		const FGameplayEventData* TriggerEventData) override;
 
 protected:
-	UFUNCTION()
-	void SpawnCycloneVDB();
+	virtual void OnAuraEffectComplete() override;
 
-
-	UFUNCTION()
-	void OnCycloneEnded();
-
-protected:
-	
-	FTimerHandle SpawnTimerHandle;
-
-
-	FGameplayAbilitySpecHandle CurrentSpecHandle;
-	FGameplayAbilityActorInfo* CurrentActorInfo = nullptr;
-	FGameplayAbilityActivationInfo CurrentActivationInfo;
-
-	
-	UPROPERTY()
-	TObjectPtr<AActor> AvatarActor;
-
-	
-	UPROPERTY(EditDefaultsOnly, Category = "Cyclone")
+private:
+	UPROPERTY(EditAnywhere, Category = "Cyclone")
 	TSubclassOf<ACycloneActor> CycloneClass;
 
-	
-	UPROPERTY()
-	TObjectPtr<ACycloneActor> SpawnedCyclone;
+	UPROPERTY(EditAnywhere, Category = "Cyclone")
+	float ForwardOffset = 300.f;
 
+	UPROPERTY(EditAnywhere, Category = "Cyclone")
+	float CycloneDuration = 6.f;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Cyclone")
-	float ForwardOffset = 500.f;
+	TWeakObjectPtr<ACycloneActor> SpawnedCyclone;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Cyclone")
-	float SpawnDelay = 0.5f;
+	FTimerHandle DestroyTimerHandle;
+
+	void DestroyCyclone();
+	void OnCycloneEnded();
 };
