@@ -97,74 +97,59 @@ void URecalculateSecondaryAttributes::Execute_Implementation(
 	ExecutionParams.AttemptCalculateCapturedAttributeBaseValue(MaxHealthDef, OldMaxHealth);
 	float OldMaxMana = 0.f;
 	ExecutionParams.AttemptCalculateCapturedAttributeBaseValue(MaxManaDef, OldMaxMana);
-
-	/*
-	 *	Luck-based primary stat bonus
-	 */
-	float LuckBonus = 0.2f * Luck;
-	Strength += LuckBonus;
-	Intelligence += LuckBonus;
-	Dexterity += LuckBonus;
-	Vitality += LuckBonus;
-	Spirit += LuckBonus;
-	AddOutputModifierForAttribute(UPRAttributeSet::GetStrengthAttribute(), OutExecutionOutput, Strength);
-	AddOutputModifierForAttribute(UPRAttributeSet::GetIntelligenceAttribute(), OutExecutionOutput, Intelligence);
-	AddOutputModifierForAttribute(UPRAttributeSet::GetDexterityAttribute(), OutExecutionOutput, Dexterity);
-	AddOutputModifierForAttribute(UPRAttributeSet::GetVitalityAttribute(), OutExecutionOutput, Vitality);
-	AddOutputModifierForAttribute(UPRAttributeSet::GetSpiritAttribute(), OutExecutionOutput, Spirit);
 	
 	/*
 	 *	Recalculating Base Values (secondary)
 	 */
 	// Armor
 	float NewBaseArmor = Strength * 1.5f + Vitality * 2.f;
-	AddOutputModifierForAttribute(UPRAttributeSet::GetArmorAttribute(), OutExecutionOutput, NewBaseArmor/*, BonusArmor*/);
+	AddOutputModifierForAttribute(UPRAttributeSet::GetArmorAttribute(), OutExecutionOutput, NewBaseArmor);
 
 	// Armor Penetration
 	float NewBaseArmorPenetration = Strength * 0.75f + Dexterity * 0.5f;
-	AddOutputModifierForAttribute(UPRAttributeSet::GetArmorPenetrationAttribute(), OutExecutionOutput, NewBaseArmorPenetration/*, BonusArmorPenetration*/);
+	AddOutputModifierForAttribute(UPRAttributeSet::GetArmorPenetrationAttribute(), OutExecutionOutput, NewBaseArmorPenetration);
 	
 	// Critical Resistance
 	float NewArmor = NewBaseArmor + BonusArmor;
 	float NewBaseCriticalResistance = NewArmor * 0.1f + Spirit * 0.5f;
-	AddOutputModifierForAttribute(UPRAttributeSet::GetCriticalResistanceAttribute(), OutExecutionOutput, NewBaseCriticalResistance/*, BonusCriticalResistance*/);
+	AddOutputModifierForAttribute(UPRAttributeSet::GetCriticalResistanceAttribute(), OutExecutionOutput, NewBaseCriticalResistance);
 
 	// Debuff Resistance
 	float NewBaseDebuffResistance = Spirit * 1.f;
-	AddOutputModifierForAttribute(UPRAttributeSet::GetDebuffResistanceAttribute(), OutExecutionOutput, NewBaseDebuffResistance/*, BonusDebuffResistance*/);
+	AddOutputModifierForAttribute(UPRAttributeSet::GetDebuffResistanceAttribute(), OutExecutionOutput, NewBaseDebuffResistance);
 
 	// Health Regeneration
 	float NewBaseHealthRegeneration = Vitality * 0.2f;
-	AddOutputModifierForAttribute(UPRAttributeSet::GetHealthRegenerationAttribute(), OutExecutionOutput, NewBaseHealthRegeneration/*, BonusHealthRegeneration*/);
+	AddOutputModifierForAttribute(UPRAttributeSet::GetHealthRegenerationAttribute(), OutExecutionOutput, NewBaseHealthRegeneration);
 
 	// Mana Regeneration
 	float NewBaseManaRegeneration = Intelligence * 0.3f;
-	AddOutputModifierForAttribute(UPRAttributeSet::GetManaRegenerationAttribute(), OutExecutionOutput, NewBaseManaRegeneration/*, BonusManaRegeneration*/);
+	AddOutputModifierForAttribute(UPRAttributeSet::GetManaRegenerationAttribute(), OutExecutionOutput, NewBaseManaRegeneration);
 
 	// Critical Chance
 	float NewArmorPenetration = NewBaseArmorPenetration + BonusArmorPenetration;
-	float NewBaseCriticalChance = NewArmorPenetration * 0.4f + Luck * 0.5f;
-	AddOutputModifierForAttribute(UPRAttributeSet::GetCriticalChanceAttribute(), OutExecutionOutput, NewBaseCriticalChance/*, BonusCriticalChance*/);
+	float NewBaseCriticalChance = NewArmorPenetration * 0.4f + Luck * 0.75f;
+	AddOutputModifierForAttribute(UPRAttributeSet::GetCriticalChanceAttribute(), OutExecutionOutput, NewBaseCriticalChance);
 
 	// Critical Damage
 	float NewBaseCriticalDamage = NewArmorPenetration * 0.2f + 150.f;
-	AddOutputModifierForAttribute(UPRAttributeSet::GetCriticalDamageAttribute(), OutExecutionOutput, NewBaseCriticalDamage/*, BonusCriticalDamage*/);
+	AddOutputModifierForAttribute(UPRAttributeSet::GetCriticalDamageAttribute(), OutExecutionOutput, NewBaseCriticalDamage);
 
 	// Move Speed
 	float NewBaseMoveSpeed = Dexterity * 0.3f + 100.f;
-	AddOutputModifierForAttribute(UPRAttributeSet::GetMoveSpeedAttribute(), OutExecutionOutput, NewBaseMoveSpeed/*, BonusMoveSpeed*/);
+	AddOutputModifierForAttribute(UPRAttributeSet::GetMoveSpeedAttribute(), OutExecutionOutput, NewBaseMoveSpeed);
 
 	// Attack Speed
 	float NewBaseAttackSpeed = Dexterity * 0.5f + 100.f;
-	AddOutputModifierForAttribute(UPRAttributeSet::GetAttackSpeedAttribute(), OutExecutionOutput, NewBaseAttackSpeed/*, BonusAttackSpeed*/);
+	AddOutputModifierForAttribute(UPRAttributeSet::GetAttackSpeedAttribute(), OutExecutionOutput, NewBaseAttackSpeed);
 
 	// Cooldown Reduction
 	float NewBaseCooldownReduction = Spirit * 0.4f;
-	AddOutputModifierForAttribute(UPRAttributeSet::GetCooldownReductionAttribute(), OutExecutionOutput, NewBaseCooldownReduction/*, BonusCooldownReduction*/);
+	AddOutputModifierForAttribute(UPRAttributeSet::GetCooldownReductionAttribute(), OutExecutionOutput, NewBaseCooldownReduction);
 
 	// Loot Quality Modifier
 	float NewBaseLootQualityModifier = Luck * 1.f;
-	AddOutputModifierForAttribute(UPRAttributeSet::GetLootQualityModifierAttribute(), OutExecutionOutput, NewBaseLootQualityModifier/*, BonusLootQualityModifier*/);
+	AddOutputModifierForAttribute(UPRAttributeSet::GetLootQualityModifierAttribute(), OutExecutionOutput, NewBaseLootQualityModifier);
 
 	// Carry Weight
 	float NewBaseCarryWeight = Strength * 5.f + 100.f;
@@ -189,13 +174,13 @@ void URecalculateSecondaryAttributes::Execute_Implementation(
 	float HealthRatio = OldMaxHealth > 0.f ? Health / OldMaxHealth : 1.f;
 	float NewMaxHealth = NewBaseMaxHealth + BonusMaxHealth;
 	float NewHealth = FMath::Clamp(NewMaxHealth * HealthRatio, 0.f, NewMaxHealth);
-	AddOutputModifierForAttribute(UPRAttributeSet::GetHealthAttribute(), OutExecutionOutput, NewHealth/*, 0*/);
+	AddOutputModifierForAttribute(UPRAttributeSet::GetHealthAttribute(), OutExecutionOutput, NewHealth);
 	
 	// Apply pre-change Mana Ratio
 	float ManaRatio = OldMaxMana > 0.f ? Mana / OldMaxMana : 1.f;
 	float NewMaxMana = NewBaseMaxMana + BonusMaxMana;
 	float NewMana = FMath::Clamp(NewMaxMana * ManaRatio, 0.f, NewMaxMana);
-	AddOutputModifierForAttribute(UPRAttributeSet::GetManaAttribute(), OutExecutionOutput, NewMana/*, 0*/);
+	AddOutputModifierForAttribute(UPRAttributeSet::GetManaAttribute(), OutExecutionOutput, NewMana);
 }
 
 void URecalculateSecondaryAttributes::AddOutputModifierForAttribute(

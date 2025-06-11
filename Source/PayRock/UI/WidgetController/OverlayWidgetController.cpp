@@ -1,10 +1,12 @@
 // PayRockGames
 
 #include "PayRock/UI/WidgetController/OverlayWidgetController.h"
+#include "PayRock/PRGameplayTags.h"
 #include "PayRock/AbilitySystem/PRAbilitySystemComponent.h"
 #include "PayRock/AbilitySystem/PRAttributeSet.h"
+#include "PayRock/Character/PRCharacter.h"
+#include "PayRock/Character/Blessing/BlessingComponent.h"
 #include "PayRock/Player/PRPlayerState.h"
-#include "PayRock/Player/PRPlayerController.h"
 
 void UOverlayWidgetController::BroadcastInitialValues()
 {
@@ -25,6 +27,17 @@ void UOverlayWidgetController::BroadcastInitialValues()
 	OnMaxHealthChanged.Broadcast(PRAttributeSet->GetMaxHealth());
 	OnManaChanged.Broadcast(PRAttributeSet->GetMana());
 	OnMaxManaChanged.Broadcast(PRAttributeSet->GetMaxMana());
+
+	if (PlayerController && PlayerController->IsLocalController() && PlayerController->GetPawn())
+	{
+		if (APRCharacter* Character = Cast<APRCharacter>(PlayerController->GetPawn()))
+		{
+			if (Character->BlessingComponent)
+			{
+				OnActiveBlessingChanged.Broadcast(Character->BlessingComponent->GetEquippedActiveBlessingData());
+			}
+		}
+	}
 }
 
 void UOverlayWidgetController::BindCallbacksToDependencies()
@@ -51,6 +64,13 @@ void UOverlayWidgetController::BindCallbacksToDependencies()
 		PRAttributeSet->GetManaAttribute()).AddUObject(this, &UOverlayWidgetController::ManaChanged);
 	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
 		PRAttributeSet->GetMaxManaAttribute()).AddUObject(this, &UOverlayWidgetController::MaxManaChanged);
+
+	AbilitySystemComponent->RegisterGameplayTagEvent(FPRGameplayTags::Get().Ability_Blessing_Cooldown).AddUObject(
+		this, &UOverlayWidgetController::CooldownChanged);
+
+	/*
+	 *	Bind to Weapon/Accessory Skill Changed Delegate
+	 */
 
 	if (APRPlayerState* PS = Cast<APRPlayerState>(PlayerState))
 	{
@@ -87,4 +107,49 @@ void UOverlayWidgetController::BroadcastDeath() const
 void UOverlayWidgetController::BroadcastExtraction() const
 {
 	OnExtraction.Broadcast();
+}
+
+void UOverlayWidgetController::CooldownChanged(const FGameplayTag Tag, int32 TagCount)
+{
+	if (!IsValid(AbilitySystemComponent)) return;
+	if (!GetWorld() || GetWorld()->bIsTearingDown) return;
+	
+	if (TagCount > 0)
+	{
+		FTimerDelegate TimerDelegate;
+		TimerDelegate.BindLambda([this, Tag]()
+		{
+			BroadcastCooldown(Tag);
+		});
+
+		FTimerHandle& TimerHandle = CooldownUpdateTimers.FindOrAdd(Tag);
+			
+		GetWorld()->GetTimerManager().SetTimer(
+			TimerHandle,
+			TimerDelegate,
+			0.2f,
+			true
+		);
+	}
+	else
+	{
+		if (CooldownUpdateTimers.Contains(Tag))
+		{
+			GetWorld()->GetTimerManager().ClearTimer(CooldownUpdateTimers[Tag]);
+			CooldownUpdateTimers.Remove(Tag);
+		}
+	}
+}
+
+void UOverlayWidgetController::BroadcastCooldown(const FGameplayTag& Tag)
+{
+	float RemainingTime = 0.f;
+	if (UPRAbilitySystemComponent* PRASC = Cast<UPRAbilitySystemComponent>(AbilitySystemComponent))
+	{
+		RemainingTime = PRASC->GetCooldownRemainingTimeForTag(Tag);
+	}
+	if (FOnCooldownChanged* Delegate = CooldownDelegates.Find(Tag))
+	{
+		Delegate->Broadcast(RemainingTime);
+	}
 }
