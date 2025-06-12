@@ -47,8 +47,8 @@ APRGameState::APRGameState()
 	MinimumRequirePlayers = 2;  // 매치 시작시 필요한 플레이어 수
 	CurrentAmountOfPlayers = 0; // 현재 플레이어 수 초기화
 	MatchStart_CountDown = -1;  // 매치 시작 카운트다운
-	MatchDurationSeconds = 150; // 매치 시작 후 매치 지속시간
-	ExtractionActivationTime = 20; // 탈출구 열리는 시간
+	MatchDurationSeconds = 600; // 매치 시작 후 매치 지속시간
+	ExtractionActivationTime = 200; // 탈출구 열리는 시간
 	RemainingMatchTime = MatchDurationSeconds;
 	bReplicates = true;
 }
@@ -64,7 +64,7 @@ void APRGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 
 	// 추가;
 	DOREPLIFETIME(APRGameState, MatchFlowState); 
-
+	DOREPLIFETIME(APRGameState, RemainingExtractionTime);  // 서버-> 클라로 자동 복사 매크로  
 
 }
 
@@ -236,6 +236,13 @@ void APRGameState::StartMatch()
 	ExtractionActivationTime,
 	false
 	);
+	GetWorld()->GetTimerManager().SetTimer( // 탈출구 열리는 타이머 등록
+		ExtractionCountDownTimerHandle,
+		this,
+		&APRGameState::TickExtractionTimer,
+		1.0f,
+		true
+	);
 	GetWorld()->GetTimerManager().SetTimer( // 남은 플레이어수 추적
 		AliveCheckTimerHandle,
 		this,
@@ -243,6 +250,11 @@ void APRGameState::StartMatch()
 		2.f,
 		true
 	);
+
+	// ; 탈출구 열리는 시간 받아오기 !!
+	RemainingExtractionTime = ExtractionActivationTime;
+
+
 	UE_LOG(LogTemp, Warning, TEXT("Match timer started. Duration: %d seconds"), MatchDurationSeconds);
 
 
@@ -331,12 +343,36 @@ void APRGameState::TickMatchTimer()
 	}
 }
 
+void APRGameState::TickExtractionTimer() // ; 탈출구 열리는 타이머 
+{
+	if (!HasAuthority()) return;
+	if (RemainingExtractionTime <= 0) return;
+
+	RemainingExtractionTime--;
+
+	if (RemainingExtractionTime <= 0)
+	{
+		GetWorld()->GetTimerManager().ClearTimer(ExtractionCountDownTimerHandle);
+	}
+}
+
 
 void APRGameState::OnRep_RemainingMatchTime() const
 {
 	if (!HasAuthority())
 	// UE_LOG(LogTemp, Warning, TEXT("남은 매치 시간: %d초"), RemainingMatchTime);
 	OnRemainingMatchTime.Broadcast(RemainingMatchTime);
+}
+
+int32 APRGameState::GetRemainingExtractionTime() const
+{
+	return RemainingExtractionTime;
+}
+
+void APRGameState::OnRep_RemainingExtractionTime()  // 클라가 이함수 자동으로 호출 
+{
+	OnExtractionTimeUpdated.Broadcast(RemainingExtractionTime); // UI에서 바인딩할 수 있도록
+
 }
 
 void APRGameState::CallTheGmToEnd()
@@ -374,6 +410,8 @@ void APRGameState::OnRep_MatchFlowState()
 		}
 	}
 }
+
+
 
 void APRGameState::SetMatchFlowState(EMatchFlowState NewState)
 {

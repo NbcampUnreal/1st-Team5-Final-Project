@@ -1,4 +1,6 @@
 #include "MarketClownMonster.h"
+
+#include "BrainComponent.h"
 #include "MarketClownMonsterController.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Animation/AnimInstance.h"
@@ -138,6 +140,7 @@ void AMarketClownMonster::SplitOnDeath()
 
 		if (Clone)
 		{
+			Clone->bIsDead = false;
 			Clone->bIsClone = true;
 			Clone->SplitLevel = SplitLevel + 1;
 			if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
@@ -238,7 +241,44 @@ void AMarketClownMonster::Die(FVector HitDirection)
 	{
 		Multicast_PlayDeathVFX();
 		SplitOnDeath();
-		Super::Die(HitDirection);
+		
+		GetCharacterMovement()->DisableMovement();
+		GetCharacterMovement()->StopMovementImmediately();
+		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+		if (HasAuthority())
+		{
+			GetAbilitySystemComponent()->ClearAllAbilities();
+			
+			FGameplayEffectQuery Query = FGameplayEffectQuery::MakeQuery_MatchAllEffectTags(FGameplayTagContainer());
+			GetAbilitySystemComponent()->RemoveActiveEffects(Query);
+		}
+	
+		MulticastRagdoll(HitDirection);
+
+		PrimaryActorTick.bCanEverTick = false;
+
+		if (UAbilitySystemComponent* ASC = GetAbilitySystemComponent())
+		{
+			ASC->CancelAllAbilities();
+		}
+
+		if (AAIController* AICon = Cast<AAIController>(GetController()))
+		{
+			if (UBrainComponent* Brain = AICon->GetBrainComponent())
+			{
+				Brain->StopLogic(TEXT("Die"));
+			}
+
+			if (UBlackboardComponent* BB = AICon->GetBlackboardComponent())
+			{
+				BB->SetValueAsBool(FName("bIsDead"), true);
+				BB->ClearValue("TargetActor");
+				BB->SetValueAsBool("bPlayerDetect", false);
+				BB->SetValueAsBool("bIsAttacking", false);
+			}
+			AICon->UnPossess();
+		}
 		return;
 	}
 

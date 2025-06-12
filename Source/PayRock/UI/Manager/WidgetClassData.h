@@ -13,6 +13,7 @@ enum class EWidgetCategory : uint8
 	Lobby,
 	Stash,
 	Blessing,
+	LobbyOption,
 	Loading,
 	MatchHUD,
 	InGameHUD,

@@ -66,10 +66,6 @@ void UBaseDamageGameplayAbility::CauseDamage(AActor* TargetActor, bool bIsBackAt
 				: DefaultComboMultiplier;
 
 			ScaledDamage *= ComboMultiplier;
-
-			//++ Debugging
-			GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Green,
-				FString::Printf(TEXT("Combo Damage Multiplier: %.2f"), ComboMultiplier));
 		}
 
 		float BackAttackMultiplier = 0.f;
@@ -82,10 +78,6 @@ void UBaseDamageGameplayAbility::CauseDamage(AActor* TargetActor, bool bIsBackAt
 		UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(
 			DamageEffectSpecHandle, DamageTypeTag, ScaledDamage);
 		ASC->ApplyGameplayEffectSpecToTarget(*DamageEffectSpecHandle.Data.Get(), TargetASC);
-
-		//++ Debugging
-		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange,
-			FString::Printf(TEXT("Final Scaled Damage Applied: %.2f"), ScaledDamage));
 
 		UAISense_Damage::ReportDamageEvent(
 			GetWorld(),
