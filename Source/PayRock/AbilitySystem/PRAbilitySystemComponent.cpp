@@ -106,3 +106,21 @@ void UPRAbilitySystemComponent::ClientOnEffectApplied_Implementation(
 }
 
 
+float UPRAbilitySystemComponent::GetCooldownRemainingTimeForTag(const FGameplayTag CooldownTag) const
+{
+	float RemainingTime = 0.f;
+	FGameplayTagContainer TagContainer;
+	TagContainer.AddTag(CooldownTag);
+	TArray<FActiveGameplayEffectHandle> ActiveEffects = GetActiveEffectsWithAllTags(TagContainer);
+
+	for (const auto& Handle : ActiveEffects)
+	{
+		if (const FActiveGameplayEffect* ActiveGE = GetActiveGameplayEffect(Handle))
+		{
+			float ThisRemainingTime = ActiveGE->GetTimeRemaining(GetWorld()->GetTimeSeconds());
+			RemainingTime = FMath::Max(RemainingTime, ThisRemainingTime);
+		}
+	}
+	return RemainingTime;
+}
+

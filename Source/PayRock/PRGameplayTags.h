@@ -74,6 +74,8 @@ public:
 
 	FGameplayTag Status_Debuff_Poison;
 
+	FGameplayTag Ability_Blessing_Cooldown;
+
 	FGameplayTag Effects_HitReact;
 
 	FGameplayTag Ability_Attack;
