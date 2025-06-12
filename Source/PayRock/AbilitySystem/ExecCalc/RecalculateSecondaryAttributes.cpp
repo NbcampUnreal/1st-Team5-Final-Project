@@ -119,7 +119,7 @@ void URecalculateSecondaryAttributes::Execute_Implementation(
 	AddOutputModifierForAttribute(UPRAttributeSet::GetDebuffResistanceAttribute(), OutExecutionOutput, NewBaseDebuffResistance);
 
 	// Health Regeneration
-	float NewBaseHealthRegeneration = Vitality * 0.1f;
+	float NewBaseHealthRegeneration = 0.f;
 	AddOutputModifierForAttribute(UPRAttributeSet::GetHealthRegenerationAttribute(), OutExecutionOutput, NewBaseHealthRegeneration);
 
 	// Mana Regeneration
