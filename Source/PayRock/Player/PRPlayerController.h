@@ -122,9 +122,6 @@ private:
 
 
 public:
-	UFUNCTION(Client, Reliable)
-	void Client_ShowLoadingScreen();
-	
 	// 매칭, 매치후 인게임 UI 다르게 표시 
 	void HandleMatchFlowStateChanged(EMatchFlowState NewState);
 

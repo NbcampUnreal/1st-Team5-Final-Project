@@ -124,7 +124,7 @@ UUserWidget* UUIManager::InitializeWidget(EWidgetCategory Category)
 
 	if (Widget)
 	{
-		Widget->AddToViewport(5);
+		Widget->AddToViewport();
 		WidgetMap.Add(Category, Widget);
 	}
 	
