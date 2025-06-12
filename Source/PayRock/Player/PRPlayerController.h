@@ -112,6 +112,10 @@ private:
 	UPROPERTY()
 	TObjectPtr<UUserWidget> SettingsMenuWidget;
 
+	// ;ESC 장비창 끄기 
+	UPROPERTY()
+	TWeakObjectPtr<UUserWidget> InventoryWidget;
+
 	bool bIsSettingsMenuOpen = false;
 
 	void ToggleSettingsMenu(); // ESC 키 입력 시 호출할 함수

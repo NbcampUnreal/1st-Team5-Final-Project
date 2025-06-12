@@ -74,8 +74,21 @@ void UMatchHUD::UpdateMinimumPlayers(int32 NewMin)
 
 void UMatchHUD::UpdateCountdown(int32 Countdown)
 {
-    if (Text_Countdown)
+    if (!Text_Countdown || !Text_InfoMessage) return;
+
+    if (Countdown < 0)
+    {
+        Text_Countdown->SetVisibility(ESlateVisibility::Collapsed);
+        Text_InfoMessage->SetVisibility(ESlateVisibility::Collapsed); //  °°ÀÌ ¼û±è
+    }
+    else
+    {
+        Text_Countdown->SetVisibility(ESlateVisibility::Visible);
+        Text_InfoMessage->SetVisibility(ESlateVisibility::Visible);   //  °°ÀÌ º¸ÀÌ°Ô
+
         Text_Countdown->SetText(FText::AsNumber(Countdown));
+    }
+    
 }
 
 void UMatchHUD::UpdateRemainingTime(int32 TimeLeft)

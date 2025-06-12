@@ -26,7 +26,7 @@ public:
 protected:
 	virtual void OnWidgetControllerSet() override;
 
-private:
+protected:
 	// 텍스트 표시용 변수들
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* Text_CurrentPlayers;
@@ -34,8 +34,12 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* Text_MinimumPlayers;
 
-	UPROPERTY(meta = (BindWidget))
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
 	UTextBlock* Text_Countdown;
+
+
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* Text_InfoMessage;
 
 	//UPROPERTY(meta = (BindWidget))
 	//UTextBlock* Text_RemainingTime;

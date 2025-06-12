@@ -34,16 +34,16 @@ void UInGameWidget::UpdateTimeInfo()
 	if (APRGameState* GS = GetWorld()->GetGameState<APRGameState>())
 	{
 		 const int32 RemainingTime = GS->GetRemainingTime();
-		 const int32 ExtractionTime = GS->GetExtractionActivationTime();
+		 const int32 ExtractionTime = GS->GetRemainingExtractionTime();
 
-		// ���� ��ġ �ð� ǥ��
+		 // 매치 남은 시간 표시
 		if (Text_RemainingTime)
 		{
 			const FString TimeStr = FString::Printf(TEXT("%d"), RemainingTime);
 			Text_RemainingTime->SetText(FText::FromString(TimeStr));
 		}
 
-		// Ż�� �ð� ǥ��
+		// 탈출까지 남은 시간 표시
 		if (Text_ExtractionTime)
 		{
 			const FString ExtractionStr = FString::Printf(TEXT("%d"), ExtractionTime);

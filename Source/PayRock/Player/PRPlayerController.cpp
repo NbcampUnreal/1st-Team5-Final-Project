@@ -240,28 +240,90 @@ FString APRPlayerController::GetNetModeAsString() const
 
 void APRPlayerController::ToggleSettingsMenu()
 {
-	/*
-	이 함수는 ESC 키가 눌릴 때마다,
-	설정창을 만들어서 띄우거나,
-	이미 떠 있으면 지우고 게임 모드로 복귀하는 토글 로직입니다.
-	*/
+	UUIManager* UIManager = GetGameInstance()->GetSubsystem<UUIManager>();
+	if (!UIManager) return;
+
+	// 1. 블루프린트 인벤토리 닫기 (우선순위 가장 높음)
+	if (APRCharacter* MyChar = Cast<APRCharacter>(GetCharacter()))
+	{
+		TArray<UActorComponent*> Components = MyChar->GetComponents().Array();
+		for (UActorComponent* Comp : Components)
+		{
+			if (Comp && Comp->GetName().Contains(TEXT("BP_InventoryComponent")))
+			{
+				// 먼저 IsInventoryVisible 호출해서 확인
+				UFunction* CheckFunc = Comp->FindFunction(FName("IsInventoryVisible?"));
+				if (CheckFunc)
+				{
+					struct
+					{
+						bool ReturnValue;
+					} Params;
+
+					Comp->ProcessEvent(CheckFunc, &Params);
+
+					if (Params.ReturnValue) // 인벤토리가 켜져있다면
+					{
+						// CloseInventory 호출
+						UFunction* CloseFunc = Comp->FindFunction(FName("CloseInventory"));
+						if (CloseFunc)
+						{
+							Comp->ProcessEvent(CloseFunc, nullptr);
+
+							//===
+							SetInputMode(FInputModeGameOnly());
+							SetShowMouseCursor(false);
+							bIsSettingsMenuOpen = false;
+							//===
+							return; // 하나만 닫고 함수 종료
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// 2. UIManager에서 관리되는 위젯 닫기
+	TArray<EWidgetCategory> UICheckList = {
+		EWidgetCategory::Stat,
+		EWidgetCategory::Stash,
+		EWidgetCategory::Blessing,
+	};
+
+	for (EWidgetCategory Category : UICheckList)
+	{
+		if (UUserWidget* Widget = UIManager->FindWidget(Category))
+		{
+			if (Widget->IsVisible())
+			{
+				UIManager->HideWidget(Category);
+
+				//===
+				SetInputMode(FInputModeGameOnly());
+				SetShowMouseCursor(false);
+				bIsSettingsMenuOpen = false;
+				//===
+
+				return; //  하나만 닫고 종료
+			}
+		}
+	}
+
+	// 3. 아무것도 안 열려 있으면 옵션 메뉴 토글
 	if (!SettingsMenuWidgetClass) return;
 
 	if (!bIsSettingsMenuOpen)
 	{
-		// ; UUserWidget -> UUserBaseWidget 으로 바꿔야 함 ?
 		SettingsMenuWidget = CreateWidget<UBaseUserWidget>(this, SettingsMenuWidgetClass);
 		if (SettingsMenuWidget)
 		{
 			SettingsMenuWidget->AddToViewport();
-		
-			// UI 모드 (입력 + 마우스)
+
 			FInputModeGameAndUI InputMode;
 			InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
 			InputMode.SetHideCursorDuringCapture(false);
 			SetInputMode(InputMode);
 			SetShowMouseCursor(true);
-
 
 			bIsSettingsMenuOpen = true;
 		}
@@ -274,11 +336,11 @@ void APRPlayerController::ToggleSettingsMenu()
 			SettingsMenuWidget = nullptr;
 		}
 		SetInputMode(FInputModeGameOnly());
-		//SetInputMode(FInputModeUIOnly()); // UI 만 켜지게 
 		SetShowMouseCursor(false);
 		bIsSettingsMenuOpen = false;
 	}
 }
+
 
 void APRPlayerController::HandleMatchFlowStateChanged(EMatchFlowState NewState)
 {

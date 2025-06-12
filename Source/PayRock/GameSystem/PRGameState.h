@@ -20,6 +20,7 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnMatchStart_CountDown, int32);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnCurrentAmountOfPlayers, int32);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnMinimumRequirePlayers, int32);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnRemainingMatchTime, int32);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnExtractionTimeUpdated, int32); // 탈출구 타이머
 
 
 UCLASS()
@@ -72,12 +73,17 @@ protected:
 
 	UPROPERTY(ReplicatedUsing = OnRep_RemainingMatchTime, BlueprintReadOnly, Category = "MatchFlow|Timing")
 	int32 RemainingMatchTime;
+
+	UPROPERTY(ReplicatedUsing = OnRep_RemainingExtractionTime)
+	int32 RemainingExtractionTime; // 탈출구 열리는 시간
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MatchFlow|Extraction")
 	TSubclassOf<AActor> ExtractionZoneClass;
 
 
 	FOnRemainingMatchTime OnRemainingMatchTime;
+
+	FOnExtractionTimeUpdated OnExtractionTimeUpdated; //  추가
 	
 	FTimerHandle MatchTimerHandle;
 
@@ -86,6 +92,8 @@ protected:
 	FTimerHandle ExtractionActivationTimerHandle;
 
 	FTimerHandle MatchEndTimerHandle;
+
+	FTimerHandle ExtractionCountDownTimerHandle; // ;탈출구열리는 타이머
 	/////////////////////////////////////////////////////////////////////
 
 public:
@@ -132,11 +140,19 @@ protected:
 	void EnableExtractionZones(); // 탈출구 Open
 
 	void TickMatchTimer();
+
+	void TickExtractionTimer(); // 탈출구 Open 타이머
 	
 	UFUNCTION()
 	void OnRep_RemainingMatchTime() const;
 
+public:
+	UFUNCTION(BlueprintCallable, Category = "MatchFlow|Timing") // 탈출구 남은시간 함수
+	int32 GetRemainingExtractionTime() const;
+
+protected:
 	void CallTheGmToEnd();
+
 	/////////////////////////////////////////////////////////////////////
 	//테스트!!!!!!!!!!!!!!!
 	UPROPERTY(ReplicatedUsing = OnRep_MatchFlowState)
@@ -144,6 +160,10 @@ protected:
 
 	UFUNCTION()
 	void OnRep_MatchFlowState();
+
+	UFUNCTION()
+	void OnRep_RemainingExtractionTime();
+
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "MatchFlow")
