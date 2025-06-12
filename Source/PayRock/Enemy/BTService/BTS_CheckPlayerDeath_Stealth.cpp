@@ -20,16 +20,33 @@ void UBTS_CheckPlayerDeath_Stealth::TickNode(UBehaviorTreeComponent& OwnerComp, 
 	UObject* TargetObj = BB->GetValueAsObject(GetSelectedBlackboardKey());
 	if (!TargetObj) return;
 
-	APRCharacter* Player = Cast<APRCharacter>(TargetObj);
-	if (!Player) return;
+	APRCharacter* FocusedPlayer = Cast<APRCharacter>(TargetObj);
+	if (!FocusedPlayer) return;
 	
-	const bool bIsDead = Player->GetbIsDead();
-	const bool bIsExtracted = Player->GetbIsExtracted();
-	const bool bIsInvisible = Player->GetbIsInvisible();
-	
+	const bool bIsDead = FocusedPlayer->GetbIsDead();
+	const bool bIsExtracted = FocusedPlayer->GetbIsExtracted();
+	const bool bIsInvisible = FocusedPlayer->GetbIsInvisible();
+
 	if (bIsDead || bIsExtracted || bIsInvisible)
 	{
 		BB->ClearValue(GetSelectedBlackboardKey());
-		BB->SetValueAsBool(TEXT("bPlayerDetect"), false);
+		
+		bool bAnyValidTarget = false;
+
+		for (TObjectIterator<APRCharacter> It; It; ++It)
+		{
+			if (!IsValid(*It)) continue;
+			APRCharacter* OtherPlayer = *It;
+			
+			if (!OtherPlayer->GetbIsDead() &&
+				!OtherPlayer->GetbIsExtracted() &&
+				!OtherPlayer->GetbIsInvisible())
+			{
+				bAnyValidTarget = true;
+				break;
+			}
+		}
+
+		BB->SetValueAsBool(TEXT("bPlayerDetect"), bAnyValidTarget);
 	}
 }

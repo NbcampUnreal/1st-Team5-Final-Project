@@ -24,15 +24,15 @@ AMukCheonWangCharacter::AMukCheonWangCharacter()
     AIPerception = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerception"));
 
     SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("SightConfig"));
-    SightConfig->SightRadius = 100000.f;
-    SightConfig->LoseSightRadius = 100200.f;
+    SightConfig->SightRadius = 5000.f;
+    SightConfig->LoseSightRadius = 5000.f;
     SightConfig->PeripheralVisionAngleDegrees = 360.f;
     SightConfig->DetectionByAffiliation.bDetectEnemies = true;
     SightConfig->DetectionByAffiliation.bDetectFriendlies = true;
     SightConfig->DetectionByAffiliation.bDetectNeutrals = true;
 
     HearingConfig = CreateDefaultSubobject<UAISenseConfig_Hearing>(TEXT("HearingConfig"));
-    HearingConfig->HearingRange = 100000.f;
+    HearingConfig->HearingRange = 5000.f;
     HearingConfig->DetectionByAffiliation.bDetectEnemies = true;
     HearingConfig->DetectionByAffiliation.bDetectFriendlies = true;
     HearingConfig->DetectionByAffiliation.bDetectNeutrals = true;
@@ -171,6 +171,12 @@ void AMukCheonWangCharacter::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulu
 {
     if (!Actor || !Actor->IsA(APRCharacter::StaticClass())) return;
 
+    APRCharacter* Player = Cast<APRCharacter>(Actor);
+    if (!Player || Player->GetbIsDead() || Player->GetbIsInvisible() || Player->GetbIsExtracted())
+    {
+        return;
+    }
+
     const FVector AIPos = GetActorLocation();
     const FAISenseID HearingID = UAISense::GetSenseID<UAISense_Hearing>();
     const FAISenseID SightID = UAISense::GetSenseID<UAISense_Sight>();
@@ -198,8 +204,24 @@ void AMukCheonWangCharacter::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulu
     {
         if (Stimulus.WasSuccessfullySensed())
         {
+            if (!DetectedActors.Contains(Actor))
+            {
+                DetectedActors.Add(Actor);
+            }
+
             BB->SetValueAsObject(TEXT("TargetActor"), Actor);
             BB->SetValueAsBool(TEXT("bPlayerDetect"), true);
+        }
+        else
+        {
+            DetectedActors.Remove(Actor);
+            
+            UObject* CurrentTarget = BB->GetValueAsObject(TEXT("TargetActor"));
+            if (CurrentTarget == Actor)
+            {
+                BB->ClearValue(TEXT("TargetActor"));
+                BB->SetValueAsBool(TEXT("bPlayerDetect"), false);
+            }
         }
     }
 }
@@ -207,14 +229,18 @@ void AMukCheonWangCharacter::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulu
 void AMukCheonWangCharacter::UpdateRandomTarget()
 {
     DetectedActors.Empty();
+
     TArray<AActor*> AllDetected;
     AIPerception->GetCurrentlyPerceivedActors(UAISense_Sight::StaticClass(), AllDetected);
 
     for (AActor* Actor : AllDetected)
     {
-        if (Actor && Actor->IsA(APRCharacter::StaticClass()))
+        if (APRCharacter* Player = Cast<APRCharacter>(Actor))
         {
-            DetectedActors.Add(Actor);
+            if (!Player->GetbIsDead() && !Player->GetbIsInvisible() && !Player->GetbIsExtracted())
+            {
+                DetectedActors.Add(Player);
+            }
         }
     }
 
@@ -228,11 +254,23 @@ void AMukCheonWangCharacter::UpdateRandomTarget()
             if (UBlackboardComponent* BB = AICon->GetBlackboardComponent())
             {
                 BB->SetValueAsObject(TEXT("TargetActor"), ChosenTarget);
+                BB->SetValueAsBool(TEXT("bPlayerDetect"), true);
             }
         }
     }
-
+    else
+    {
+        if (AAIController* AICon = Cast<AAIController>(GetController()))
+        {
+            if (UBlackboardComponent* BB = AICon->GetBlackboardComponent())
+            {
+                BB->ClearValue(TEXT("TargetActor"));
+                BB->SetValueAsBool(TEXT("bPlayerDetect"), false);
+            }
+        }
+    }
 }
+
 
 void AMukCheonWangCharacter::OnPhaseChanged(EBossPhase NewPhase)
 {

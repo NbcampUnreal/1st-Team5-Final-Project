@@ -50,7 +50,7 @@ protected:
 	float MoveInterval = 2.f;
 
 	UPROPERTY(EditDefaultsOnly)
-	float MoveRadius = 1000.f;
+	float MoveRadius = 3500.f;
 
 	UPROPERTY(EditDefaultsOnly)
 	float RequiredProximity = 800.f;
