@@ -34,7 +34,7 @@ void UOverlayWidgetController::BroadcastInitialValues()
 		{
 			if (Character->BlessingComponent)
 			{
-				OnActiveBlessingChanged.Broadcast(Character->BlessingComponent->GetEquippedActiveBlessingData());
+				OnActiveBlessingChanged.Broadcast(Character->BlessingComponent->LocalEquippedActiveBlessingIcon);
 			}
 		}
 	}
