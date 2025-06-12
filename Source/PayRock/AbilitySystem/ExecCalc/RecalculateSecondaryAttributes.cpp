@@ -159,7 +159,7 @@ void URecalculateSecondaryAttributes::Execute_Implementation(
  	AddOutputModifierForAttribute(UPRAttributeSet::GetBonusDamageAttribute(), OutExecutionOutput, 0);
 
 	// MaxHealth
-	float NewBaseMaxHealth = Vitality * 10.f + Strength * 5.f;
+	float NewBaseMaxHealth = Vitality * 5.f + Strength * 2.f;
 	AddOutputModifierForAttribute(UPRAttributeSet::GetMaxHealthAttribute(), OutExecutionOutput, NewBaseMaxHealth);
 
 	// MaxMana
