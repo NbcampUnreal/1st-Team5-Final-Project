@@ -662,6 +662,31 @@ void APRCharacter::MulticastPlayLandingSound_Implementation(FVector Location, US
     );
 }
 
+void APRCharacter::ServerPlayAttackSound_Implementation(USoundBase* Sound, FVector Location)
+{
+    MulticastPlayAttackSound(Sound, Location);
+}
+
+void APRCharacter::MulticastPlayAttackSound_Implementation(USoundBase* Sound, FVector Location)
+{
+    if (HasAuthority() && IsLocallyControlled())
+    {
+        // 서버장이자 로컬 컨트롤러면, 이미 재생했으니 멀티캐스트에서 재생하지 않음
+        return;
+    }
+
+    UGameplayStatics::PlaySoundAtLocation(
+        this,
+        Sound,
+        Location,
+        FRotator::ZeroRotator,
+        1.0f,
+        1.0f,
+        0.0f,
+        FootstepAttenuation
+    );
+}
+
 USoundBase* APRCharacter::GetLandingSoundBySurface(EPhysicalSurface SurfaceType)
 {
     return DefaultLandSound;

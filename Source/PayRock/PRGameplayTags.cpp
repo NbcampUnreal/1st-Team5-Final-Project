@@ -116,6 +116,9 @@ void FPRGameplayTags::InitializeNativeGameplayTags()
     GameplayTags.InputTag_Z = UGameplayTagsManager::Get().AddNativeGameplayTag(
         FName("InputTag.Z")
         );
+    GameplayTags.InputTag_G = UGameplayTagsManager::Get().AddNativeGameplayTag(
+        FName("InputTag.G")
+    );
 
     /*
      * Combat Socket
@@ -215,4 +218,11 @@ void FPRGameplayTags::InitializeNativeGameplayTags()
     GameplayTags.Cooldown_Attack = UGameplayTagsManager::Get().AddNativeGameplayTag(
         FName("Cooldown.Attack")
         );
+
+    /*
+     * Guard
+     */
+    GameplayTags.Ability_Guard = UGameplayTagsManager::Get().AddNativeGameplayTag(
+        FName("Guard.Active")
+	);
 }

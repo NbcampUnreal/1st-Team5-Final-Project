@@ -50,8 +50,12 @@ void UBaseDamageGameplayAbility::CauseDamage(AActor* TargetActor, bool bIsBackAt
 		FGameplayEffectSpecHandle DamageEffectSpecHandle = MakeOutgoingGameplayEffectSpec(
 			DamageEffectClass, GetAbilityLevel());
 		
-
 		float ScaledDamage = Damage.GetValueAtLevel(GetAbilityLevel());
+
+		if (TargetASC->HasMatchingGameplayTag(FPRGameplayTags::Get().Ability_Guard))
+		{
+			ScaledDamage = 0.f;
+		}
 		
 		if (bIsMonsterToMonster)
 		{
@@ -78,6 +82,19 @@ void UBaseDamageGameplayAbility::CauseDamage(AActor* TargetActor, bool bIsBackAt
 		UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(
 			DamageEffectSpecHandle, DamageTypeTag, ScaledDamage);
 		ASC->ApplyGameplayEffectSpecToTarget(*DamageEffectSpecHandle.Data.Get(), TargetASC);
+
+		if (const UPRAttributeSet* TargetAttributes = Cast<UPRAttributeSet>(TargetASC->GetAttributeSet(UPRAttributeSet::StaticClass())))
+		{
+			float CurrentHP = TargetAttributes->GetHealth();
+			float MaxHP = TargetAttributes->GetMaxHealth();
+
+			UE_LOG(LogTemp, Warning, TEXT("[Damage] %s ¡æ %s | Damage: %.2f | HP: %.2f / %.2f"),
+				*GetAvatarActorFromActorInfo()->GetName(),
+				*TargetActor->GetName(),
+				ScaledDamage,
+				CurrentHP,
+				MaxHP);
+		}
 
 		UAISense_Damage::ReportDamageEvent(
 			GetWorld(),

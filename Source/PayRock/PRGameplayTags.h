@@ -49,6 +49,7 @@ public:
 	FGameplayTag InputTag_3;
 	FGameplayTag InputTag_4;
 	FGameplayTag InputTag_Z;
+	FGameplayTag InputTag_G;
 
 	FGameplayTag CombatSocket_Weapon;
 	FGameplayTag CombatSocket_RightHand;
@@ -80,6 +81,8 @@ public:
 
 	FGameplayTag Ability_Attack;
 	FGameplayTag Cooldown_Attack;
+
+	FGameplayTag Ability_Guard;
 private:
 	static FPRGameplayTags GameplayTags;
 };
