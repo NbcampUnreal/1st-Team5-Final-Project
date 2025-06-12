@@ -7,6 +7,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/Pawn.h"
+#include "PayRock/Player/PRPlayerController.h"
 
 APRGameMode::APRGameMode()
 {
@@ -25,6 +26,11 @@ void APRGameMode::OnPostLogin(AController* NewPlayer)
 	if (GS && GS->GetClass()->ImplementsInterface(UPRIGameState::StaticClass()))
 	{
 		IPRIGameState::Execute_Notify_PlayerConnection(GS);
+	}
+
+	if (APRPlayerController* PRPC = Cast<APRPlayerController>(NewPlayer))
+	{
+		PRPC->Client_ShowLoadingScreen();
 	}
 }
 
