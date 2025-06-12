@@ -39,10 +39,7 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> CrouchAction;
-
-	UPROPERTY(EditAnywhere, Category = "Input")
-	TObjectPtr<UInputAction> AttackAction;
-
+	
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> InteractAction;
 
@@ -125,8 +122,15 @@ private:
 
 
 public:
+	UFUNCTION(Client, Reliable)
+	void Client_OnTwentySecondsLeft();
+
+	void OnWaitStart();
+	
 	// 매칭, 매치후 인게임 UI 다르게 표시 
 	void HandleMatchFlowStateChanged(EMatchFlowState NewState);
+	
+	
 
 	/*
 	 *	Necro Character

@@ -1,30 +1,17 @@
 ﻿#include "FireballProjectile.h"
 #include "GameFramework/ProjectileMovementComponent.h"
+#include "FireDOTArea.h"
 #include "NiagaraComponent.h"
+#include "NiagaraFunctionLibrary.h"
 #include "Components/SphereComponent.h"
-#include "Kismet/GameplayStatics.h"
 #include "PayRock/Enemy/FinalBoss/MukCheonWangCharacter.h"
 #include "PayRock/Character/PRCharacter.h"
-#include "FireDOTArea.h"
-#include "AbilitySystemBlueprintLibrary.h"
-#include "AbilitySystemComponent.h"
-#include "NiagaraFunctionLibrary.h"
 
 AFireballProjectile::AFireballProjectile()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	bReplicates = true;
 
-	CollisionComponent = CreateDefaultSubobject<USphereComponent>(TEXT("Sphere"));
-	SetRootComponent(CollisionComponent);
-	CollisionComponent->InitSphereRadius(10.f);
-	CollisionComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	CollisionComponent->SetCollisionObjectType(ECC_GameTraceChannel2);
-	CollisionComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
-	CollisionComponent->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
-	CollisionComponent->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
-	CollisionComponent->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
-	CollisionComponent->SetGenerateOverlapEvents(true);
 
 	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
 	ProjectileMovement->ProjectileGravityScale = 0.f;
@@ -32,23 +19,37 @@ AFireballProjectile::AFireballProjectile()
 	ProjectileMovement->MaxSpeed = 1200.f;
 	ProjectileMovement->SetActive(false);
 
-	NiagaraComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NiagaraComponent"));
-	NiagaraComponent->SetupAttachment(RootComponent);
+
+	CapsuleCollision = CreateDefaultSubobject<UCapsuleComponent>(TEXT("CapsuleCollision"));
+	CapsuleCollision->InitCapsuleSize(60.f, 100.f);
+	CapsuleCollision->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	CapsuleCollision->SetCollisionObjectType(ECC_WorldDynamic);
+	CapsuleCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
+	CapsuleCollision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+	CapsuleCollision->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
+	CapsuleCollision->OnComponentBeginOverlap.AddDynamic(this, &AFireballProjectile::OnEffectOverlap);
+	CapsuleCollision->OnComponentHit.AddDynamic(this, &AFireballProjectile::OnHit);
+
+	SetRootComponent(CapsuleCollision);
+	CollisionComponent = CapsuleCollision;
+	
+	VFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("VFX"));
+	VFX->SetupAttachment(RootComponent);
 }
+
+
 
 void AFireballProjectile::BeginPlay()
 {
 	Super::BeginPlay();
-	SetLifeSpan(5.f);
 
-	CollisionComponent->OnComponentBeginOverlap.AddDynamic(this, &AFireballProjectile::OnSphereOverlap);
-	CollisionComponent->OnComponentHit.AddDynamic(this, &AFireballProjectile::OnHit);
-
-	GetWorld()->GetTimerManager().SetTimer(LaunchDelayHandle, [this]()
-	{
-		SetReplicateMovement(true);
-		LaunchToTargetPlayer();
-	}, FireRate, false);
+	GetWorld()->GetTimerManager().SetTimer(
+		LaunchDelayHandle,
+		this,
+		&AFireballProjectile::EnableReplication,
+		FireRate,
+		false
+	);
 }
 
 void AFireballProjectile::Tick(float DeltaTime)
@@ -56,65 +57,56 @@ void AFireballProjectile::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	FloatElapsedTime += DeltaTime;
-
 	float OffsetZ = FMath::Sin(FloatElapsedTime * FloatSpeed) * FloatHeight * DeltaTime;
 	AddActorWorldOffset(FVector(0.f, 0.f, OffsetZ));
 }
 
-void AFireballProjectile::LaunchToTargetPlayer()
+void AFireballProjectile::EnableReplication()
 {
-	AMukCheonWangCharacter* Boss = Cast<AMukCheonWangCharacter>(GetOwner());
-	if (!Boss) return;
-
-	TArray<AActor*> Targets = Boss->GetDetectedActors();
-	if (Targets.Num() == 0) return;
-
-	AActor* Target = Targets[FMath::RandRange(0, Targets.Num() - 1)];
-	if (!Target) return;
-
-	FVector TargetLocation = Target->GetActorLocation();
-	LaunchVelocity = (TargetLocation - GetActorLocation()).GetSafeNormal() * ProjectileMovement->InitialSpeed;
-
-	ProjectileMovement->Velocity = LaunchVelocity;
-	ProjectileMovement->SetActive(true);
+	SetReplicateMovement(true);
+	LaunchToTargetPlayer();
 }
 
-void AFireballProjectile::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void AFireballProjectile::LaunchToTargetPlayer()
+{
+	if (AMukCheonWangCharacter* Boss = Cast<AMukCheonWangCharacter>(GetOwner()))
+	{
+		const TArray<TWeakObjectPtr<AActor>>& Targets = Boss->GetDetectedActors();
+		if (Targets.IsEmpty()) return;
+
+		AActor* Target = Targets[FMath::RandRange(0, Targets.Num() - 1)].Get();
+		if (!Target) return;
+
+		const FVector TargetLocation = Target->GetActorLocation();
+		LaunchVelocity = (TargetLocation - GetActorLocation()).GetSafeNormal() * ProjectileMovement->InitialSpeed;
+
+		ProjectileMovement->Velocity = LaunchVelocity;
+		ProjectileMovement->SetActive(true);
+	}
+}
+
+void AFireballProjectile::OnEffectOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+                                          UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
+                                          bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (!OtherActor || OtherActor == GetOwner() || bHit) return;
 
-	if (APRCharacter* PRChar = Cast<APRCharacter>(OtherActor))
+	if (Cast<APRCharacter>(OtherActor))
 	{
 		bHit = true;
 		PlayImpactVFX();
-
-		if (HasAuthority() && DamageEffectClass)
-		{
-			UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor);
-			UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetOwner());
-
-			if (TargetASC && SourceASC)
-			{
-				FGameplayEffectSpecHandle SpecHandle = SourceASC->MakeOutgoingSpec(DamageEffectClass, 1.f, SourceASC->MakeEffectContext());
-				if (SpecHandle.IsValid())
-				{
-					SpecHandle.Data->SetSetByCallerMagnitude(DamageTag, DamageAmount);
-					SourceASC->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(), TargetASC);
-				}
-			}
-		}
+		ApplyDamageEffect(OtherActor);
 		Destroy();
 	}
 }
 
 void AFireballProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+                                UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	if (!OtherActor || OtherActor == GetOwner() || bHit) return;
+
 	bHit = true;
 	PlayImpactVFX();
-
 	HandleImpact(true);
 }
 
@@ -129,13 +121,8 @@ void AFireballProjectile::HandleImpact(bool bSpawnDOT)
 
 		GetWorld()->SpawnActor<AFireDOTArea>(DOTAreaClass, SpawnLoc, FRotator::ZeroRotator, Params);
 	}
-	Destroy();
-}
 
-void AFireballProjectile::EnableReplication()
-{
-	SetReplicateMovement(true);
-	LaunchToTargetPlayer();
+	Destroy();
 }
 
 void AFireballProjectile::PlayImpactVFX()
@@ -150,11 +137,6 @@ void AFireballProjectile::Multicast_PlayImpactVFX_Implementation()
 {
 	if (ImpactVFX && GetWorld())
 	{
-		UNiagaraFunctionLibrary::SpawnSystemAtLocation(
-			GetWorld(),
-			ImpactVFX,
-			GetActorLocation(),
-			FRotator::ZeroRotator
-		);
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), ImpactVFX, GetActorLocation(), FRotator::ZeroRotator);
 	}
 }

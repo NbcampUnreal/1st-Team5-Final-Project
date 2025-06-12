@@ -5,55 +5,16 @@
 
 UGA_VFX_StoneImpale::UGA_VFX_StoneImpale()
 {
-	AbilityTags.AddTag(FGameplayTag::RequestGameplayTag("Event.Montage.Boss.Stone"));
+	SetAssetTags(FGameplayTagContainer(FGameplayTag::RequestGameplayTag("Event.Montage.Boss.Stone")));
 	ActivationOwnedTags.AddTag(FGameplayTag::RequestGameplayTag("Boss.State.Attacking"));
 }
 
-void UGA_VFX_StoneImpale::ActivateAbility(
-	const FGameplayAbilitySpecHandle Handle,
-	const FGameplayAbilityActorInfo* ActorInfo,
-	const FGameplayAbilityActivationInfo ActivationInfo,
-	const FGameplayEventData* TriggerEventData)
+void UGA_VFX_StoneImpale::OnAuraEffectComplete()
 {
-	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-
-	AvatarActor = GetAvatarActorFromActorInfo();
 	AMukCheonWangCharacter* Boss = Cast<AMukCheonWangCharacter>(AvatarActor);
 	if (!Boss || !StoneSpikeClass)
 	{
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
-		return;
-	}
-	
-	CurrentSpecHandle = Handle;
-	CurrentActorInfo = const_cast<FGameplayAbilityActorInfo*>(ActorInfo);
-	CurrentActivationInfo = ActivationInfo;
-	
-	
-	Boss->Multicast_PlayAuraEffect(AuraEffect, FontlClass, AuraRate);
-	
-
-	
-	if (UWorld* World = GetWorld())
-	{
-		World->GetTimerManager().SetTimer(
-			AuraDelayTimerHandle,
-			this,
-			&UGA_VFX_StoneImpale::SpawnStoneSpikesAfterAura,
-			AuraDelayTime,
-			false
-		);
-	}
-}
-
-void UGA_VFX_StoneImpale::SpawnStoneSpikesAfterAura()
-{
-	GetWorld()->GetTimerManager().ClearTimer(AuraDelayTimerHandle);
-	
-	AMukCheonWangCharacter* Boss = Cast<AMukCheonWangCharacter>(AvatarActor);
-	if (!Boss || !StoneSpikeClass)
-	{
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+		FinishAbility();
 		return;
 	}
 
@@ -62,10 +23,10 @@ void UGA_VFX_StoneImpale::SpawnStoneSpikesAfterAura()
 
 	if (SpikeTargets.Num() == 0)
 	{
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+		FinishAbility();
 		return;
 	}
-	
+
 	SpawnSingleSpike();
 }
 
@@ -73,11 +34,11 @@ void UGA_VFX_StoneImpale::SpawnSingleSpike()
 {
 	if (!SpikeTargets.IsValidIndex(CurrentTargetIndex))
 	{
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+		FinishAbility();
 		return;
 	}
 
-	AActor* Target = SpikeTargets[CurrentTargetIndex++];
+	AActor* Target = SpikeTargets[CurrentTargetIndex++].Get();
 	AMukCheonWangCharacter* Boss = Cast<AMukCheonWangCharacter>(AvatarActor);
 	if (!Boss || !Target || !StoneSpikeClass) return;
 
@@ -91,17 +52,16 @@ void UGA_VFX_StoneImpale::SpawnSingleSpike()
 	AStoneSpikeActor* Spike = Boss->GetWorld()->SpawnActor<AStoneSpikeActor>(StoneSpikeClass, SpawnLoc, SpawnRot, Params);
 	if (Spike)
 	{
-		Spike->SetInstigatorAbility(this);
+		Spike->InitializeEffectSource(this);
 		Spike->SetActorRotation(SpawnRot);
 		Spike->SetTarget(Target);
 	}
 
-	
 	Boss->GetWorld()->GetTimerManager().SetTimer(
 		SpikeSpawnTimerHandle,
 		this,
 		&UGA_VFX_StoneImpale::SpawnSingleSpike,
-		0.4f, 
+		0.4f,
 		false
 	);
 }

@@ -44,7 +44,6 @@ public:
 	FGameplayTag Attributes_Vital_Mana;
 
 	FGameplayTag InputTag_LMB;
-	FGameplayTag InputTag_RMB;
 	FGameplayTag InputTag_1;
 	FGameplayTag InputTag_2;
 	FGameplayTag InputTag_3;
@@ -74,6 +73,8 @@ public:
 	FGameplayTag Status_Buff_LifeSteal;
 
 	FGameplayTag Status_Debuff_Poison;
+
+	FGameplayTag Ability_Blessing_Cooldown;
 
 	FGameplayTag Effects_HitReact;
 

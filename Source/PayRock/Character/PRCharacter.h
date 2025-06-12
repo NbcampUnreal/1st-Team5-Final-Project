@@ -87,7 +87,7 @@ public:
 	FRotator ReplicatedControlRotation;
 	
 	FVector DefaultSocketOffset = FVector::ZeroVector;
-	FVector AimingSocketOffset = FVector(0.f, 50.f, 30.f); // 오른쪽 위에서 보는 느낌
+	FVector AimingSocketOffset = FVector(0.f, 20.f, 30.f);
 
 	float CameraInterpSpeed;
 
@@ -241,6 +241,7 @@ public:
 	UPROPERTY(Replicated, BlueprintReadWrite, Category = "Weapon")
 	EWeaponType CurrentWeaponType;
 
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	void SetWeaponType(EWeaponType NewType);
 
 	UFUNCTION(BlueprintCallable, Category = "Weapon")

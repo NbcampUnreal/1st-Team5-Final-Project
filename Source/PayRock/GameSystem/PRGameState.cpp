@@ -47,8 +47,8 @@ APRGameState::APRGameState()
 	MinimumRequirePlayers = 2;  // 매치 시작시 필요한 플레이어 수
 	CurrentAmountOfPlayers = 0; // 현재 플레이어 수 초기화
 	MatchStart_CountDown = -1;  // 매치 시작 카운트다운
-	MatchDurationSeconds = 300; // 매치 시작 후 매치 지속시간
-	ExtractionActivationTime = 180; // 탈출구 열리는 시간
+	MatchDurationSeconds = 150; // 매치 시작 후 매치 지속시간
+	ExtractionActivationTime = 20; // 탈출구 열리는 시간
 	RemainingMatchTime = MatchDurationSeconds;
 	bReplicates = true;
 }
@@ -165,6 +165,17 @@ void APRGameState::TickMatchCountdown()
 	if (!HasAuthority()) return;
 
 	MatchStart_CountDown--;
+
+	if (MatchStart_CountDown == 20)
+	{
+		for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+		{
+			if (APRPlayerController* PC = Cast<APRPlayerController>(*It))
+			{
+				PC->Client_OnTwentySecondsLeft();
+			}
+		}
+	}
 
 	if (MatchStart_CountDown <= 0)
 	{

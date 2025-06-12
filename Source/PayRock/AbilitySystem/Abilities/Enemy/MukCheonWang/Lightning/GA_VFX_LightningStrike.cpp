@@ -10,47 +10,14 @@ UGA_VFX_LightningStrike::UGA_VFX_LightningStrike()
 	ActivationOwnedTags.AddTag(FGameplayTag::RequestGameplayTag("Boss.State.Attacking"));
 }
 
-void UGA_VFX_LightningStrike::ActivateAbility(
-	const FGameplayAbilitySpecHandle Handle,
-	const FGameplayAbilityActorInfo* ActorInfo,
-	const FGameplayAbilityActivationInfo ActivationInfo,
-	const FGameplayEventData* TriggerEventData)
+void UGA_VFX_LightningStrike::OnAuraEffectComplete()
 {
-	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-
-	AvatarActor = GetAvatarActorFromActorInfo();
 	AMukCheonWangCharacter* Boss = Cast<AMukCheonWangCharacter>(AvatarActor);
 	if (!Boss || !LightningClass || Boss->GetDetectedActors().Num() == 0)
 	{
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+		FinishAbility();
 		return;
 	}
-
-	CurrentSpecHandle = Handle;
-	CurrentActorInfo = const_cast<FGameplayAbilityActorInfo*>(ActorInfo);
-	CurrentActivationInfo = ActivationInfo;
-
-	Boss->Multicast_PlayAuraEffect(AuraEffect, FontlClass, AuraRate);
-
-	if (UWorld* World = GetWorld())
-	{
-		World->GetTimerManager().SetTimer(
-			AuraDelayTimerHandle,
-			this,
-			&UGA_VFX_LightningStrike::SpawnLightningAfterAura,
-			AuraDelayTime,
-			false
-		);
-	}
-}
-
-
-void UGA_VFX_LightningStrike::SpawnLightningAfterAura()
-{
-	GetWorld()->GetTimerManager().ClearTimer(AuraDelayTimerHandle);
-
-	AMukCheonWangCharacter* Boss = Cast<AMukCheonWangCharacter>(AvatarActor);
-	if (!Boss || !LightningClass) return;
 
 	LightningTargets = Boss->GetDetectedActors();
 	CurrentTargetIndex = 0;
@@ -62,11 +29,11 @@ void UGA_VFX_LightningStrike::SpawnLightningForTarget()
 {
 	if (!LightningTargets.IsValidIndex(CurrentTargetIndex))
 	{
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+		FinishAbility();
 		return;
 	}
 
-	AActor* Target = LightningTargets[CurrentTargetIndex];
+	AActor* Target = LightningTargets[CurrentTargetIndex].Get();
 	if (!Target)
 	{
 		++CurrentTargetIndex;
@@ -87,7 +54,7 @@ void UGA_VFX_LightningStrike::SpawnNextLightning()
 	if (CurrentLightningCount >= NumLightningPerTarget)
 	{
 		++CurrentTargetIndex;
-		SpawnLightningForTarget(); 
+		SpawnLightningForTarget();
 		return;
 	}
 
@@ -110,7 +77,7 @@ void UGA_VFX_LightningStrike::SpawnNextLightning()
 
 	if (Lightning)
 	{
-		Lightning->SetInstigatorAbility(this);
+		Lightning->InitializeEffectSource(this);
 	}
 
 	++CurrentLightningCount;

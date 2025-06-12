@@ -120,6 +120,13 @@ float UPRAttributeSet::HandleIncomingDamage(const FEffectProperties& Props, cons
 		}
 		
 		SetHealth(NewHealth);
+		//++ Debugging
+		if (GEngine && Props.TargetAvatarActor)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Cyan,
+				FString::Printf(TEXT("[HP] %s ¡æ %.1f / %.1f"),
+					*Props.TargetAvatarActor->GetName(), NewHealth, GetMaxHealth()));
+		}
 
 		/*const float HealthCurrent = GetHealth();
 		UE_LOG(LogTemp, Warning, TEXT(
@@ -187,6 +194,14 @@ float UPRAttributeSet::GetCalculatedDamage(float LocalIncomingDamage, const FEff
 	const float DamageAfterArmor = LocalIncomingDamage * (1.f - ArmorReduction);
 
 	const float FinalDamage = DamageAfterArmor * CriticalMultiplier;
+
+	//++ Debugging
+	if (GEngine && Props.TargetAvatarActor)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange,
+			FString::Printf(TEXT("[DAMAGE] ¡æ %s | Final: %.1f"),
+				*Props.TargetAvatarActor->GetName(), FinalDamage));
+	}
 	
 	return FinalDamage;
 }
