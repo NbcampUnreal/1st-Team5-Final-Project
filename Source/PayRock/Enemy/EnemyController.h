@@ -23,6 +23,7 @@ public:
 	virtual void BeginPlay() override;
 	virtual void OnPossess(APawn* InPawn) override;
 	virtual void OnUnPossess() override;
+	virtual void Tick(float DeltaTime) override;
 	void ClearBlackboardKeys();
 
 	UFUNCTION()

@@ -42,11 +42,36 @@ void AEnemyController::BeginPlay()
 {
 	Super::BeginPlay();
 
+	PrimaryActorTick.bCanEverTick = true;
+
 	if (AIPerceptionComponent)
 	{
 		AIPerceptionComponent->OnTargetPerceptionUpdated.AddDynamic(this, &AEnemyController::OnTargetPerceptionUpdated);
 	}
 }
+
+
+
+void AEnemyController::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+	
+	for (int32 i = SensedActors.Num() - 1; i >= 0; --i)
+	{
+		APRCharacter* Player = Cast<APRCharacter>(SensedActors[i]);
+		if (!Player || Player->GetbIsDead() || Player->GetbIsExtracted() || Player->GetbIsInvisible())
+		{
+			if (BlackboardComponent && BlackboardComponent->GetValueAsObject(TEXT("TargetActor")) == Player)
+			{
+				BlackboardComponent->ClearValue(TEXT("TargetActor"));
+				BlackboardComponent->SetValueAsBool(TEXT("bPlayerDetect"), false);
+			}
+
+			SensedActors.RemoveAt(i);
+		}
+	}
+}
+
 
 void AEnemyController::OnPossess(APawn* InPawn)
 {
