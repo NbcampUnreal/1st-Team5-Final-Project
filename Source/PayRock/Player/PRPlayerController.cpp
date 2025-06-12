@@ -368,17 +368,6 @@ void APRPlayerController::HandleMatchFlowStateChanged(EMatchFlowState NewState)
 	}
 }
 
-void APRPlayerController::Client_ShowLoadingScreen_Implementation()
-{
-	if (!IsLocalController()) return;
-	
-	UUIManager* UIManager = GetGameInstance()->GetSubsystem<UUIManager>();
-	if (!UIManager) return;
-
-	UIManager->RemoveWidget(EWidgetCategory::Loading);
-	UIManager->ShowWidget(EWidgetCategory::Loading);
-}
-
 /*
  *	Necro Character
  */
