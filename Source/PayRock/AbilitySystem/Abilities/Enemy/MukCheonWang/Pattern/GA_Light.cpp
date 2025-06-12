@@ -7,7 +7,9 @@
 #include "Kismet/GameplayStatics.h"
 #include "OrbLightActor.h"
 #include "LightSourceActor.h"
+#include "NavigationSystem.h"
 #include "TimerManager.h"
+#include "AI/NavigationSystemBase.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "PayRock/Enemy/FinalBoss/MukCheonWangCharacter.h"
 
@@ -63,16 +65,32 @@ void UGA_Light::SpawnLightOrbAtCenter(AActor* OriginActor)
 {
 	if (!IsValid(OriginActor) || !OrbLightClass) return;
 
-	FVector ForwardDir = OriginActor->GetActorForwardVector();
-	FVector SpawnLoc = OriginActor->GetActorLocation() + ForwardDir * 800.f + FVector(0.f, 0.f, 150.f);
-	FRotator SpawnRot = OriginActor->GetActorRotation();
+	const FVector ForwardDir = OriginActor->GetActorForwardVector();
+	const FVector InitialLoc = OriginActor->GetActorLocation() + ForwardDir * 800.f;
+
+	FVector ProjectedSpawnLoc = InitialLoc;
+	FNavLocation NavLoc;
+
+	UNavigationSystemV1* NavSys = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
+	if (NavSys && NavSys->ProjectPointToNavigation(InitialLoc, NavLoc, FVector(500.f, 500.f, 1000.f)))
+	{
+		ProjectedSpawnLoc = NavLoc.Location;
+	}
+	else
+	{
+		
+		ProjectedSpawnLoc.Z = OriginActor->GetActorLocation().Z;
+	}
+
+	
+	ProjectedSpawnLoc.Z += 20.f;
 
 	FActorSpawnParameters Params;
 	Params.Owner = OriginActor;
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-	SpawnedOrb = GetWorld()->SpawnActor<AOrbLightActor>(OrbLightClass, SpawnLoc, SpawnRot, Params);
-	
+	SpawnedOrb = GetWorld()->SpawnActor<AOrbLightActor>(OrbLightClass, ProjectedSpawnLoc, OriginActor->GetActorRotation(), Params);
+
 	if (SpawnedOrb.IsValid())
 	{
 		SpawnedOrb->InitializeEffectSource(this);
