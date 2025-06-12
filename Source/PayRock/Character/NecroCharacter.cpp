@@ -42,6 +42,7 @@ ANecroCharacter::ANecroCharacter()
 
 	bReplicates = true;
 	SetReplicateMovement(true);
+	
 }
 
 void ANecroCharacter::BeginPlay()
@@ -50,7 +51,7 @@ void ANecroCharacter::BeginPlay()
 	
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECR_Ignore);
-	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Block);
+	/* Delete this! We want to go through the walls */ GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Block);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
 
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
