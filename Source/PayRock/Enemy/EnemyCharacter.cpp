@@ -129,7 +129,7 @@ void AEnemyCharacter::Die(FVector HitDirection)
 		AICon->UnPossess();
 	}
 
-	if (!bIsClone && ContainerClass)
+	if (ContainerClass)
 	{
 		FVector Start = GetActorLocation() + FVector(0.f, 0.f, 100.f);
 		FVector End = GetActorLocation() - FVector(0.f, 0.f, 500.f);   
@@ -153,7 +153,8 @@ void AEnemyCharacter::Die(FVector HitDirection)
 			);
 		}
 	}
-	SetLifeSpan(2.0f);
+
+	Destroy();
 	
 }
 

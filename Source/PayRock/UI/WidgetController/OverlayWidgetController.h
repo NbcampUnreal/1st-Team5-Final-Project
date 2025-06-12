@@ -14,7 +14,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnManaChangedSignature, float, NewM
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMaxManaChangedSignature, float, NewMaxMana);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDeathSignature);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnExtractionSignature);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnActiveBlessingChangedSignature, const FBlessingData&, Blessing);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnActiveBlessingChangedSignature, UTexture2D*, BlessingIconTexture);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCooldownChanged, float, RemainingTime);
 
 

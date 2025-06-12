@@ -38,14 +38,26 @@ AOrbLightActor::AOrbLightActor()
 void AOrbLightActor::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	if (HasAuthority())
+	{
+		FVector SpawnLoc = GetActorLocation();
+		FNavLocation NavLoc;
 
+		UNavigationSystemV1* NavSys = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
+		if (NavSys && NavSys->ProjectPointToNavigation(SpawnLoc, NavLoc, FVector(500.f, 500.f, 1000.f)))
+		{
+			SetActorLocation(NavLoc.Location + FVector(0.f, 0.f, 20.f));
+		}
+	}
+	
 	if (HasAuthority())
 	{
 		Multicast_PlayVFX();
-		
+
 		GetWorldTimerManager().SetTimer(DamageTimerHandle, this, &AOrbLightActor::ApplyLightSurvivalDOT, DamageTickInterval, true);
 		GetWorldTimerManager().SetTimer(MoveTimerHandle, this, &AOrbLightActor::MoveToRandomLocation, MoveInterval, true);
-		
+
 		TArray<AActor*> FoundPlayers;
 		UGameplayStatics::GetAllActorsOfClass(GetWorld(), APRCharacter::StaticClass(), FoundPlayers);
 		for (AActor* Player : FoundPlayers)
@@ -57,6 +69,7 @@ void AOrbLightActor::BeginPlay()
 		}
 	}
 }
+
 
 void AOrbLightActor::Tick(float DeltaTime)
 {

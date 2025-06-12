@@ -31,6 +31,10 @@ public:
 	void RemoveAllWidgetControllers();
 	UFUNCTION(BlueprintPure, Category = "UI")
 	UUserWidget* FindWidget(EWidgetCategory Category);
+	UFUNCTION()
+	void ShowLoadingScreen(const FString& MapName);
+	UFUNCTION()
+	void RemoveLoadingScreen(UWorld* LoadedWorld);
 
 	UFUNCTION(BlueprintCallable, Category = "UI")
 	UBaseWidgetController* GetWidgetController(const FWidgetControllerParams& WCParams, EWidgetCategory Category);

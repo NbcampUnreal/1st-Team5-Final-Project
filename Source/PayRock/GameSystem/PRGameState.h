@@ -66,7 +66,7 @@ protected:
 	
 	///////////////매치 시작 후 ////////////////////////////////////////////
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "MatchFlow|Timing")
-	int32 MatchDurationSeconds;				// 매치 진행 시간 (디버깅때는 2분)
+	int32 MatchDurationSeconds = 240;				// 매치 진행 시간 (디버깅때는 2분)
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "MatchFlow|Timing")
 	int32 ExtractionActivationTime ;
