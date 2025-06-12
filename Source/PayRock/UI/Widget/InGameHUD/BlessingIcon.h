@@ -30,7 +30,7 @@ protected:
 
 private:
 	UFUNCTION()
-	void OnActiveBlessingChanged(const FBlessingData& Blessing);
+	void OnActiveBlessingChanged(UTexture2D* EquippedActiveBlessingIcon);
 
 	UFUNCTION()
 	void UpdateCooldown(float RemainingTime);
