@@ -119,11 +119,11 @@ void URecalculateSecondaryAttributes::Execute_Implementation(
 	AddOutputModifierForAttribute(UPRAttributeSet::GetDebuffResistanceAttribute(), OutExecutionOutput, NewBaseDebuffResistance);
 
 	// Health Regeneration
-	float NewBaseHealthRegeneration = Vitality * 0.2f;
+	float NewBaseHealthRegeneration = Vitality * 0.1f;
 	AddOutputModifierForAttribute(UPRAttributeSet::GetHealthRegenerationAttribute(), OutExecutionOutput, NewBaseHealthRegeneration);
 
 	// Mana Regeneration
-	float NewBaseManaRegeneration = Intelligence * 0.3f;
+	float NewBaseManaRegeneration = Intelligence * 0.5f;
 	AddOutputModifierForAttribute(UPRAttributeSet::GetManaRegenerationAttribute(), OutExecutionOutput, NewBaseManaRegeneration);
 
 	// Critical Chance
@@ -159,7 +159,7 @@ void URecalculateSecondaryAttributes::Execute_Implementation(
  	AddOutputModifierForAttribute(UPRAttributeSet::GetBonusDamageAttribute(), OutExecutionOutput, 0);
 
 	// MaxHealth
-	float NewBaseMaxHealth = Vitality * 5.f + Strength * 2.f;
+	float NewBaseMaxHealth = 80.f + Vitality * 4.f + Strength * 2.f;
 	AddOutputModifierForAttribute(UPRAttributeSet::GetMaxHealthAttribute(), OutExecutionOutput, NewBaseMaxHealth);
 
 	// MaxMana
