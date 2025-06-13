@@ -196,6 +196,13 @@ void FPRGameplayTags::InitializeNativeGameplayTags()
         );
 
     /*
+     *  Necro
+     */
+    GameplayTags.Status_Necro_Visible = UGameplayTagsManager::Get().AddNativeGameplayTag(
+        FName("Status.Necro.Visible")
+        );
+
+    /*
      *  Cooldown
      */
     GameplayTags.Ability_Blessing_Cooldown = UGameplayTagsManager::Get().AddNativeGameplayTag(
