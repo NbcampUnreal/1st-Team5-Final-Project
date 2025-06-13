@@ -19,11 +19,11 @@ void UBlessingIcon::OnWidgetControllerSet()
 	}
 }
 
-void UBlessingIcon::OnActiveBlessingChanged(const FBlessingData& Blessing)
+void UBlessingIcon::OnActiveBlessingChanged(UTexture2D* EquippedActiveBlessingIcon)
 {
-	if (IsValid(Blessing.Icon) && IsValid(BlessingIcon))
+	if (IsValid(EquippedActiveBlessingIcon) && IsValid(BlessingIcon))
 	{
-		BlessingIcon->SetBrushFromTexture(Blessing.Icon);
+		BlessingIcon->SetBrushFromTexture(EquippedActiveBlessingIcon);
 	}
 }
 

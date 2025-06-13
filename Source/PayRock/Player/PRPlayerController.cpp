@@ -122,8 +122,7 @@ void APRPlayerController::StartSpectating()
 		SetSpectateTarget(SpectateTargets[CurrentSpectateIndex]);
 
 		// 입력 모드 전환
-		SetInputMode(FInputModeGameOnly());
-		SetShowMouseCursor(false);
+		SetInputMode(FInputModeGameAndUI());
 
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem =
 	ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
@@ -160,7 +159,7 @@ void APRPlayerController::SetSpectateTarget(AActor* NewTarget)
 {
 	if (!NewTarget) return;
 
-	UnPossess();
+	//UnPossess();
 
 	if (APRCharacter* TargetCharacter = Cast<APRCharacter>(NewTarget))
 	if (TargetCharacter)
@@ -341,7 +340,6 @@ void APRPlayerController::ToggleSettingsMenu()
 	}
 }
 
-
 void APRPlayerController::HandleMatchFlowStateChanged(EMatchFlowState NewState)
 {
 	// UE_LOG(LogTemp, Error, TEXT("HandleMatchFlowStateChanged: %d"), static_cast<int32>(NewState));
@@ -353,7 +351,8 @@ void APRPlayerController::HandleMatchFlowStateChanged(EMatchFlowState NewState)
 	switch (NewState)
 	{
 	case EMatchFlowState::WaitingToStart:
-		OnWaitStart();
+		UIManager->RemoveWidget(EWidgetCategory::Loading);
+		UIManager->ShowWidget(EWidgetCategory::MatchHUD);
 		break;
 	case EMatchFlowState::MatchInProgress:
 		UIManager->RemoveWidget(EWidgetCategory::MatchHUD);
@@ -367,28 +366,6 @@ void APRPlayerController::HandleMatchFlowStateChanged(EMatchFlowState NewState)
 		UIManager->RemoveAllWidgetControllers();
 		break;
 	}
-}
-
-void APRPlayerController::Client_OnTwentySecondsLeft_Implementation()
-{
-	if (!IsLocalController()) return;
-
-	UUIManager* UIManager = GetGameInstance()->GetSubsystem<UUIManager>();
-	if (!UIManager) return;
-
-	UIManager->RemoveWidget(EWidgetCategory::Loading);
-	UIManager->ShowWidget(EWidgetCategory::MatchHUD);
-}
-
-void APRPlayerController::OnWaitStart()
-{
-	if (!IsLocalController()) return;
-	
-	UUIManager* UIManager = GetGameInstance()->GetSubsystem<UUIManager>();
-	if (!UIManager) return;
-
-	UIManager->RemoveAllWidgets();
-	UIManager->ShowWidget(EWidgetCategory::Loading);
 }
 
 /*
