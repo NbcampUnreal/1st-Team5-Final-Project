@@ -131,6 +131,7 @@ void UBaseAreaEffectAbility::ApplyEffectToActorsWithinRadius()
 	{
 		QueryParams.AddIgnoredActor(GetAvatarActorFromActorInfo());	
 	}
+	QueryParams.bTraceIntoSubComponents = false;
 	
 	bool bHit = GetWorld()->OverlapMultiByObjectType(
 		Overlaps,
@@ -143,19 +144,37 @@ void UBaseAreaEffectAbility::ApplyEffectToActorsWithinRadius()
 	
 	if (bHit)
 	{
-		FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(EffectToApplyToOverlapActors, GetAbilityLevel());
+		UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo();
+		if (!SourceASC) return;
+
+		TSet<AActor*> UniqueActors;
+		
 		for (const FOverlapResult& Result : Overlaps)
 		{
 			if (AActor* Actor = Result.GetActor())
 			{
-				if (!UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Actor)) continue;
+				if (UniqueActors.Contains(Actor)) continue;
+				UniqueActors.Add(Actor);
 				
-				ApplyGameplayEffectSpecToTarget(
+				if (UAbilitySystemComponent* TargetASC =
+					UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Actor))
+				{
+					FGameplayEffectContextHandle ContextHandle = SourceASC->MakeEffectContext();
+					ContextHandle.AddOrigin(Actor->GetActorLocation());
+					FGameplayEffectSpecHandle SpecHandle = SourceASC->MakeOutgoingSpec(
+						EffectToApplyToOverlapActors, GetAbilityLevel(), ContextHandle);
+					SourceASC->ApplyGameplayEffectSpecToTarget(
+						*SpecHandle.Data.Get(),
+						TargetASC
+					);
+				/*ApplyGameplayEffectSpecToTarget(
 					GetCurrentAbilitySpecHandle(),
 					GetCurrentActorInfo(),
 					GetCurrentActivationInfo(),
 					SpecHandle,
-					UAbilitySystemBlueprintLibrary::AbilityTargetDataFromActor(Actor));	
+					UAbilitySystemBlueprintLibrary::AbilityTargetDataFromActor(Actor));*/	
+				}
+				
 			}
 		}
 	}

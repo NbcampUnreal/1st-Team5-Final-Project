@@ -49,7 +49,6 @@ void UBaseDamageGameplayAbility::CauseDamage(AActor* TargetActor, bool bIsBackAt
 
 		FGameplayEffectSpecHandle DamageEffectSpecHandle = MakeOutgoingGameplayEffectSpec(
 			DamageEffectClass, GetAbilityLevel());
-		
 
 		float ScaledDamage = Damage.GetValueAtLevel(GetAbilityLevel());
 		
