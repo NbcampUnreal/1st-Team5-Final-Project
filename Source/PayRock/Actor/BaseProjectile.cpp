@@ -66,7 +66,7 @@ void ABaseProjectile::Destroyed()
 	Super::Destroyed();
 }
 
-void ABaseProjectile::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+void ABaseProjectile::OnSphereOverlap_Implementation(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
                                       UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (bHit || SourceActor == OtherActor) return;

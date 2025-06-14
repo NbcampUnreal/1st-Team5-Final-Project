@@ -285,6 +285,12 @@ public:
 
 	void Landed(const FHitResult& Hit);
 
+	UFUNCTION(Server, Reliable)
+	void ServerPlayAttackSound(USoundBase* Sound, FVector Location);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastPlayAttackSound(USoundBase* Sound, FVector Location);
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void AddCharacterAbilities() override;
