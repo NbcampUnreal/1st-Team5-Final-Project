@@ -48,10 +48,18 @@ void UBaseDamageGameplayAbility::CauseDamage(AActor* TargetActor, const FHitResu
 	 *	Initial damage modification
 	 */
 	float ScaledDamage = Damage.GetValueAtLevel(GetAbilityLevel());
+	
+	// check guard status
+	if (TargetASC->HasMatchingGameplayTag(FPRGameplayTags::Get().Ability_Guard))
+    {
+    	// TODO : activate "attack fail" GA on SourceASC / "parry success" GA on TargetASC and return
+		UE_LOG(LogTemp, Warning, TEXT("GUARD SUCCESS!"))
+		return;
+    }
 
 	// monster-monster damage
 	bool bIsMonsterToMonster = GetAvatarActorFromActorInfo()->IsA(AEnemyCharacter::StaticClass()) &&
-						   TargetActor->IsA(AEnemyCharacter::StaticClass());
+		TargetActor->IsA(AEnemyCharacter::StaticClass());
 	if (bIsMonsterToMonster)
 	{
 		ScaledDamage *= 0.5f;
@@ -63,7 +71,6 @@ void UBaseDamageGameplayAbility::CauseDamage(AActor* TargetActor, const FHitResu
 		float ComboMultiplier = DamageMultipliersPerMontage.IsValidIndex(MontageIndex)
 			? DamageMultipliersPerMontage[MontageIndex]
 			: DefaultComboMultiplier;
-
 		ScaledDamage *= ComboMultiplier;
 	}
 
@@ -79,6 +86,7 @@ void UBaseDamageGameplayAbility::CauseDamage(AActor* TargetActor, const FHitResu
 	FGameplayEffectContextHandle ContextHandle = SourceASC->MakeEffectContext();
 	if (HitResult.bBlockingHit)
 	{
+		
 		ContextHandle.AddHitResult(HitResult);
 	}
 	FGameplayEffectSpecHandle DamageEffectSpecHandle = SourceASC->MakeOutgoingSpec(
@@ -86,6 +94,21 @@ void UBaseDamageGameplayAbility::CauseDamage(AActor* TargetActor, const FHitResu
 	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(
 		DamageEffectSpecHandle, DamageTypeTag, ScaledDamage);
 	SourceASC->ApplyGameplayEffectSpecToTarget(*DamageEffectSpecHandle.Data.Get(), TargetASC);
+
+	// DEBUG
+	if (const UPRAttributeSet* TargetAttributes = Cast<UPRAttributeSet>(
+		TargetASC->GetAttributeSet(UPRAttributeSet::StaticClass())))
+	{
+		float CurrentHP = TargetAttributes->GetHealth();
+		float MaxHP = TargetAttributes->GetMaxHealth();
+
+		UE_LOG(LogTemp, Warning, TEXT("[Damage] %s to %s | Damage: %.2f | HP: %.2f / %.2f"),
+			*GetAvatarActorFromActorInfo()->GetName(),
+			*TargetActor->GetName(),
+			ScaledDamage,
+			CurrentHP,
+			MaxHP);
+	}
 
 	// Reporting damage for AI
 	UAISense_Damage::ReportDamageEvent(
@@ -96,9 +119,7 @@ void UBaseDamageGameplayAbility::CauseDamage(AActor* TargetActor, const FHitResu
 		TargetActor->GetActorLocation(),  
 		GetAvatarActorFromActorInfo()->GetActorLocation()
 	);
-	
 }
-
 
 float UBaseDamageGameplayAbility::GetBackAttackMultiplier()
 {
