@@ -148,7 +148,7 @@ void AMukCheonWangCharacter::PerformMeleeSweep(FName SocketName, UBaseDamageGame
                 if (HitActor && !HitActors.Contains(HitActor))
                 {
                     HitActors.Add(HitActor);
-                    Ablilty->CauseDamage(HitActor);
+                    Ablilty->CauseDamage(HitActor, Hit);
                 }
             }
         }

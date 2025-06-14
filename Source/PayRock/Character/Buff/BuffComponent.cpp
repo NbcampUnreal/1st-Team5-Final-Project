@@ -22,36 +22,24 @@ void UBuffComponent::BeginPlay()
 
 void UBuffComponent::OnDebuffBlindChanged(const FGameplayTag Tag, int32 TagCount)
 {
-	if (!IsValid(OwningPRCharacter)) return;
+	if (!IsValid(OwningPRCharacter) || !OwningPRCharacter->IsLocallyControlled()) return;
 	
 	if (TagCount > 0)
 	{
-		Client_ApplyDebuffBlind();
+		if (UUIManager* UIManager = GetWorld()->GetGameInstance()->GetSubsystem<UUIManager>())
+		{
+			UIManager->ShowWidget(EWidgetCategory::Blind);
+		}
 	}
 	else
 	{
-		Client_RemoveDebuffBlind();
+		if (UUIManager* UIManager = GetWorld()->GetGameInstance()->GetSubsystem<UUIManager>())
+		{
+			UIManager->RemoveWidget(EWidgetCategory::Blind);
+		}
 	}
 	/* TODO: broadcast application/removal of debuff */
 }
 
-void UBuffComponent::Client_ApplyDebuffBlind_Implementation()
-{
-	if (!OwningPRCharacter->IsLocallyControlled()) return;
 
-	if (UUIManager* UIManager = GetWorld()->GetGameInstance()->GetSubsystem<UUIManager>())
-	{
-		UIManager->ShowWidget(EWidgetCategory::Blind);
-	}
-}
-
-void UBuffComponent::Client_RemoveDebuffBlind_Implementation()
-{
-	if (!OwningPRCharacter->IsLocallyControlled()) return;
-
-	if (UUIManager* UIManager = GetWorld()->GetGameInstance()->GetSubsystem<UUIManager>())
-	{
-		UIManager->RemoveWidget(EWidgetCategory::Blind);
-	}
-}
 

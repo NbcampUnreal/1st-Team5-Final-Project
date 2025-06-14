@@ -103,6 +103,20 @@ void ANecroCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	}
 }
 
+void ANecroCharacter::Destroyed()
+{
+	if (HasAuthority() && IsValid(AbilitySystemComponent))
+	{
+		AbilitySystemComponent->ClearAllAbilities();
+		
+		// Remove ALL active gameplay effects
+		FGameplayEffectQuery Query = FGameplayEffectQuery::MakeQuery_MatchAllEffectTags(FGameplayTagContainer());
+		AbilitySystemComponent->RemoveActiveEffects(Query);
+	}
+	
+	Super::Destroyed();
+}
+
 void ANecroCharacter::Move(const FInputActionValue& Value)
 {
 	if (!Controller) return;

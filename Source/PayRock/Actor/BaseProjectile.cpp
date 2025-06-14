@@ -2,6 +2,10 @@
 
 
 #include "BaseProjectile.h"
+
+#include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystemComponent.h"
+#include "GameplayCueNotifyTypes.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/SphereComponent.h"
@@ -75,7 +79,23 @@ void ABaseProjectile::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, 
 	{
 		if (UBaseDamageGameplayAbility* DamageAbility = Cast<UBaseDamageGameplayAbility>(SourceAbility))
 		{
-			DamageAbility->CauseDamage(OtherActor);
+			DamageAbility->CauseDamage(OtherActor, SweepResult);
+		}
+
+		if (IsValid(AdditionalEffectToApply))
+		{
+			UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(SourceActor);
+			UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor);
+			if (!IsValid(TargetASC) || !IsValid(SourceASC)) return;
+			
+			FGameplayEffectContextHandle ContextHandle = SourceASC->MakeEffectContext();
+			if (SweepResult.bBlockingHit)
+			{
+				ContextHandle.AddHitResult(SweepResult);
+			}
+			FGameplayEffectSpecHandle SpecHandle = SourceASC->MakeOutgoingSpec(
+				AdditionalEffectToApply, 1.f, ContextHandle);
+			SourceASC->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(), TargetASC);
 		}
 		Destroy();
 	}

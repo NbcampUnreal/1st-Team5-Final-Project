@@ -22,11 +22,6 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-	
-	UFUNCTION(Client, Reliable)
-	void Client_ApplyDebuffBlind();
-	UFUNCTION(Client, Reliable)
-	void Client_RemoveDebuffBlind();
 
 private:
 	UPROPERTY()

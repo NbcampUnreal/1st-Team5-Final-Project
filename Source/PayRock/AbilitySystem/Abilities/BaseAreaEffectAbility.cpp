@@ -174,7 +174,6 @@ void UBaseAreaEffectAbility::ApplyEffectToActorsWithinRadius()
 					SpecHandle,
 					UAbilitySystemBlueprintLibrary::AbilityTargetDataFromActor(Actor));*/	
 				}
-				
 			}
 		}
 	}
