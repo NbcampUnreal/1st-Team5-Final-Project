@@ -16,7 +16,7 @@ public:
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 	
 	UFUNCTION(BlueprintCallable)
-	void CauseDamage(AActor* TargetActor, bool bIsBackAttack = false /*, const FHitResult& HitResult*/);
+	void CauseDamage(AActor* TargetActor, const FHitResult& HitResult, bool bIsBackAttack = false);
 
 	
 protected:

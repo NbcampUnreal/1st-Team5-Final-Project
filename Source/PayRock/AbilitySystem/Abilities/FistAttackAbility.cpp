@@ -54,7 +54,7 @@ void UFistAttackAbility::OnFistOverlap(UPrimitiveComponent* OverlappedComponent,
 		HasAuthorityOrPredictionKey(GetCurrentActorInfo(), &GetCurrentActivationInfoRef()))
 	{
 		bHit = true;
-		CauseDamage(OtherActor, bIsBackAttack);
+		CauseDamage(OtherActor, SweepResult, bIsBackAttack);
 	}
 }
 

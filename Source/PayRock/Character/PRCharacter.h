@@ -132,12 +132,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Movement|Interp")
 	float SpeedInterpRateWalk = 3.f;
 
-
-	UPROPERTY(EditDefaultsOnly, Category = "Abilities")
-	TSubclassOf<UGameplayAbility> GA_UseHealItemClass;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Blessing")
 	class UBlessingComponent* BlessingComponent;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Blessing")
+	class UBuffComponent* BuffComponent;
 
 	// Mouse Sensitivity
 	UPROPERTY(EditAnywhere, Category = "Input")

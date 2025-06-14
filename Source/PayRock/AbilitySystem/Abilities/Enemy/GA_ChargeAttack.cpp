@@ -119,7 +119,7 @@ void UGA_ChargeAttack::DoChargeSweep()
 			if (HitActor && !HitActors.Contains(HitActor))
 			{
 				HitActors.Add(HitActor);
-				CauseDamage(HitActor);
+				CauseDamage(HitActor, Hit);
 			}
 		}
 	}

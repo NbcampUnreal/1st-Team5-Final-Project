@@ -74,6 +74,9 @@ public:
 	FGameplayTag Status_Buff_LifeSteal;
 
 	FGameplayTag Status_Debuff_Poison;
+	FGameplayTag Status_Debuff_Blind;
+
+	FGameplayTag Status_Necro_Visible;
 
 	FGameplayTag Ability_Blessing_Cooldown;
 
