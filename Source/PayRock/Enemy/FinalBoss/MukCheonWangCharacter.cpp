@@ -111,6 +111,7 @@ void AMukCheonWangCharacter::Tick(float DeltaTime)
 void AMukCheonWangCharacter::ToggleVisibleChairMesh(bool isActive)
 {
     ChairMesh->SetVisibility(isActive);
+    bIsSit = isActive;
 }
 
 void AMukCheonWangCharacter::PerformMeleeSweep(FName SocketName, UBaseDamageGameplayAbility* Ablilty)
@@ -164,7 +165,27 @@ void AMukCheonWangCharacter::PerformMeleeSweep(FName SocketName, UBaseDamageGame
 void AMukCheonWangCharacter::ClearHitActors()
 {
     HitActors.Empty();
-   
+    GetWorld()->GetTimerManager().ClearTimer(MeleeSweepTimerHandle);
+}
+
+void AMukCheonWangCharacter::StartMeleeAttack(FName SocketName, UBaseDamageGameplayAbility* Ablilty)
+{
+    ActiveSocketName = SocketName;
+
+    ClearHitActors(); 
+
+    GetWorld()->GetTimerManager().SetTimer(
+        MeleeSweepTimerHandle,
+        this,
+        &AMukCheonWangCharacter::PerformMeleeSweep_Internal,
+        0.1f,
+        true
+    );
+}
+
+void AMukCheonWangCharacter::PerformMeleeSweep_Internal()
+{
+    PerformMeleeSweep(ActiveSocketName, CurrentAbilityRef);
 }
 
 void AMukCheonWangCharacter::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)

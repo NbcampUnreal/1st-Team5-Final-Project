@@ -9,6 +9,7 @@
 #include "Perception/AIPerceptionTypes.h"
 #include "MukCheonWangCharacter.generated.h"
 
+class UBaseDamageGameplayAbility;
 class UAIPerceptionComponent;
 class UAISenseConfig_Sight;
 class UAISenseConfig_Hearing;
@@ -89,12 +90,22 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Combat")
 	float AttackDamage = 30.f;
 
+	FTimerHandle MeleeSweepTimerHandle;
 public:
 	UFUNCTION(BlueprintCallable, Category = "Combat")
 	void PerformMeleeSweep(FName SocketName, UBaseDamageGameplayAbility* Ablilty);
 
 	UFUNCTION(BlueprintCallable, Category = "Combat")
 	void ClearHitActors();
+
+	UFUNCTION(BlueprintCallable, Category = "Combat")
+	void StartMeleeAttack(FName SocketName, UBaseDamageGameplayAbility* Ablilty);
+
+	void PerformMeleeSweep_Internal();
+	
+	FName ActiveSocketName;
+	UBaseDamageGameplayAbility* CurrentAbilityRef;
+
 	
 //endregion
 
