@@ -19,21 +19,25 @@ public:
 	UBuffComponent();
 
 	UFUNCTION()
-	void OnDebuffBlindChanged(const FGameplayTag Tag, int32 TagCount);
+	void OnBlindTagChange(const FGameplayTag Tag, int32 TagCount);
 	UFUNCTION()
-	void OnDebuffKnockbackChanged(const FGameplayTag Tag, int32 TagCount);
+	void OnKnockbackTagChange(const FGameplayTag Tag, int32 TagCount);
+	UFUNCTION()
+	void OnFrozenTagChange(const FGameplayTag Tag, int32 TagCount);
+	UFUNCTION()
+	void OnShockedTagChange(const FGameplayTag Tag, int32 TagCount);
 
 protected:
 	virtual void BeginPlay() override;
 
-	UFUNCTION(NetMulticast, Unreliable)
-	void Multicast_ReactToTagChange(const FGameplayTag& Tag, int32 TagCount);
-	UFUNCTION()
-	void DisableMovement();
-	UFUNCTION()
-	void EnableMovement();
-
 private:
+	UFUNCTION(Client, Unreliable)
+	void Client_BroadcastTagChange(const FGameplayTag& Tag, int32 TagCount);
+	
+	void DisableMovement();
+	void EnableMovement();
+	void CancelActiveAbilities();
+	
 	UPROPERTY()
 	APRCharacter* OwningPRCharacter;
 

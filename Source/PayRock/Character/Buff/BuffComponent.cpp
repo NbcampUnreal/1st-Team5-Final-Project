@@ -21,7 +21,7 @@ void UBuffComponent::BeginPlay()
 	OwningPRCharacter = Cast<APRCharacter>(GetOwner());
 }
 
-void UBuffComponent::OnDebuffBlindChanged(const FGameplayTag Tag, int32 TagCount)
+void UBuffComponent::OnBlindTagChange(const FGameplayTag Tag, int32 TagCount)
 {
 	if (!IsValid(OwningPRCharacter) || !OwningPRCharacter->IsLocallyControlled()) return;
 	
@@ -39,9 +39,11 @@ void UBuffComponent::OnDebuffBlindChanged(const FGameplayTag Tag, int32 TagCount
 			UIManager->RemoveWidget(EWidgetCategory::Blind);
 		}
 	}
+
+	Client_BroadcastTagChange(Tag, TagCount > 0);
 }
 
-void UBuffComponent::OnDebuffKnockbackChanged(const FGameplayTag Tag, int32 TagCount)
+void UBuffComponent::OnKnockbackTagChange(const FGameplayTag Tag, int32 TagCount)
 {
 	if (!IsValid(OwningPRCharacter)) return;
 
@@ -56,51 +58,72 @@ void UBuffComponent::OnDebuffKnockbackChanged(const FGameplayTag Tag, int32 TagC
 
 		OwningPRCharacter->LaunchCharacter(LaunchVelocity, true, true);
 	}
-	
-	if (OwningPRCharacter->HasAuthority())
-	{
-		Multicast_ReactToTagChange(Tag, TagCount > 0);
-	}
+
+	Client_BroadcastTagChange(Tag, TagCount > 0);
 }
 
-void UBuffComponent::Multicast_ReactToTagChange_Implementation(const FGameplayTag& Tag, int32 TagCount)
+void UBuffComponent::OnFrozenTagChange(const FGameplayTag Tag, int32 TagCount)
 {
 	if (!IsValid(OwningPRCharacter)) return;
 
-	/*
-	 *	Broadcast for UI
-	 */
-	if (OwningPRCharacter->IsLocallyControlled())
-	{
-		//...
-	}
+	USkeletalMeshComponent* Mesh = OwningPRCharacter->GetMesh();
+	if (!IsValid(Mesh)) return;
+	UAnimInstance* AnimInstance = Mesh->GetAnimInstance();
+	if (!IsValid(AnimInstance)) return;
 	
-	/*
-	 *	Play React Montage from data asset or Stop if not newly applied
-	 */
 	if (TagCount > 0)
 	{
+		AnimInstance->Montage_Pause();
+		Mesh->bPauseAnims = true;
+		CancelActiveAbilities();
+		DisableMovement();
+	}
+	else
+	{
+		AnimInstance->Montage_Resume(nullptr);
+		Mesh->bPauseAnims = false;
+		EnableMovement();
+	}
+
+	Client_BroadcastTagChange(Tag, TagCount > 0);
+}
+
+void UBuffComponent::OnShockedTagChange(const FGameplayTag Tag, int32 TagCount)
+{
+	if (TagCount > 0)
+	{
+		CancelActiveAbilities();
+		DisableMovement();
+		
 		USaveDataSubsystem* Subsystem = GetWorld()->GetGameInstance()->GetSubsystem<USaveDataSubsystem>();
 		if (!Subsystem) return;
 		const UBuffDataAsset* BuffData = Subsystem->GetBuffDataAsset();
 		if (!BuffData) return;
 		UAnimMontage* Montage = BuffData->GetReactMontageByTag(Tag);
 		if (!Montage) return;
-		OwningPRCharacter->PlayAnimMontage(Montage);
-		DisableMovement();
+		float Duration = OwningPRCharacter->PlayAnimMontage(Montage);
 	}
 	else
 	{
 		OwningPRCharacter->StopAnimMontage();
 		EnableMovement();
 	}
+
+	Client_BroadcastTagChange(Tag, TagCount > 0);
+}
+
+void UBuffComponent::Client_BroadcastTagChange_Implementation(const FGameplayTag& Tag, int32 TagCount)
+{
+	if (!IsValid(OwningPRCharacter)) return;
+	
+	if (OwningPRCharacter->IsLocallyControlled())
+	{
+		// Broadcast for UI
+	}
 }
 
 void UBuffComponent::DisableMovement()
 {
-	/*
-	 *	Disable movement for the duration of montage / set timer to re-enable movement
-	 */
 	UCharacterMovementComponent* Movement = OwningPRCharacter->GetCharacterMovement();
 	if (!Movement) return;
 	Movement->StopMovementImmediately();
@@ -112,6 +135,15 @@ void UBuffComponent::EnableMovement()
 	UCharacterMovementComponent* Movement = OwningPRCharacter->GetCharacterMovement();
 	if (!Movement) return;
 	Movement->SetMovementMode(MOVE_Walking); 
+}
+
+void UBuffComponent::CancelActiveAbilities()
+{
+	if (!IsValid(OwningPRCharacter)) return;
+	UAbilitySystemComponent* AbilitySystemComponent = OwningPRCharacter->GetAbilitySystemComponent();
+	if (!IsValid(AbilitySystemComponent)) return;
+	
+	AbilitySystemComponent->CancelAllAbilities();
 }
 
 
