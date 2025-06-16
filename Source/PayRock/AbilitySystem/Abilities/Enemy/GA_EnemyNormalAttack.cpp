@@ -54,7 +54,7 @@ void UGA_EnemyNormalAttack::OnWeaponOverlap(UPrimitiveComponent* OverlappedCompo
 	if (GetAvatarActorFromActorInfo()->HasAuthority())
 	{
 		bHit = true;
-		CauseDamage(OtherActor);
+		CauseDamage(OtherActor, SweepResult);
 	}
 }
 

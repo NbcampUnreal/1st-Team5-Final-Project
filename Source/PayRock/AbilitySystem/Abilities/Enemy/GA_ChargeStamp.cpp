@@ -112,7 +112,7 @@ void UGA_ChargeStamp::ApplyStampDamage(ACharacter* Avatar)
 	{
 		if (FVector::Dist(Target->GetActorLocation(), Avatar->GetActorLocation()) <= DamageRadius)
 		{
-			CauseDamage(Target);
+			CauseDamage(Target, HitResult);
 		}
 	}
 	if (AGeneralSkyCharacter* Enemy = Cast<AGeneralSkyCharacter>(Avatar))

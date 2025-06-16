@@ -35,84 +35,91 @@ void UBaseDamageGameplayAbility::EndAbility(const FGameplayAbilitySpecHandle Han
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
-void UBaseDamageGameplayAbility::CauseDamage(AActor* TargetActor, bool bIsBackAttack)
+void UBaseDamageGameplayAbility::CauseDamage(AActor* TargetActor, const FHitResult& HitResult, bool bIsBackAttack)
 {
 	if (!IsValid(GetAvatarActorFromActorInfo())) return;
 	if (!GetAvatarActorFromActorInfo()->HasAuthority()) return;
+	if (!IsValid(DamageEffectClass)) return;
 
-	//++Debug log
-	if (TargetActor)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[Damage] Hit Target: %s"), *TargetActor->GetName());
-	}
+	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor);
+	UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo();
+	if (!IsValid(SourceASC) || !IsValid(TargetASC)) return;
+	/*
+	 *	Initial damage modification
+	 */
+	float ScaledDamage = Damage.GetValueAtLevel(GetAbilityLevel());
 	
+	// check guard status
+	if (TargetASC->HasMatchingGameplayTag(FPRGameplayTags::Get().Ability_Guard))
+    {
+    	// TODO : activate "attack fail" GA on SourceASC / "parry success" GA on TargetASC and return
+		UE_LOG(LogTemp, Warning, TEXT("GUARD SUCCESS!"))
+		return;
+    }
+
+	// monster-monster damage
 	bool bIsMonsterToMonster = GetAvatarActorFromActorInfo()->IsA(AEnemyCharacter::StaticClass()) &&
-						   TargetActor->IsA(AEnemyCharacter::StaticClass());
-
-	if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor))
+		TargetActor->IsA(AEnemyCharacter::StaticClass());
+	if (bIsMonsterToMonster)
 	{
-		UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-
-		FGameplayEffectSpecHandle DamageEffectSpecHandle = MakeOutgoingGameplayEffectSpec(
-			DamageEffectClass, GetAbilityLevel());
-		
-		float ScaledDamage = Damage.GetValueAtLevel(GetAbilityLevel());
-
-		if (TargetASC->HasMatchingGameplayTag(FPRGameplayTags::Get().Ability_Guard))
-		{
-			ScaledDamage = 0.f;
-		}
-		
-		if (bIsMonsterToMonster)
-		{
-			ScaledDamage *= 0.5f;
-		}
-		
-
-		if (bUseComboDamageMultiplier)
-		{
-			float ComboMultiplier = DamageMultipliersPerMontage.IsValidIndex(MontageIndex)
-				? DamageMultipliersPerMontage[MontageIndex]
-				: DefaultComboMultiplier;
-
-			ScaledDamage *= ComboMultiplier;
-		}
-
-		float BackAttackMultiplier = 0.f;
-		if (bIsBackAttack && ASC->HasMatchingGameplayTag(FPRGameplayTags::Get().Status_Buff_BackAttack))
-		{
-			BackAttackMultiplier = GetBackAttackMultiplier();
-		}
-		ScaledDamage *= (1.f + BackAttackMultiplier);
-		
-		UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(
-			DamageEffectSpecHandle, DamageTypeTag, ScaledDamage);
-		ASC->ApplyGameplayEffectSpecToTarget(*DamageEffectSpecHandle.Data.Get(), TargetASC);
-
-		if (const UPRAttributeSet* TargetAttributes = Cast<UPRAttributeSet>(TargetASC->GetAttributeSet(UPRAttributeSet::StaticClass())))
-		{
-			float CurrentHP = TargetAttributes->GetHealth();
-			float MaxHP = TargetAttributes->GetMaxHealth();
-
-			UE_LOG(LogTemp, Warning, TEXT("[Damage] %s ¡æ %s | Damage: %.2f | HP: %.2f / %.2f"),
-				*GetAvatarActorFromActorInfo()->GetName(),
-				*TargetActor->GetName(),
-				ScaledDamage,
-				CurrentHP,
-				MaxHP);
-		}
-
-		UAISense_Damage::ReportDamageEvent(
-			GetWorld(),
-			TargetActor,
-			GetAvatarActorFromActorInfo(),
-			ScaledDamage,
-			TargetActor->GetActorLocation(),  
-			GetAvatarActorFromActorInfo()->GetActorLocation()
-		);
+		ScaledDamage *= 0.5f;
 	}
-}
 
+	// combo damage
+	if (bUseComboDamageMultiplier)
+	{
+		float ComboMultiplier = DamageMultipliersPerMontage.IsValidIndex(MontageIndex)
+			? DamageMultipliersPerMontage[MontageIndex]
+			: DefaultComboMultiplier;
+		ScaledDamage *= ComboMultiplier;
+	}
+
+	// back attack damage buff
+	float BackAttackMultiplier = 0.f;
+	if (bIsBackAttack && SourceASC->HasMatchingGameplayTag(FPRGameplayTags::Get().Status_Buff_BackAttack))
+	{
+		BackAttackMultiplier = GetBackAttackMultiplier();
+	}
+	ScaledDamage *= (1.f + BackAttackMultiplier);
+
+	// Adding HitResult to EffectContext and apply damage SetByCaller GE
+	FGameplayEffectContextHandle ContextHandle = SourceASC->MakeEffectContext();
+	if (HitResult.bBlockingHit)
+	{
+		
+		ContextHandle.AddHitResult(HitResult);
+	}
+	FGameplayEffectSpecHandle DamageEffectSpecHandle = SourceASC->MakeOutgoingSpec(
+		DamageEffectClass, GetAbilityLevel(), ContextHandle);
+	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(
+		DamageEffectSpecHandle, DamageTypeTag, ScaledDamage);
+	SourceASC->ApplyGameplayEffectSpecToTarget(*DamageEffectSpecHandle.Data.Get(), TargetASC);
+
+	// DEBUG
+	if (const UPRAttributeSet* TargetAttributes = Cast<UPRAttributeSet>(
+		TargetASC->GetAttributeSet(UPRAttributeSet::StaticClass())))
+	{
+		float CurrentHP = TargetAttributes->GetHealth();
+		float MaxHP = TargetAttributes->GetMaxHealth();
+
+		UE_LOG(LogTemp, Warning, TEXT("[Damage] %s to %s | Damage: %.2f | HP: %.2f / %.2f"),
+			*GetAvatarActorFromActorInfo()->GetName(),
+			*TargetActor->GetName(),
+			ScaledDamage,
+			CurrentHP,
+			MaxHP);
+	}
+
+	// Reporting damage for AI
+	UAISense_Damage::ReportDamageEvent(
+		GetWorld(),
+		TargetActor,
+		GetAvatarActorFromActorInfo(),
+		ScaledDamage,
+		TargetActor->GetActorLocation(),  
+		GetAvatarActorFromActorInfo()->GetActorLocation()
+	);
+}
 
 float UBaseDamageGameplayAbility::GetBackAttackMultiplier()
 {

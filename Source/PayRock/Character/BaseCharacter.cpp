@@ -61,8 +61,9 @@ void ABaseCharacter::Die(FVector HitDirection)
 	GetCharacterMovement()->DisableMovement();
 	GetCharacterMovement()->StopMovementImmediately();
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-	if (HasAuthority())
+	if (HasAuthority() && IsValid(GetAbilitySystemComponent()))
 	{
 		GetAbilitySystemComponent()->ClearAllAbilities();
 		

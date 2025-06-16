@@ -7,6 +7,7 @@
 #include "GameFramework/Actor.h"
 #include "BaseProjectile.generated.h"
 
+class UGameplayEffect;
 class UNiagaraSystem;
 class UNiagaraComponent;
 class USphereComponent;
@@ -62,6 +63,9 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<USoundBase> ImpactSound;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UGameplayEffect> AdditionalEffectToApply;
 
 	UPROPERTY(EditDefaultsOnly)
 	float ProjectileSpeed = 550.f;
