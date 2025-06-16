@@ -1,6 +1,8 @@
 // PayRockGames
 
 #include "PRCharacter.h"
+#include "TimerManager.h"
+#include "Engine/World.h"
 #include "Net/UnrealNetwork.h"
 #include "DrawDebugHelpers.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -25,6 +27,8 @@
 APRCharacter::APRCharacter()
 {
     PrimaryActorTick.bCanEverTick = true;
+
+    CharacterType = ECharacterType::PlayerCharacter;
 
     GetCharacterMovement()->bOrientRotationToMovement = false;
     GetCharacterMovement()->RotationRate = FRotator(0, 400.f, 0);
@@ -108,6 +112,34 @@ void APRCharacter::BeginPlay()
     LeftHandCollisionComp->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Overlap);
     LeftHandCollisionComp->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
     LeftHandCollisionComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+}
+
+void APRCharacter::PlayHitCameraShake()
+{
+    if (!IsLocallyControlled() || !SpringArmComp) return;
+
+    const float ShakeAmount = 5.f;
+    const float ShakeTime = 0.1f;
+
+    // 랜덤 회전 흔들기
+    FRotator OriginalRot = SpringArmComp->GetRelativeRotation();
+    FRotator RandomRot = OriginalRot + FRotator(
+        FMath::FRandRange(-ShakeAmount, ShakeAmount),
+        FMath::FRandRange(-ShakeAmount, ShakeAmount),
+        0.f
+    );
+
+    // 즉시 적용 후, 타이머로 되돌리기
+    SpringArmComp->SetRelativeRotation(RandomRot);
+
+    FTimerHandle ShakeTimerHandle;
+    GetWorld()->GetTimerManager().SetTimer(ShakeTimerHandle, [this, OriginalRot]()
+        {
+            if (SpringArmComp)
+            {
+                SpringArmComp->SetRelativeRotation(OriginalRot);
+            }
+        }, ShakeTime, false);
 }
 
 void APRCharacter::PossessedBy(AController* NewController)

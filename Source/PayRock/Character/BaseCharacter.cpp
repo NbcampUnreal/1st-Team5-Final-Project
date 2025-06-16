@@ -6,6 +6,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "PayRock/PRGameplayTags.h"
 #include "PayRock/Enemy/SpecialEnemy/MarketClown/MarketClownMonster.h"
+#include "CombatInterface.h"
 
 ABaseCharacter::ABaseCharacter()
 {
@@ -180,3 +181,89 @@ void ABaseCharacter::InitializeDefaultAttributes()
 	bAreAttributesInitialized = true;
 }
 
+USoundBase* ABaseCharacter::GetHitSound_Implementation() const
+{
+	switch (CharacterType)
+	{
+	case ECharacterType::PlayerCharacter:
+		return PlayerHitSound;
+
+	case ECharacterType::DefaultMonster:
+		return DefaultMonsterHitSound;
+
+	case ECharacterType::JangSanTiger:
+		return JangSanTigerHitSound;
+
+	case ECharacterType::Kappa:
+		return KappaHitSound;
+
+	case ECharacterType::MarketClown:
+		return MarketClownHitSound;
+
+	case ECharacterType::OneEyed:
+		return OneEyedHitSound;
+
+	case ECharacterType::Samurai:
+		return SamuraiHitSound;
+
+	case ECharacterType::SamuraiStatue:
+		return SamuraiStatueHitSound;
+
+	case ECharacterType::Skeleton:
+		return SkeletonHitSound;
+
+	case ECharacterType::Doggebi:
+		return DoggebiHitSound;
+
+	case ECharacterType::Boss:
+		return BossHitSound;
+
+	default:
+		return DefaultHitSound;
+	}
+}
+
+USoundAttenuation* ABaseCharacter::GetHitSoundAttenuation_Implementation() const
+{
+	return HitSoundAttenuation;
+}
+
+USoundBase* ABaseCharacter::GetLocalOnlyHitSound_Implementation() const
+{
+	if (CharacterType == ECharacterType::PlayerCharacter)
+	{
+		return LocalOnlyHitSound;
+	}
+	return nullptr;
+}
+
+bool ABaseCharacter::IsPlayerCharacter() const
+{
+	return CharacterType == ECharacterType::PlayerCharacter;
+}
+
+bool ABaseCharacter::IsBoss() const
+{
+	return CharacterType == ECharacterType::Boss;
+}
+
+bool ABaseCharacter::IsMonster() const
+{
+	switch (CharacterType)
+	{
+	case ECharacterType::DefaultMonster:
+	case ECharacterType::JangSanTiger:
+	case ECharacterType::Kappa:
+	case ECharacterType::MarketClown:
+	case ECharacterType::OneEyed:
+	case ECharacterType::Samurai:
+	case ECharacterType::SamuraiStatue:
+	case ECharacterType::Skeleton:
+	case ECharacterType::Doggebi:
+	case ECharacterType::Boss:
+		return true;
+
+	default:
+		return false;
+	}
+}

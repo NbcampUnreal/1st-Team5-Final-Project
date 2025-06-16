@@ -3,6 +3,13 @@
 
 #include "HitReactAbility.h"
 #include "PayRock/AbilitySystem/PRAbilitySystemComponent.h"
+#include "AbilitySystemComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundBase.h"
+#include "Sound/SoundAttenuation.h"
+#include "GameFramework/Actor.h"
+#include "PayRock/Character/CombatInterface.h"
+
 
 void UHitReactAbility::ApplyHitReactEffectToOwner()
 {

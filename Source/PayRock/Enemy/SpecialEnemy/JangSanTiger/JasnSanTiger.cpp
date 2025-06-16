@@ -11,6 +11,7 @@ AJasnSanTiger::AJasnSanTiger()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
+	CharacterType = ECharacterType::JangSanTiger;
 
 	ChargeCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("ChargeCollision"));
 	ChargeCollision->SetupAttachment(GetMesh(),"CollisionSocket");

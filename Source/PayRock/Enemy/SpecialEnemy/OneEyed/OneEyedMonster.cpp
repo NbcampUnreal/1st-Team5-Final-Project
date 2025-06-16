@@ -7,6 +7,8 @@
 
 AOneEyedMonster::AOneEyedMonster()
 {
+	CharacterType = ECharacterType::OneEyed;
+
 	AIControllerClass = AOneEyedMonsterController::StaticClass();
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 

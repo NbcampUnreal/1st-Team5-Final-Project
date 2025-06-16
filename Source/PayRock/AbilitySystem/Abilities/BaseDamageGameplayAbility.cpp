@@ -39,6 +39,12 @@ void UBaseDamageGameplayAbility::CauseDamage(AActor* TargetActor, bool bIsBackAt
 {
 	if (!IsValid(GetAvatarActorFromActorInfo())) return;
 	if (!GetAvatarActorFromActorInfo()->HasAuthority()) return;
+
+	//++Debug log
+	if (TargetActor)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[Damage] Hit Target: %s"), *TargetActor->GetName());
+	}
 	
 	bool bIsMonsterToMonster = GetAvatarActorFromActorInfo()->IsA(AEnemyCharacter::StaticClass()) &&
 						   TargetActor->IsA(AEnemyCharacter::StaticClass());

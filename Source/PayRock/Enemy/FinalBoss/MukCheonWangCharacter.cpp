@@ -21,6 +21,8 @@ AMukCheonWangCharacter::AMukCheonWangCharacter()
 {
     PrimaryActorTick.bCanEverTick = true;
     
+    CharacterType = ECharacterType::Boss;
+
     AIPerception = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerception"));
 
     SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("SightConfig"));

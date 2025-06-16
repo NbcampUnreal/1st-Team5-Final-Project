@@ -293,6 +293,9 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastPlayAttackSound(USoundBase* Sound, FVector Location);
 
+	UFUNCTION(BlueprintCallable, Category = "Combat")
+	void PlayHitCameraShake();
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void AddCharacterAbilities() override;
