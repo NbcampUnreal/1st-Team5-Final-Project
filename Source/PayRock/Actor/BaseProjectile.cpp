@@ -12,6 +12,7 @@
 #include "NiagaraComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "PayRock/AbilitySystem/PRAbilitySystemComponent.h"
 #include "PayRock/AbilitySystem/Abilities/BaseDamageGameplayAbility.h"
 
 ABaseProjectile::ABaseProjectile()
@@ -21,14 +22,14 @@ ABaseProjectile::ABaseProjectile()
 
 	SceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	SetRootComponent(SceneRoot);
-
-
+	
 	Sphere = CreateDefaultSubobject<USphereComponent>(TEXT("Sphere"));
 	Sphere->SetupAttachment(SceneRoot);
 
 	Sphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	Sphere->SetCollisionResponseToAllChannels(ECR_Ignore);
 	Sphere->SetCollisionObjectType(ECC_GameTraceChannel2);
+	Sphere->SetCollisionResponseToAllChannels(ECR_Ignore);
+	Sphere->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 
 	Niagara = CreateDefaultSubobject<UNiagaraComponent>(TEXT("Niagara"));
 	Niagara->SetupAttachment(SceneRoot);
@@ -74,6 +75,15 @@ void ABaseProjectile::OnSphereOverlap_Implementation(UPrimitiveComponent* Overla
 	UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation(), FRotator());
 	UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ImpactEffect, GetActorLocation(), FRotator());
 	bHit = true;
+
+	UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(SourceActor);
+	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor);
+	if (!IsValid(TargetASC) || !IsValid(SourceASC)) return;
+
+	if (UPRAbilitySystemComponent* TargetPRASC = Cast<UPRAbilitySystemComponent>(TargetASC))
+	{
+		TargetPRASC->StoredHitDirection = (OtherActor->GetActorLocation() - GetActorLocation()).GetSafeNormal();
+	}
 	
 	if (HasAuthority())
 	{
@@ -84,10 +94,6 @@ void ABaseProjectile::OnSphereOverlap_Implementation(UPrimitiveComponent* Overla
 
 		if (IsValid(AdditionalEffectToApply))
 		{
-			UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(SourceActor);
-			UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor);
-			if (!IsValid(TargetASC) || !IsValid(SourceASC)) return;
-			
 			FGameplayEffectContextHandle ContextHandle = SourceASC->MakeEffectContext();
 			if (SweepResult.bBlockingHit)
 			{
@@ -100,3 +106,4 @@ void ABaseProjectile::OnSphereOverlap_Implementation(UPrimitiveComponent* Overla
 		Destroy();
 	}
 }
+

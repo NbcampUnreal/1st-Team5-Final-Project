@@ -75,6 +75,7 @@ public:
 
 	FGameplayTag Status_Debuff_Poison;
 	FGameplayTag Status_Debuff_Blind;
+	FGameplayTag Status_Debuff_Knockback;
 
 	FGameplayTag Status_Necro_Visible;
 

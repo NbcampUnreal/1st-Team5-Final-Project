@@ -164,6 +164,9 @@ void APRCharacter::BindToTagChange()
 
     AbilitySystemComponent->RegisterGameplayTagEvent(FPRGameplayTags::Get().Status_Debuff_Blind).AddUObject(
         BuffComponent, &UBuffComponent::OnDebuffBlindChanged);
+
+    AbilitySystemComponent->RegisterGameplayTagEvent(FPRGameplayTags::Get().Status_Debuff_Knockback).AddUObject(
+        BuffComponent, &UBuffComponent::OnDebuffKnockbackChanged);
 }
 
 void APRCharacter::SetupStimuliSource()
