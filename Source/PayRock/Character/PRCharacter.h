@@ -132,12 +132,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Movement|Interp")
 	float SpeedInterpRateWalk = 3.f;
 
-
-	UPROPERTY(EditDefaultsOnly, Category = "Abilities")
-	TSubclassOf<UGameplayAbility> GA_UseHealItemClass;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Blessing")
 	class UBlessingComponent* BlessingComponent;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Blessing")
+	class UBuffComponent* BuffComponent;
 
 	// Mouse Sensitivity
 	UPROPERTY(EditAnywhere, Category = "Input")
@@ -286,6 +284,12 @@ public:
 	USoundBase* GetLandingSoundBySurface(EPhysicalSurface SurfaceType);
 
 	void Landed(const FHitResult& Hit);
+
+	UFUNCTION(Server, Reliable)
+	void ServerPlayAttackSound(USoundBase* Sound, FVector Location);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastPlayAttackSound(USoundBase* Sound, FVector Location);
 
 protected:
 	virtual void BeginPlay() override;

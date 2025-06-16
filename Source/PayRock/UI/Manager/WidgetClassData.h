@@ -18,6 +18,7 @@ enum class EWidgetCategory : uint8
 	MatchHUD,
 	InGameHUD,
 	Stat,
+	Blind,
 	MAX
 };
 

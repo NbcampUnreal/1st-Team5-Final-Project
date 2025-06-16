@@ -49,6 +49,7 @@ public:
 	FGameplayTag InputTag_3;
 	FGameplayTag InputTag_4;
 	FGameplayTag InputTag_Z;
+	FGameplayTag InputTag_G;
 
 	FGameplayTag CombatSocket_Weapon;
 	FGameplayTag CombatSocket_RightHand;
@@ -73,6 +74,9 @@ public:
 	FGameplayTag Status_Buff_LifeSteal;
 
 	FGameplayTag Status_Debuff_Poison;
+	FGameplayTag Status_Debuff_Blind;
+
+	FGameplayTag Status_Necro_Visible;
 
 	FGameplayTag Ability_Blessing_Cooldown;
 
@@ -80,6 +84,8 @@ public:
 
 	FGameplayTag Ability_Attack;
 	FGameplayTag Cooldown_Attack;
+
+	FGameplayTag Ability_Guard;
 private:
 	static FPRGameplayTags GameplayTags;
 };

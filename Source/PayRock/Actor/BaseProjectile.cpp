@@ -2,6 +2,10 @@
 
 
 #include "BaseProjectile.h"
+
+#include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystemComponent.h"
+#include "GameplayCueNotifyTypes.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/SphereComponent.h"
@@ -25,9 +29,6 @@ ABaseProjectile::ABaseProjectile()
 	Sphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	Sphere->SetCollisionResponseToAllChannels(ECR_Ignore);
 	Sphere->SetCollisionObjectType(ECC_GameTraceChannel2);
-	Sphere->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
-	Sphere->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Overlap);
-	Sphere->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 
 	Niagara = CreateDefaultSubobject<UNiagaraComponent>(TEXT("Niagara"));
 	Niagara->SetupAttachment(SceneRoot);
@@ -65,7 +66,7 @@ void ABaseProjectile::Destroyed()
 	Super::Destroyed();
 }
 
-void ABaseProjectile::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+void ABaseProjectile::OnSphereOverlap_Implementation(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
                                       UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (bHit || SourceActor == OtherActor) return;
@@ -78,7 +79,23 @@ void ABaseProjectile::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, 
 	{
 		if (UBaseDamageGameplayAbility* DamageAbility = Cast<UBaseDamageGameplayAbility>(SourceAbility))
 		{
-			DamageAbility->CauseDamage(OtherActor);
+			DamageAbility->CauseDamage(OtherActor, SweepResult);
+		}
+
+		if (IsValid(AdditionalEffectToApply))
+		{
+			UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(SourceActor);
+			UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor);
+			if (!IsValid(TargetASC) || !IsValid(SourceASC)) return;
+			
+			FGameplayEffectContextHandle ContextHandle = SourceASC->MakeEffectContext();
+			if (SweepResult.bBlockingHit)
+			{
+				ContextHandle.AddHitResult(SweepResult);
+			}
+			FGameplayEffectSpecHandle SpecHandle = SourceASC->MakeOutgoingSpec(
+				AdditionalEffectToApply, 1.f, ContextHandle);
+			SourceASC->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(), TargetASC);
 		}
 		Destroy();
 	}
