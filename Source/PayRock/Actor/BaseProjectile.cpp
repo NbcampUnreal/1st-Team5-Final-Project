@@ -29,6 +29,7 @@ ABaseProjectile::ABaseProjectile()
 	Sphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	Sphere->SetCollisionResponseToAllChannels(ECR_Ignore);
 	Sphere->SetCollisionObjectType(ECC_GameTraceChannel2);
+	Sphere->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 
 	Niagara = CreateDefaultSubobject<UNiagaraComponent>(TEXT("Niagara"));
 	Niagara->SetupAttachment(SceneRoot);
