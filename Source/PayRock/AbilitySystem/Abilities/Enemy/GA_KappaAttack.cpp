@@ -58,7 +58,7 @@ void UGA_KappaAttack::OnFistOverlap(UPrimitiveComponent* OverlappedComponent, AA
 
 	if (SelfActor->HasAuthority())
 	{
-		CauseDamage(OtherActor);
+		CauseDamage(OtherActor, SweepResult);
 	}
 }
 

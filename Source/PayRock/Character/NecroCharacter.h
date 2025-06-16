@@ -21,13 +21,14 @@ public:
 
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void OnRep_PlayerState() override;
-	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	virtual void Destroyed() override;
 
 protected:
 	virtual void BeginPlay() override;
 	virtual void InitAbilityActorInfo() override;
 	virtual void AddCharacterAbilities() override;
+	virtual void BindToTagChange() override;
 
 	UFUNCTION()
 	void Move(const FInputActionValue& Value);
@@ -47,6 +48,11 @@ protected:
 	float BaseWalkSpeed = 350.f;
 
 private:
+	UFUNCTION()
+	void OnVisibleTagChanged(const FGameplayTag Tag, int32 TagCount);
+	void InitializeMeshVisibility();
+	void InitializeOverlayMaterial();
+	
 	/*
 	 *	Ability Callback for Input Tag
 	 */
@@ -56,4 +62,7 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<UPRInputConfig> InputConfig;
+	
+	UPROPERTY()
+	TObjectPtr<UMaterialInstanceDynamic> OverlayMaterialDynamic = nullptr;
 };

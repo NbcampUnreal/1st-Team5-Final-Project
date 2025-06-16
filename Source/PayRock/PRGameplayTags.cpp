@@ -197,6 +197,16 @@ void FPRGameplayTags::InitializeNativeGameplayTags()
     GameplayTags.Status_Debuff_Poison = UGameplayTagsManager::Get().AddNativeGameplayTag(
         FName("Status.Debuff.Poison")
         );
+    GameplayTags.Status_Debuff_Blind = UGameplayTagsManager::Get().AddNativeGameplayTag(
+        FName("Status.Debuff.Blind")
+        );
+
+    /*
+     *  Necro
+     */
+    GameplayTags.Status_Necro_Visible = UGameplayTagsManager::Get().AddNativeGameplayTag(
+        FName("Status.Necro.Visible")
+        );
 
     /*
      *  Cooldown
