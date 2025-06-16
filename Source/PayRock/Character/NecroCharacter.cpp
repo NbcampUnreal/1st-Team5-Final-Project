@@ -24,7 +24,7 @@ ANecroCharacter::ANecroCharacter()
 	GetCharacterMovement()->bSnapToPlaneAtStart = true;
 	GetCharacterMovement()->bUseControllerDesiredRotation = false;
 	GetCharacterMovement()->bIgnoreClientMovementErrorChecksAndCorrection = false;
-	GetCharacterMovement()->MaxWalkSpeed = 350.f;
+	GetCharacterMovement()->MaxWalkSpeed = 300.f;
 
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = true;
@@ -39,9 +39,11 @@ ANecroCharacter::ANecroCharacter()
 	CameraComp->bUsePawnControlRotation = false;
 	GetMesh()->SetUsingAbsoluteRotation(false);
 	GetMesh()->SetRelativeRotation(FRotator(0.f, -90.f, 0.f)); // SkeletalMesh
+	GetMesh()->SetIsReplicated(true);
 
 	bReplicates = true;
 	SetReplicateMovement(true);
+	
 }
 
 void ANecroCharacter::BeginPlay()
@@ -50,42 +52,17 @@ void ANecroCharacter::BeginPlay()
 	
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECR_Ignore);
-	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Block);
+	/* TODO: Delete this! We want to go through the walls */ GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Block);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
-
+	/* TODO: ECR_Block to the Salt / Garlic item so the character can be hit */
+	
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GetMesh()->SetCollisionResponseToAllChannels(ECR_Ignore);
 }
 
-void ANecroCharacter::PossessedBy(AController* NewController)
-{
-	Super::PossessedBy(NewController);
-
-	InitAbilityActorInfo();
-}
-
-void ANecroCharacter::OnRep_PlayerState()
-{
-	Super::OnRep_PlayerState();
-
-	InitAbilityActorInfo();
-}
-
-void ANecroCharacter::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-	// MoveSpeed 어트리뷰트 반영
-	float MoveSpeed = 1.f;
-	if (UPRAttributeSet* AS = Cast<UPRAttributeSet>(GetAttributeSet()))
-	{
-		MoveSpeed = AS->GetMoveSpeed() / 100.f;
-	}
-	float NewSpeed = BaseWalkSpeed * MoveSpeed;
-	GetCharacterMovement()->MaxWalkSpeed = NewSpeed;
-}
-
-// Called to bind functionality to input
+/*
+ *	Input Binding & Movement
+ */
 void ANecroCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
@@ -126,6 +103,20 @@ void ANecroCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	}
 }
 
+void ANecroCharacter::Destroyed()
+{
+	if (HasAuthority() && IsValid(AbilitySystemComponent))
+	{
+		AbilitySystemComponent->ClearAllAbilities();
+		
+		// Remove ALL active gameplay effects
+		FGameplayEffectQuery Query = FGameplayEffectQuery::MakeQuery_MatchAllEffectTags(FGameplayTagContainer());
+		AbilitySystemComponent->RemoveActiveEffects(Query);
+	}
+	
+	Super::Destroyed();
+}
+
 void ANecroCharacter::Move(const FInputActionValue& Value)
 {
 	if (!Controller) return;
@@ -152,6 +143,59 @@ void ANecroCharacter::Look(const FInputActionValue& value)
 	AddControllerPitchInput(LookInput.Y);
 }
 
+/*
+ *	Ability System
+ */
+void ANecroCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	InitAbilityActorInfo();
+
+	InitializeMeshVisibility();
+
+	if (IsLocallyControlled())
+	{
+		InitializeOverlayMaterial();
+	}
+}
+
+void ANecroCharacter::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+
+	InitAbilityActorInfo();
+
+	InitializeMeshVisibility();
+	
+	if (IsLocallyControlled())
+	{
+		InitializeOverlayMaterial();
+	}
+}
+
+void ANecroCharacter::InitializeMeshVisibility()
+{
+	if (IsLocallyControlled())
+	{
+		GetMesh()->SetHiddenInGame(false);
+	}
+	else
+	{
+		GetMesh()->SetHiddenInGame(true);
+	}
+}
+
+void ANecroCharacter::InitializeOverlayMaterial()
+{
+	UMaterialInterface* OverlayMaterial = GetMesh()->GetOverlayMaterial();
+	if (!OverlayMaterialDynamic && OverlayMaterial)
+	{
+		OverlayMaterialDynamic = UMaterialInstanceDynamic::Create(OverlayMaterial, this);
+		GetMesh()->SetOverlayMaterial(OverlayMaterialDynamic);
+	}
+}
+
 void ANecroCharacter::InitAbilityActorInfo()
 {
 	APRPlayerState* PRPlayerState = GetPlayerState<APRPlayerState>();
@@ -167,6 +211,7 @@ void ANecroCharacter::InitAbilityActorInfo()
 
 	InitializeDefaultAttributes();
 	AddCharacterAbilities();
+	BindToTagChange();
 
 	if (IsLocallyControlled())
 	{
@@ -178,6 +223,7 @@ void ANecroCharacter::InitAbilityActorInfo()
 		if (!UIManager) return;
 		UIManager->RemoveAllWidgets();
 		UIManager->RemoveAllWidgetControllers();
+		// TODO: Show Necro HUD
 		UIManager->ShowWidget(EWidgetCategory::InGameHUD);
 	}
 }
@@ -189,6 +235,34 @@ void ANecroCharacter::AddCharacterAbilities()
 	{
 		PR_ASC->AddCharacterAbilities(DefaultAbilities);
 		PR_ASC->AddCharacterPassiveAbilities(DefaultPassiveAbilities);
+	}
+}
+
+void ANecroCharacter::BindToTagChange()
+{
+	if (IsValid(AbilitySystemComponent))
+	{
+		FGameplayTag Tag = FPRGameplayTags::Get().Status_Necro_Visible;
+		AbilitySystemComponent->RegisterGameplayTagEvent(Tag).AddUObject(
+		this, &ANecroCharacter::OnVisibleTagChanged);
+
+		OnVisibleTagChanged(Tag, 0);
+	}
+}
+
+void ANecroCharacter::OnVisibleTagChanged(const FGameplayTag Tag, int32 TagCount)
+{
+	bool bMakeVisible = TagCount > 0;
+
+	if (IsLocallyControlled() && OverlayMaterialDynamic)
+	{
+		OverlayMaterialDynamic->SetScalarParameterValue(TEXT("Exponent"),
+			bMakeVisible ? 0.0f : 3.0f);
+	}
+	
+	if (!IsLocallyControlled())
+	{
+		GetMesh()->SetHiddenInGame(!bMakeVisible);
 	}
 }
 

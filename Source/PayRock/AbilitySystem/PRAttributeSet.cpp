@@ -106,6 +106,8 @@ void UPRAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
 float UPRAttributeSet::HandleIncomingDamage(const FEffectProperties& Props, const FGameplayEffectModCallbackData& Data)
 {
 	const float LocalIncomingDamage = GetIncomingDamage();
+	if (LocalIncomingDamage <= 0.f) return 0.f;
+	
 	SetIncomingDamage(0.f);
 	const float CalculatedDamage = GetCalculatedDamage(LocalIncomingDamage, Props);
 	if (CalculatedDamage > 0.f)
@@ -152,7 +154,7 @@ float UPRAttributeSet::GetCalculatedDamage(float LocalIncomingDamage, const FEff
 {
 	// TODO: Block
 
-	if (!Props.SourceASC) return 0.f;
+	if (!Props.SourceASC || LocalIncomingDamage <= 0.f) return 0.f;
 	
 	const UPRAttributeSet* AttackerAttributeSet =
 		Cast<UPRAttributeSet>(Props.SourceASC->GetAttributeSet(UPRAttributeSet::StaticClass()));
@@ -195,6 +197,8 @@ float UPRAttributeSet::GetCalculatedDamage(float LocalIncomingDamage, const FEff
 
 void UPRAttributeSet::HandleLifeSteal(const FEffectProperties& Props, float DealtDamage)
 {
+	if (DealtDamage <= 0.f) return;
+	
 	FGameplayTag LifeStealTag = FPRGameplayTags::Get().Status_Buff_LifeSteal;
 	if (!Props.SourceASC || !Props.SourceASC->HasMatchingGameplayTag(LifeStealTag)) return;
 
@@ -229,6 +233,7 @@ void UPRAttributeSet::HandleLifeSteal(const FEffectProperties& Props, float Deal
 		FGameplayEffectContextHandle ContextHandle = Props.SourceASC->MakeEffectContext();
 		FGameplayEffectSpecHandle SpecHandle = Props.SourceASC->MakeOutgoingSpec(
 			LifeStealEffectClass, LifeStealLevel, ContextHandle);
+		// TODO : make this generic for different buffs
 		float LifeStealMultiplier = 0.2f + static_cast<float>(LifeStealLevel) * 0.1f;
 		UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(
 			SpecHandle, FPRGameplayTags::Get().Status_Buff_LifeSteal,
