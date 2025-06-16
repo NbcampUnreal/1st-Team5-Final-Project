@@ -19,6 +19,7 @@ enum class EWidgetCategory : uint8
 	InGameHUD,
 	Stat,
 	Blind,
+	Shop,
 	MAX
 };
 
