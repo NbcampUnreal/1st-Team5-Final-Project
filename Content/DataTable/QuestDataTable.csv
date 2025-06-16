@@ -1,0 +1,5 @@
+,QuestID,QuestName,QuestDescription,QuestType,TargetName,RequiredCount,RewardItem,RewardAmount
+Quest1,1,요골귀를 잡아라,주술의 희생량이 된 주민들이 변한 요골귀를 잡으시오,MonsterKill,Skeleton,5,Gabsang,1
+Quest2,2,악사 상의를 가져와라,궁궐에 들어가 요괴를 해치우거나 탐색해서 악사를 가져오시오,ItemCollect,Aksa,1,Gabsang,1
+Quest3,3,장승을해치워라,저주에 물든 수호신 장승을 해치워라,MonsterKill,GeneralSky,2,Gabsang,1
+Quest4,4,시장광대를 해치우시오,한에 사무쳐 원한이 한곳에모인 시장광대를 해치우시오,MonsterKill,Clown,1,Gabsang,1

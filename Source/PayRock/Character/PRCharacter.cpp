@@ -10,6 +10,7 @@
 #include "EnhancedInputComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Blessing/BlessingComponent.h"
+#include "Buff/BuffComponent.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "PayRock/PRGameplayTags.h"
@@ -57,6 +58,7 @@ APRCharacter::APRCharacter()
     Weapon2->SetupAttachment(GetMesh(), Weapon2SocketName);
     Weapon2->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     BlessingComponent = CreateDefaultSubobject<UBlessingComponent>(TEXT("BlessingComponent"));
+    BuffComponent = CreateDefaultSubobject<UBuffComponent>(TEXT("BuffComponent"));
 
     NormalSpeed = 300.0f;
     SprintSpeedMultiplier = 2.0f;
@@ -159,6 +161,9 @@ void APRCharacter::BindToTagChange()
     // Invisible Tag Binding
     AbilitySystemComponent->RegisterGameplayTagEvent(FPRGameplayTags::Get().Status_Buff_Invisible).AddUObject(
         BlessingComponent, &UBlessingComponent::OnInvisibleTagChanged);
+
+    AbilitySystemComponent->RegisterGameplayTagEvent(FPRGameplayTags::Get().Status_Debuff_Blind).AddUObject(
+        BuffComponent, &UBuffComponent::OnDebuffBlindChanged);
 }
 
 void APRCharacter::SetupStimuliSource()
@@ -656,6 +661,31 @@ void APRCharacter::MulticastPlayLandingSound_Implementation(FVector Location, US
         Location,
         FRotator::ZeroRotator,
         Volume,
+        1.0f,
+        0.0f,
+        FootstepAttenuation
+    );
+}
+
+void APRCharacter::ServerPlayAttackSound_Implementation(USoundBase* Sound, FVector Location)
+{
+    MulticastPlayAttackSound(Sound, Location);
+}
+
+void APRCharacter::MulticastPlayAttackSound_Implementation(USoundBase* Sound, FVector Location)
+{
+    if (HasAuthority() && IsLocallyControlled())
+    {
+        // 서버장이자 로컬 컨트롤러면, 이미 재생했으니 멀티캐스트에서 재생하지 않음
+        return;
+    }
+
+    UGameplayStatics::PlaySoundAtLocation(
+        this,
+        Sound,
+        Location,
+        FRotator::ZeroRotator,
+        1.0f,
         1.0f,
         0.0f,
         FootstepAttenuation

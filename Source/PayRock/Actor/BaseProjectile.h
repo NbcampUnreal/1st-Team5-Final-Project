@@ -7,6 +7,7 @@
 #include "GameFramework/Actor.h"
 #include "BaseProjectile.generated.h"
 
+class UGameplayEffect;
 class UNiagaraSystem;
 class UNiagaraComponent;
 class USphereComponent;
@@ -38,7 +39,7 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void Destroyed() override;
 
-	UFUNCTION()
+	UFUNCTION(BlueprintNativeEvent)
 	void OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
@@ -62,6 +63,9 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<USoundBase> ImpactSound;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UGameplayEffect> AdditionalEffectToApply;
 
 	UPROPERTY(EditDefaultsOnly)
 	float ProjectileSpeed = 550.f;
