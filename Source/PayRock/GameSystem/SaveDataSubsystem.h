@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "PayRock/Character/Blessing/BlessingDataAsset.h"
+#include "PayRock/Character/Buff/BuffDataAsset.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "SaveDataSubsystem.generated.h"
 
@@ -16,6 +17,12 @@ class PAYROCK_API USaveDataSubsystem : public UGameInstanceSubsystem
 
 public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+
+	/*
+	 *	Buff
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Buff")
+	const UBuffDataAsset* GetBuffDataAsset() const { return BuffDataAsset; }
 	
 	/**
 	 * Blessing
@@ -47,6 +54,9 @@ public:
 	FOnBlessingSaved OnBlessingSaved;
 
 private:
+	UPROPERTY()
+	UBuffDataAsset* BuffDataAsset;
+	
 	UPROPERTY()
 	TArray<FBlessingData> SavedBlessingsContainer;
 	UPROPERTY()

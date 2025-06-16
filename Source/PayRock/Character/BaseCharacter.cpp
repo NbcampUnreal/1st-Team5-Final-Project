@@ -60,8 +60,6 @@ void ABaseCharacter::Die(FVector HitDirection)
 {
 	GetCharacterMovement()->DisableMovement();
 	GetCharacterMovement()->StopMovementImmediately();
-	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	if (HasAuthority() && IsValid(GetAbilitySystemComponent()))
 	{
@@ -73,6 +71,9 @@ void ABaseCharacter::Die(FVector HitDirection)
 	}
 	
 	MulticastRagdoll(HitDirection);
+
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	PrimaryActorTick.bCanEverTick = false;
 }
