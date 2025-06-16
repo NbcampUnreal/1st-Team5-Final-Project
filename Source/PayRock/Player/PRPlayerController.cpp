@@ -48,10 +48,14 @@ void APRPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
 
+
 	if (UEnhancedInputComponent* EIComp = Cast<UEnhancedInputComponent>(InputComponent))
 	{
-		// 한번 눌렀을 때만 발동 하게! 
+		// 한번 눌렀을 때만 발동 하게! esc
 		EIComp->BindAction(ToggleMenuAction, ETriggerEvent::Started, this, &APRPlayerController::ToggleSettingsMenu);
+
+		// H눌렀을때 Help  바인딩 
+		EIComp->BindAction(ShowHelpAction, ETriggerEvent::Started, this, &APRPlayerController::ToggleHelpMenu);
 	}
 }
 
@@ -337,6 +341,23 @@ void APRPlayerController::ToggleSettingsMenu()
 		SetInputMode(FInputModeGameOnly());
 		SetShowMouseCursor(false);
 		bIsSettingsMenuOpen = false;
+	}
+}
+
+void APRPlayerController::ToggleHelpMenu()
+{
+	UUIManager* UIManager = GetGameInstance()->GetSubsystem<UUIManager>();
+	if (!UIManager) return;
+
+	UUserWidget* HelpWidget = UIManager->FindWidget(EWidgetCategory::Help);
+
+	if (HelpWidget && HelpWidget->IsInViewport())
+	{
+		UIManager->RemoveWidget(EWidgetCategory::Help);
+	}
+	else
+	{
+		UIManager->ShowWidget(EWidgetCategory::Help);
 	}
 }
 

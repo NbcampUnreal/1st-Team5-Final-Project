@@ -116,9 +116,15 @@ private:
 	UPROPERTY()
 	TWeakObjectPtr<UUserWidget> InventoryWidget;
 
+	// ;헬프키 사용
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<UInputAction> ShowHelpAction;  // H 키용
+
 	bool bIsSettingsMenuOpen = false;
 
 	void ToggleSettingsMenu(); // ESC 키 입력 시 호출할 함수
+
+	void ToggleHelpMenu();
 
 
 public:
