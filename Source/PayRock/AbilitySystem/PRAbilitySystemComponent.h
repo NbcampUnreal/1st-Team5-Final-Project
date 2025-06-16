@@ -39,6 +39,7 @@ public:
 	FAbilitiesGivenDelegate AbilitiesGivenDelegate;
 
 	FHitResult StoredHitResult;
+	FVector StoredHitDirection;
 
 	bool bStartupAbilitiesGiven = false;
 };

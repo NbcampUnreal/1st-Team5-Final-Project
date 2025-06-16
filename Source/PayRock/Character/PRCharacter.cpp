@@ -163,7 +163,13 @@ void APRCharacter::BindToTagChange()
         BlessingComponent, &UBlessingComponent::OnInvisibleTagChanged);
 
     AbilitySystemComponent->RegisterGameplayTagEvent(FPRGameplayTags::Get().Status_Debuff_Blind).AddUObject(
-        BuffComponent, &UBuffComponent::OnDebuffBlindChanged);
+        BuffComponent, &UBuffComponent::OnBlindTagChange);
+    AbilitySystemComponent->RegisterGameplayTagEvent(FPRGameplayTags::Get().Status_Debuff_Knockback).AddUObject(
+        BuffComponent, &UBuffComponent::OnKnockbackTagChange);
+    AbilitySystemComponent->RegisterGameplayTagEvent(FPRGameplayTags::Get().Status_Debuff_Frozen).AddUObject(
+        BuffComponent, &UBuffComponent::OnFrozenTagChange);
+    AbilitySystemComponent->RegisterGameplayTagEvent(FPRGameplayTags::Get().Status_Debuff_Shocked).AddUObject(
+        BuffComponent, &UBuffComponent::OnShockedTagChange);
 }
 
 void APRCharacter::SetupStimuliSource()
