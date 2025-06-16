@@ -24,6 +24,13 @@
 #include "PayRock/Interface/PRInterface.h"
 #include "Perception/AISense_Damage.h"
 #include "Perception/AISense_Sight.h"
+#include "Blueprint/UserWidget.h"
+#include "Components/WidgetComponent.h"
+#include "Animation/WidgetAnimation.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "UObject/ConstructorHelpers.h"
+#include "Blueprint/WidgetBlueprintLibrary.h"
+#include "UMG.h"
 
 APRCharacter::APRCharacter()
 {
@@ -89,6 +96,16 @@ void APRCharacter::BeginPlay()
 {
     Super::BeginPlay();
 
+    if (IsLocallyControlled() && HitOverlayWidgetClass)
+    {
+        HitOverlayWidget = CreateWidget<UUserWidget>(GetWorld(), HitOverlayWidgetClass);
+        if (HitOverlayWidget)
+        {
+            HitOverlayWidget->AddToViewport();
+            HitOverlayWidget->SetVisibility(ESlateVisibility::Hidden);
+        }
+    }
+
     if (SpringArmComp)
     {
         DefaultArmLength = SpringArmComp->TargetArmLength;
@@ -116,33 +133,22 @@ void APRCharacter::BeginPlay()
     LeftHandCollisionComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
-void APRCharacter::PlayHitCameraShake()
+void APRCharacter::PlayHitOverlay()
 {
-    if (!IsLocallyControlled() || !SpringArmComp) return;
+    if (IsLocallyControlled() && HitOverlayWidget)
+    {
+        HitOverlayWidget->SetVisibility(ESlateVisibility::Visible);
 
-    const float ShakeAmount = 5.f;
-    const float ShakeTime = 0.1f;
-
-    // 랜덤 회전 흔들기
-    FRotator OriginalRot = SpringArmComp->GetRelativeRotation();
-    FRotator RandomRot = OriginalRot + FRotator(
-        FMath::FRandRange(-ShakeAmount, ShakeAmount),
-        FMath::FRandRange(-ShakeAmount, ShakeAmount),
-        0.f
-    );
-
-    // 즉시 적용 후, 타이머로 되돌리기
-    SpringArmComp->SetRelativeRotation(RandomRot);
-
-    FTimerHandle ShakeTimerHandle;
-    GetWorld()->GetTimerManager().SetTimer(ShakeTimerHandle, [this, OriginalRot]()
-        {
-            if (SpringArmComp)
-            {
-                SpringArmComp->SetRelativeRotation(OriginalRot);
-            }
-        }, ShakeTime, false);
+        static const FString FuncName = TEXT("PlayHitOverlay");
+        FOutputDeviceNull ar;
+        HitOverlayWidget->CallFunctionByNameWithArguments(*FuncName, ar, nullptr, true);
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[HitOverlay] Conditions not met or widget is null"));
+    }
 }
+
 
 void APRCharacter::PossessedBy(AController* NewController)
 {
@@ -1181,4 +1187,26 @@ void APRCharacter::AbilityInputTagHeld(FGameplayTag InputTag)
     {
         ASC->AbilityInputTagHeld(InputTag);
     }
+}
+
+void APRCharacter::ShakeCamera()
+{
+    if (!SpringArmComp) return;
+
+    FVector OriginalLocation = SpringArmComp->GetRelativeLocation();
+    FVector Offset = FVector(
+        FMath::FRandRange(-5.f, 5.f),
+        FMath::FRandRange(-5.f, 5.f),
+        FMath::FRandRange(-5.f, 5.f)
+    );
+
+    SpringArmComp->SetRelativeLocation(OriginalLocation + Offset);
+
+    GetWorld()->GetTimerManager().SetTimer(CameraShakeTimerHandle, [this, OriginalLocation]()
+        {
+            if (SpringArmComp)
+            {
+                SpringArmComp->SetRelativeLocation(OriginalLocation);
+            }
+        }, 0.05f, false);
 }
