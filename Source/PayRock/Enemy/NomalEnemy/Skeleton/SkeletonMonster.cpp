@@ -8,6 +8,8 @@ ASkeletonMonster::ASkeletonMonster()
 	AIControllerClass = ASkeletonMonsterController::StaticClass();
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 
+	CharacterType = ECharacterType::Skeleton;
+
 	WeaponCollision = CreateDefaultSubobject<USphereComponent>(TEXT("WeaponCollision"));
 	WeaponCollision->SetupAttachment(Weapon, CollisionSocketName);
 	WeaponCollision->InitSphereRadius(50.f); 
