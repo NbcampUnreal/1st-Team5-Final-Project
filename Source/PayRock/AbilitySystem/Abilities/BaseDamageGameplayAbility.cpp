@@ -1,4 +1,4 @@
-// PayRockGames
+﻿// PayRockGames
 
 
 #include "BaseDamageGameplayAbility.h"
@@ -6,6 +6,7 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
+#include "PayRock/Character/PRCharacter.h"
 #include "PayRock/PRGameplayTags.h"
 #include "PayRock/AbilitySystem/PRAttributeSet.h"
 #include "PayRock/Enemy/EnemyCharacter.h"
@@ -37,27 +38,21 @@ void UBaseDamageGameplayAbility::EndAbility(const FGameplayAbilitySpecHandle Han
 
 void UBaseDamageGameplayAbility::CauseDamage(AActor* TargetActor, const FHitResult& HitResult, bool bIsBackAttack)
 {
-	if (!IsValid(GetAvatarActorFromActorInfo())) return;
+	if (!IsValid(GetAvatarActorFromActorInfo()) || !IsValid(DamageEffectClass)) return;
 	if (!GetAvatarActorFromActorInfo()->HasAuthority()) return;
-	if (!IsValid(DamageEffectClass)) return;
 
 	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor);
 	UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo();
 	if (!IsValid(SourceASC) || !IsValid(TargetASC)) return;
-	/*
-	 *	Initial damage modification
-	 */
-	float ScaledDamage = Damage.GetValueAtLevel(GetAbilityLevel());
-	
-	// check guard status
-	if (TargetASC->HasMatchingGameplayTag(FPRGameplayTags::Get().Ability_Guard))
-    {
-    	// TODO : activate "attack fail" GA on SourceASC / "parry success" GA on TargetASC and return
-		UE_LOG(LogTemp, Warning, TEXT("GUARD SUCCESS!"))
-		return;
-    }
 
-	// monster-monster damage
+	float ScaledDamage = Damage.GetValueAtLevel(GetAbilityLevel());
+
+	if (TargetASC->HasMatchingGameplayTag(FPRGameplayTags::Get().Ability_Guard))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("GUARD SUCCESS!"));
+		return;
+	}
+
 	bool bIsMonsterToMonster = GetAvatarActorFromActorInfo()->IsA(AEnemyCharacter::StaticClass()) &&
 		TargetActor->IsA(AEnemyCharacter::StaticClass());
 	if (bIsMonsterToMonster)
@@ -65,7 +60,6 @@ void UBaseDamageGameplayAbility::CauseDamage(AActor* TargetActor, const FHitResu
 		ScaledDamage *= 0.5f;
 	}
 
-	// combo damage
 	if (bUseComboDamageMultiplier)
 	{
 		float ComboMultiplier = DamageMultipliersPerMontage.IsValidIndex(MontageIndex)
@@ -74,7 +68,6 @@ void UBaseDamageGameplayAbility::CauseDamage(AActor* TargetActor, const FHitResu
 		ScaledDamage *= ComboMultiplier;
 	}
 
-	// back attack damage buff
 	float BackAttackMultiplier = 0.f;
 	if (bIsBackAttack && SourceASC->HasMatchingGameplayTag(FPRGameplayTags::Get().Status_Buff_BackAttack))
 	{
@@ -82,11 +75,9 @@ void UBaseDamageGameplayAbility::CauseDamage(AActor* TargetActor, const FHitResu
 	}
 	ScaledDamage *= (1.f + BackAttackMultiplier);
 
-	// Adding HitResult to EffectContext and apply damage SetByCaller GE
 	FGameplayEffectContextHandle ContextHandle = SourceASC->MakeEffectContext();
 	if (HitResult.bBlockingHit)
 	{
-		
 		ContextHandle.AddHitResult(HitResult);
 	}
 	FGameplayEffectSpecHandle DamageEffectSpecHandle = SourceASC->MakeOutgoingSpec(
@@ -95,7 +86,14 @@ void UBaseDamageGameplayAbility::CauseDamage(AActor* TargetActor, const FHitResu
 		DamageEffectSpecHandle, DamageTypeTag, ScaledDamage);
 	SourceASC->ApplyGameplayEffectSpecToTarget(*DamageEffectSpecHandle.Data.Get(), TargetASC);
 
-	// DEBUG
+	if (AActor* SourceActor = SourceASC->GetAvatarActor())
+	{
+		if (APRCharacter* SourceCharacter = Cast<APRCharacter>(SourceActor))
+		{
+			SourceCharacter->Client_PlayHitMarker(); // 화면 중앙 히트마커
+		}
+	}
+
 	if (const UPRAttributeSet* TargetAttributes = Cast<UPRAttributeSet>(
 		TargetASC->GetAttributeSet(UPRAttributeSet::StaticClass())))
 	{
@@ -110,13 +108,12 @@ void UBaseDamageGameplayAbility::CauseDamage(AActor* TargetActor, const FHitResu
 			MaxHP);
 	}
 
-	// Reporting damage for AI
 	UAISense_Damage::ReportDamageEvent(
 		GetWorld(),
 		TargetActor,
 		GetAvatarActorFromActorInfo(),
 		ScaledDamage,
-		TargetActor->GetActorLocation(),  
+		TargetActor->GetActorLocation(),
 		GetAvatarActorFromActorInfo()->GetActorLocation()
 	);
 }
