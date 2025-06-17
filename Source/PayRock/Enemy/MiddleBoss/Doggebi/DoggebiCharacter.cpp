@@ -9,6 +9,8 @@
 
 ADoggebiCharacter::ADoggebiCharacter()
 {
+	CharacterType = ECharacterType::Doggebi;
+
 	AIControllerClass = ADoggebiController::StaticClass();
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 	

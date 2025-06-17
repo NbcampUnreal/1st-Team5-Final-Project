@@ -43,7 +43,6 @@ ANecroCharacter::ANecroCharacter()
 
 	bReplicates = true;
 	SetReplicateMovement(true);
-	
 }
 
 void ANecroCharacter::BeginPlay()

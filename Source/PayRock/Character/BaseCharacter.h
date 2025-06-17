@@ -12,6 +12,22 @@
 class UGameplayEffect;
 class UAttributeSet;
 
+UENUM(BlueprintType)
+enum class ECharacterType : uint8
+{
+	PlayerCharacter,
+	DefaultMonster,
+	JangSanTiger,
+	Kappa,
+	MarketClown,
+	OneEyed,
+	Samurai,
+	SamuraiStatue,
+	Skeleton,
+	Doggebi,
+	Boss
+};
+
 UCLASS()
 class PAYROCK_API ABaseCharacter : public ACharacter, public IAbilitySystemInterface, public ICombatInterface
 {
@@ -29,6 +45,26 @@ public:
 	const UAnimMontage* GetHitReactMontage();
 	UPROPERTY(BlueprintReadOnly, Category = "Combat")
 	bool bHitReact = false;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Combat|Type")
+	ECharacterType CharacterType = ECharacterType::PlayerCharacter;
+
+	//피격사운드
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Combat|Sound")
+	USoundBase* HitReactSound;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Combat|Sound")
+	USoundBase* HitVoiceSound;
+
+	// 캐릭터 타입 판별용 유틸
+	UFUNCTION(BlueprintCallable, Category = "Combat|Type")
+	bool IsPlayerCharacter() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Combat|Type")
+	bool IsMonster() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Combat|Type")
+	bool IsBoss() const;
 
 	/* Death */
 	UFUNCTION(BlueprintCallable)

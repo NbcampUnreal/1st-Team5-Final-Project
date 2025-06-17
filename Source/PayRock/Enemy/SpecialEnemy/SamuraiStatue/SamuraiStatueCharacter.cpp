@@ -11,7 +11,8 @@
 
 ASamuraiStatueCharacter::ASamuraiStatueCharacter()
 {
-	
+	CharacterType = ECharacterType::SamuraiStatue;
+
 	AIControllerClass = AEnemyController::StaticClass();
 
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
