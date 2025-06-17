@@ -688,6 +688,11 @@ void APRCharacter::Landed(const FHitResult& Hit)
     {
         Server_DoubleJumpLanded();    
     }
+
+    if (IsValid(BuffComponent) && BuffComponent->IsKnockedBack())
+    {
+        BuffComponent->StartKnockbackRecovery();
+    }
 }
 
 void APRCharacter::ServerRequestLandingSound_Implementation(FVector Location, USoundBase* Sound)
