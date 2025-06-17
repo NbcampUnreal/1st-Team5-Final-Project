@@ -47,7 +47,17 @@ public:
 
 	UUserWidget* HitOverlayWidget = nullptr;
 
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UUserWidget> HitMarkerWidgetClass;
+
+	UUserWidget* HitMarkerWidget = nullptr;
+
 	void PlayHitOverlay();
+
+	UFUNCTION(Client, Reliable)
+	void Client_PlayHitMarker();
+
+	void PlayHitMarker();
 
 	FTimerHandle CameraShakeTimerHandle;
 
