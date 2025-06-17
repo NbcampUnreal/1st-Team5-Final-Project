@@ -72,9 +72,6 @@ void ABaseCharacter::Die(FVector HitDirection)
 	
 	MulticastRagdoll(HitDirection);
 
-	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
 	PrimaryActorTick.bCanEverTick = false;
 }
 
@@ -90,15 +87,23 @@ void ABaseCharacter::MulticastRagdoll_Implementation(const FVector& HitDirection
 		DisableInput(PC);
 	}
 
+	GetCharacterMovement()->DisableMovement();
+	GetCharacterMovement()->StopMovementImmediately();
+	GetCharacterMovement()->SetComponentTickEnabled(false);
+
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
 	USkeletalMeshComponent* CharacterMesh = GetMesh();
 	if (!CharacterMesh->IsRegistered())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Component not registered"));
 		return;
 	}
-	CharacterMesh->SetSimulatePhysics(true);
 	CharacterMesh->SetCollisionProfileName(FName("Ragdoll"));
+	CharacterMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	CharacterMesh->SetSimulatePhysics(true);
 	CharacterMesh->WakeAllRigidBodies();
+	CharacterMesh->bReplicatePhysicsToAutonomousProxy = true;
 
 	FVector Impulse = HitDirection * 10000.f;
 	if (HitDirection.Equals(FVector::ZeroVector))
@@ -114,6 +119,9 @@ void ABaseCharacter::MulticastRagdoll_Implementation(const FVector& HitDirection
 	}, 0.5f, false);
 
 	PrimaryActorTick.bCanEverTick = false;
+
+	// GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	// GetMesh()->SetCollisionResponseToAllChannels(ECR_Ignore);
 }
 
 void ABaseCharacter::ForceDeath()
