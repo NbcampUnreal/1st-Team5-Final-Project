@@ -2,8 +2,8 @@
 
 
 #include "UIManager.h"
-
 #include "AbilitySystemComponent.h"
+#include "TranslateDataAsset.h"
 #include "PayRock/Player/PRPlayerState.h"
 #include "PayRock/UI/Widget/BaseUserWidget.h"
 #include "PayRock/UI/WidgetController/StatWidgetController.h"
@@ -12,18 +12,25 @@ void UUIManager::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 
-	FSoftObjectPath DataAssetPath(TEXT("/Game/UI/Data/DA_WidgetClassData"));
-	if (UWidgetClassData* LoadedDataAsset = Cast<UWidgetClassData>(DataAssetPath.TryLoad()))
+	FSoftObjectPath WidgetClassDataAssetPath(TEXT("/Game/UI/Data/DA_WidgetClassData"));
+	if (UWidgetClassData* LoadedDataAsset = Cast<UWidgetClassData>(WidgetClassDataAssetPath.TryLoad()))
 	{
 		WidgetClassData = LoadedDataAsset;
 	}
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("Failed to load WidgetClassData!"));
+		UE_LOG(LogTemp, Error, TEXT("Failed to load DA_WidgetClassData!"));
 	}
 
-	FCoreUObjectDelegates::PreLoadMap.AddUObject(this, &UUIManager::ShowLoadingScreen);
-	FCoreUObjectDelegates::PostLoadMapWithWorld.AddUObject(this, &UUIManager::RemoveLoadingScreen);
+	FSoftObjectPath TranslateDataAssetPath(TEXT("/Game/UI/Data/DA_TranslateData"));
+	if (UTranslateDataAsset* LoadedDataAsset = Cast<UTranslateDataAsset>(TranslateDataAssetPath.TryLoad()))
+	{
+		TranslateDataAsset = LoadedDataAsset;
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to load DA_TranslateData!"));
+	}
 }
 
 UUserWidget* UUIManager::ShowWidget(EWidgetCategory Category)
@@ -210,4 +217,11 @@ UBaseWidgetController* UUIManager::GetWidgetController(const FWidgetControllerPa
 	WidgetControllerMap.Add(Category, WidgetController);
 
 	return WidgetController;
+}
+
+FString UUIManager::TranslateEnglishToKorean(const FString& InString)
+{
+	if (!TranslateDataAsset) return FString("");
+
+	return TranslateDataAsset->TranslateEnglishToKorean(InString);
 }
