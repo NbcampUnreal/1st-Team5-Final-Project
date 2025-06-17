@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "BaseGameplayAbility.h"
+#include "PayRock/Character/HitMarkerActor.h"
 #include "BaseDamageGameplayAbility.generated.h"
 
 UCLASS()
@@ -55,6 +56,12 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "VFX")
 	float AuraRate = 2.5f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "HitMarker")
+	TSubclassOf<AHitMarkerActor> HitMarkerActorClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "HitMarker")
+	TSubclassOf<UUserWidget> HitMarkerWidgetClass;
 
 private:
 	float GetBackAttackMultiplier();
