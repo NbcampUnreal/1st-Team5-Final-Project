@@ -9,8 +9,11 @@
 void UPRAdvancedGameInstance::Init()
 {
 	Super::Init();
-	QuestManager = NewObject<UQuestManager>(this);
-	QuestManager->Init();  
+	if (QuestManagerClass)
+	{
+		QuestManager = NewObject<UQuestManager>(this, QuestManagerClass);
+		QuestManager->Init();
+	}
 }
 
 void UPRAdvancedGameInstance::Shutdown()

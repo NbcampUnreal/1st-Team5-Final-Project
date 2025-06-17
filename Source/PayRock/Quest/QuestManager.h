@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
+#include "QuestInfoUI.h"
 #include "Engine/DataTable.h"
 #include "QuestData.h"
 #include "QuestSaveGame.h"
@@ -34,12 +35,27 @@ public:
 	bool IsQuestCompleted() const;
 
 	UFUNCTION(BlueprintCallable)
+	void NextQuest();
+	UFUNCTION(BlueprintCallable)
 	void UpdateProgress();
 
 	UFUNCTION(BlueprintCallable)
 	FQuestData GetCurrentQuest() const;
 
+	UFUNCTION(BlueprintCallable)
+	UQuestSaveGame* GetSaveQuest() const;
+
+	UFUNCTION(BlueprintCallable)
+	int32 GetCurrentCount() const;
+	
+	UFUNCTION(BlueprintCallable)
+	void ToggleQuestUI();
+
+	
 protected:
+
+	UPROPERTY()
+	UQuestSaveGame* SaveGame;
 	UPROPERTY()
 	UDataTable* QuestDataTable;
 
@@ -50,8 +66,14 @@ protected:
 	int32 CurrentQuestID;
 
 	UPROPERTY()
-	int32 CurrentCount;
+	int32 CurrentCount = 0;
 
 	UPROPERTY()
 	FString SaveSlotName = TEXT("QuestSave");
+
+public:
+	UPROPERTY()
+	UQuestInfoUI* QuestWidget;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI") 
+	TSubclassOf<UUserWidget> QuestWidgetClass;
 };
