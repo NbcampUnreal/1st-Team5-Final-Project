@@ -21,4 +21,13 @@ class PAYROCK_API ICombatInterface
 public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	FVector GetCombatSocketLocation(const FGameplayTag& SocketTag);
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Combat|Sound")
+	USoundAttenuation* GetHitSoundAttenuation() const;
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Combat|Sound")
+	USoundBase* GetHitSound() const;
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Combat|Sound")
+	USoundBase* GetLocalOnlyHitSound() const;
 };

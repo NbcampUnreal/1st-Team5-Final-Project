@@ -6,6 +6,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "PayRock/PRGameplayTags.h"
 #include "PayRock/Enemy/SpecialEnemy/MarketClown/MarketClownMonster.h"
+#include "CombatInterface.h"
 
 ABaseCharacter::ABaseCharacter()
 {
@@ -59,8 +60,6 @@ void ABaseCharacter::Die(FVector HitDirection)
 {
 	GetCharacterMovement()->DisableMovement();
 	GetCharacterMovement()->StopMovementImmediately();
-	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	if (HasAuthority() && IsValid(GetAbilitySystemComponent()))
 	{
@@ -88,15 +87,23 @@ void ABaseCharacter::MulticastRagdoll_Implementation(const FVector& HitDirection
 		DisableInput(PC);
 	}
 
+	GetCharacterMovement()->DisableMovement();
+	GetCharacterMovement()->StopMovementImmediately();
+	GetCharacterMovement()->SetComponentTickEnabled(false);
+
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
 	USkeletalMeshComponent* CharacterMesh = GetMesh();
 	if (!CharacterMesh->IsRegistered())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Component not registered"));
 		return;
 	}
-	CharacterMesh->SetSimulatePhysics(true);
 	CharacterMesh->SetCollisionProfileName(FName("Ragdoll"));
+	CharacterMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	CharacterMesh->SetSimulatePhysics(true);
 	CharacterMesh->WakeAllRigidBodies();
+	CharacterMesh->bReplicatePhysicsToAutonomousProxy = true;
 
 	FVector Impulse = HitDirection * 10000.f;
 	if (HitDirection.Equals(FVector::ZeroVector))
@@ -112,6 +119,9 @@ void ABaseCharacter::MulticastRagdoll_Implementation(const FVector& HitDirection
 	}, 0.5f, false);
 
 	PrimaryActorTick.bCanEverTick = false;
+
+	// GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	// GetMesh()->SetCollisionResponseToAllChannels(ECR_Ignore);
 }
 
 void ABaseCharacter::ForceDeath()
@@ -181,3 +191,33 @@ void ABaseCharacter::InitializeDefaultAttributes()
 	bAreAttributesInitialized = true;
 }
 
+bool ABaseCharacter::IsPlayerCharacter() const
+{
+	return CharacterType == ECharacterType::PlayerCharacter;
+}
+
+bool ABaseCharacter::IsBoss() const
+{
+	return CharacterType == ECharacterType::Boss;
+}
+
+bool ABaseCharacter::IsMonster() const
+{
+	switch (CharacterType)
+	{
+	case ECharacterType::DefaultMonster:
+	case ECharacterType::JangSanTiger:
+	case ECharacterType::Kappa:
+	case ECharacterType::MarketClown:
+	case ECharacterType::OneEyed:
+	case ECharacterType::Samurai:
+	case ECharacterType::SamuraiStatue:
+	case ECharacterType::Skeleton:
+	case ECharacterType::Doggebi:
+	case ECharacterType::Boss:
+		return true;
+
+	default:
+		return false;
+	}
+}

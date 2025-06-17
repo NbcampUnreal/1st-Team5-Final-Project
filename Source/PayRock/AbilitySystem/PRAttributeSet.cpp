@@ -107,6 +107,14 @@ float UPRAttributeSet::HandleIncomingDamage(const FEffectProperties& Props, cons
 {
 	const float LocalIncomingDamage = GetIncomingDamage();
 	if (LocalIncomingDamage <= 0.f) return 0.f;
+
+	// Activate Hit React
+	FGameplayTagContainer TagContainer;
+	TagContainer.AddTag(FPRGameplayTags::Get().Effects_HitReact);
+	if (Props.TargetASC)
+	{
+		Props.TargetASC->TryActivateAbilitiesByTag(TagContainer);	
+	}
 	
 	SetIncomingDamage(0.f);
 	const float CalculatedDamage = GetCalculatedDamage(LocalIncomingDamage, Props);
@@ -128,14 +136,6 @@ float UPRAttributeSet::HandleIncomingDamage(const FEffectProperties& Props, cons
 			"[DAMAGE] AvatarActor: %s / IncomingDamage: %f / CalculatedDamage: %f / GetHealth: %f / GetMaxHealth: %f"),
 			*GetOwningAbilitySystemComponent()->GetAvatarActor()->GetName(),
 			LocalIncomingDamage, CalculatedDamage, HealthCurrent, GetMaxHealth());*/
-
-		// Activate Hit React
-		FGameplayTagContainer TagContainer;
-		TagContainer.AddTag(FPRGameplayTags::Get().Effects_HitReact);
-		if (Props.TargetASC)
-		{
-			Props.TargetASC->TryActivateAbilitiesByTag(TagContainer);	
-		}
 
 		if (NewHealth <= 0.f)
 		{

@@ -17,6 +17,8 @@ AMarketClownMonster::AMarketClownMonster()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
+	CharacterType = ECharacterType::MarketClown;
+
 	MaskMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("MaskMesh"));
 	MaskMesh->SetupAttachment(GetMesh(), HeadSocketName);
 	MaskMesh->SetRelativeLocation(FVector::ZeroVector);
