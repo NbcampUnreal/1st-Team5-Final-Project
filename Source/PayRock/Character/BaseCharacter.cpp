@@ -6,6 +6,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "PayRock/PRGameplayTags.h"
 #include "PayRock/Enemy/SpecialEnemy/MarketClown/MarketClownMonster.h"
+#include "CombatInterface.h"
 
 ABaseCharacter::ABaseCharacter()
 {
@@ -59,8 +60,6 @@ void ABaseCharacter::Die(FVector HitDirection)
 {
 	GetCharacterMovement()->DisableMovement();
 	GetCharacterMovement()->StopMovementImmediately();
-	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	if (HasAuthority() && IsValid(GetAbilitySystemComponent()))
 	{
@@ -72,6 +71,9 @@ void ABaseCharacter::Die(FVector HitDirection)
 	}
 	
 	MulticastRagdoll(HitDirection);
+
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	PrimaryActorTick.bCanEverTick = false;
 }
@@ -181,3 +183,33 @@ void ABaseCharacter::InitializeDefaultAttributes()
 	bAreAttributesInitialized = true;
 }
 
+bool ABaseCharacter::IsPlayerCharacter() const
+{
+	return CharacterType == ECharacterType::PlayerCharacter;
+}
+
+bool ABaseCharacter::IsBoss() const
+{
+	return CharacterType == ECharacterType::Boss;
+}
+
+bool ABaseCharacter::IsMonster() const
+{
+	switch (CharacterType)
+	{
+	case ECharacterType::DefaultMonster:
+	case ECharacterType::JangSanTiger:
+	case ECharacterType::Kappa:
+	case ECharacterType::MarketClown:
+	case ECharacterType::OneEyed:
+	case ECharacterType::Samurai:
+	case ECharacterType::SamuraiStatue:
+	case ECharacterType::Skeleton:
+	case ECharacterType::Doggebi:
+	case ECharacterType::Boss:
+		return true;
+
+	default:
+		return false;
+	}
+}

@@ -7,6 +7,16 @@ void USaveDataSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 
+	FSoftObjectPath BuffAssetPath(TEXT("/Game/Character/Buff/Data/DA_BuffDataAsset"));
+	if (UBuffDataAsset* LoadedDataAsset = Cast<UBuffDataAsset>(BuffAssetPath.TryLoad()))
+	{
+		BuffDataAsset = LoadedDataAsset;
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to load BuffDataAsset!"));
+	}
+	
 	FSoftObjectPath DataAssetPath(TEXT("/Game/Character/Blessing/Data/DA_BlessingDataAsset"));
 	if (UBlessingDataAsset* LoadedDataAsset = Cast<UBlessingDataAsset>(DataAssetPath.TryLoad()))
 	{
