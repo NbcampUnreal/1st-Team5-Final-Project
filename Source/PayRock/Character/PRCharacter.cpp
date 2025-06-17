@@ -106,6 +106,16 @@ void APRCharacter::BeginPlay()
         }
     }
 
+    if (IsLocallyControlled() && HitMarkerWidgetClass)
+    {
+        HitMarkerWidget = CreateWidget<UUserWidget>(GetWorld(), HitMarkerWidgetClass);
+        if (HitMarkerWidget)
+        {
+            HitMarkerWidget->AddToViewport();
+            HitMarkerWidget->SetVisibility(ESlateVisibility::Hidden);
+        }
+    }
+
     if (SpringArmComp)
     {
         DefaultArmLength = SpringArmComp->TargetArmLength;
@@ -147,6 +157,26 @@ void APRCharacter::PlayHitOverlay()
     {
         UE_LOG(LogTemp, Warning, TEXT("[HitOverlay] Conditions not met or widget is null"));
     }
+}
+
+void APRCharacter::PlayHitMarker()
+{
+    if (IsLocallyControlled() && HitMarkerWidget)
+    {
+        HitMarkerWidget->SetVisibility(ESlateVisibility::Visible);
+        static const FString FuncName = TEXT("PlayHitMarker");
+        FOutputDeviceNull ar;
+        HitMarkerWidget->CallFunctionByNameWithArguments(*FuncName, ar, nullptr, true);
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[HitMarker] Conditions not met or widget is null"));
+    }
+}
+
+void APRCharacter::Client_PlayHitMarker_Implementation()
+{
+    PlayHitMarker(); // 히트마커 UI 위젯 애니메이션 재생
 }
 
 
