@@ -291,6 +291,7 @@ void APRPlayerController::ToggleSettingsMenu()
 		EWidgetCategory::Stat,
 		EWidgetCategory::Stash,
 		EWidgetCategory::Blessing,
+		EWidgetCategory::Help,
 	};
 
 	for (EWidgetCategory Category : UICheckList)
