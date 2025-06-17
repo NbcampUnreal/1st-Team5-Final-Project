@@ -203,12 +203,15 @@ void FPRGameplayTags::InitializeNativeGameplayTags()
     GameplayTags.Status_Debuff_Knockback = UGameplayTagsManager::Get().AddNativeGameplayTag(
         FName("Status.Debuff.Knockback")
         );
+    GameplayTags.Status_Debuff_Knockback_Recovery = UGameplayTagsManager::Get().AddNativeGameplayTag(
+        FName("Status.Debuff.Knockback.Recovery")
+        );
     GameplayTags.Status_Debuff_Frozen = UGameplayTagsManager::Get().AddNativeGameplayTag(
-      FName("Status.Debuff.Frozen")
-      );
+        FName("Status.Debuff.Frozen")
+        );
     GameplayTags.Status_Debuff_Shocked = UGameplayTagsManager::Get().AddNativeGameplayTag(
-      FName("Status.Debuff.Shocked")
-      );
+        FName("Status.Debuff.Shocked")
+        );
 
     /*
      *  Necro

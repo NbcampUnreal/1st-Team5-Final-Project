@@ -18,6 +18,8 @@ class PAYROCK_API UBuffComponent : public UActorComponent
 public:
 	UBuffComponent();
 
+	virtual void OnComponentDestroyed(bool bDestroyingHierarchy) override;
+	
 	UFUNCTION()
 	void OnBlindTagChange(const FGameplayTag Tag, int32 TagCount);
 	UFUNCTION()
@@ -27,6 +29,9 @@ public:
 	UFUNCTION()
 	void OnShockedTagChange(const FGameplayTag Tag, int32 TagCount);
 
+	bool IsKnockedBack() const { return bIsKnockedBack; }
+	void StartKnockbackRecovery();
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -34,6 +39,8 @@ private:
 	UFUNCTION(Client, Unreliable)
 	void Client_BroadcastTagChange(const FGameplayTag& Tag, int32 TagCount);
 	
+	float PlayMontageByTag(const FGameplayTag Tag);
+	void KnockbackRecovery();
 	void DisableMovement();
 	void EnableMovement();
 	void CancelActiveAbilities();
@@ -41,8 +48,11 @@ private:
 	UPROPERTY()
 	APRCharacter* OwningPRCharacter;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Debuff|Knockback")
 	float KnockbackForce;
+	UPROPERTY(EditDefaultsOnly, Category = "Debuff|Knockback")
 	float KnockbackVertical;
 
-	FTimerHandle MovementTimer;
+	bool bIsKnockedBack;
+	FTimerHandle KnockbackRecoveryTimer;
 };
