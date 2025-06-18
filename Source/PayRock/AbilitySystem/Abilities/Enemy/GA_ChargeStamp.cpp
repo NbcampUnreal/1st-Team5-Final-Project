@@ -93,16 +93,6 @@ void UGA_ChargeStamp::ApplyStampDamage(ACharacter* Avatar)
 			Monster->Multicast_PlayStampEffect(SpawnLocation);
 		}
 	}
-	
-	UKismetSystemLibrary::DrawDebugLine(
-		GetWorld(),
-		Start,
-		End,
-		FLinearColor::Red,
-		5.0f,
-		5.0f
-		);
-	
 	TArray<AActor*> HitActors;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APRCharacter::StaticClass(), HitActors);
 
