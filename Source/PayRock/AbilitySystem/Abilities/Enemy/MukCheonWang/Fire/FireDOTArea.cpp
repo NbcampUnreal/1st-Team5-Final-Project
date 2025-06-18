@@ -15,7 +15,7 @@ AFireDOTArea::AFireDOTArea()
 	CapsuleComponent->SetCollisionObjectType(ECC_WorldDynamic);
 	CapsuleComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
 	CapsuleComponent->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
-	CapsuleComponent->OnComponentBeginOverlap.AddDynamic(this, &AFireDOTArea::OnEffectOverlap);
+	CapsuleComponent->OnComponentBeginOverlap.AddUniqueDynamic(this, &AFireDOTArea::OnEffectOverlap);
 
 	SetRootComponent(CapsuleComponent);
 	CollisionComponent = CapsuleComponent;
