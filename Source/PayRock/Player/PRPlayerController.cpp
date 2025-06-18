@@ -386,19 +386,22 @@ void APRPlayerController::HandleMatchFlowStateChanged(EMatchFlowState NewState)
 	switch (NewState)
 	{
 	case EMatchFlowState::WaitingToStart:
-		UIManager->RemoveWidget(EWidgetCategory::Loading);
+		UIManager->RemoveAllWidgets();
+		UIManager->RemoveAllWidgetControllers();
 		UIManager->ShowWidget(EWidgetCategory::MatchHUD);
 		break;
 	case EMatchFlowState::MatchInProgress:
-		UIManager->RemoveWidget(EWidgetCategory::MatchHUD);
+		UIManager->RemoveAllWidgets();
+		UIManager->RemoveAllWidgetControllers();
 		UIManager->ShowWidget(EWidgetCategory::InGameHUD);
 		break;
 	case EMatchFlowState::ExtractionEnabled:
-		// 추가 UI 업데이트 원하면 여기에
+		// 탈출구 나타났음을 알림
 		break;
 	case EMatchFlowState::MatchEnded:
 		UIManager->RemoveAllWidgets();
 		UIManager->RemoveAllWidgetControllers();
+		// 매치 종료를 알림
 		break;
 	}
 }

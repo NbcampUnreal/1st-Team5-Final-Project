@@ -3,6 +3,7 @@
 
 #include "GeneralSkyCharacter.h"
 
+#include "NiagaraFunctionLibrary.h"
 #include "Net/UnrealNetwork.h"
 #include "PayRock/Enemy/EnemyController.h"
 
@@ -82,6 +83,20 @@ UAnimMontage* AGeneralSkyCharacter::GetChargingMontage()
 UAnimMontage* AGeneralSkyCharacter::GetStampMontage()
 {
 	return StampMontage;
+}
+
+void AGeneralSkyCharacter::Multicast_PlayStampEffect_Implementation(FVector SpawnLocation)
+{
+	if (StampVFX) // Niagara System
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+			GetWorld(),
+			StampVFX,
+			SpawnLocation,
+			FRotator::ZeroRotator,
+			FVector(2.f, 2.f, 2.f)
+		);
+	}
 }
 
 void AGeneralSkyCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

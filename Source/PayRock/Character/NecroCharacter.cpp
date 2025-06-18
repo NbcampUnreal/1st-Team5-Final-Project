@@ -51,8 +51,7 @@ void ANecroCharacter::BeginPlay()
 	
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECR_Ignore);
-	/* TODO: Delete this! We want to go through the walls */ GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Block);
-	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_GameTraceChannel6, ECR_Block);
 	/* TODO: ECR_Block to the Salt / Garlic item so the character can be hit */
 	
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
