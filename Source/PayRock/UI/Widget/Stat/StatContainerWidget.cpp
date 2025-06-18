@@ -1,4 +1,4 @@
-// PayRockGames
+癤�// PayRockGames
 
 
 #include "StatContainerWidget.h"
@@ -22,13 +22,11 @@ void UStatContainerWidget::InitializeStatRows()
 	UStatWidgetController* StatWidgetController = Cast<UStatWidgetController>(WidgetController);
 	if (!StatWidgetController) return;
 
-	//  기존 내용 정리
 	PrimaryStatBox->ClearChildren();
 	SecondaryStatBox->ClearChildren();
 	StatNameRowMap.Empty();
 	StatDescriptions.Empty();
 
-	//  에셋에서 설명 불러오기
 	if (StatInfoDataAsset)
 	{
 		for (const FStatInfo& Info : StatInfoDataAsset->StatList)
@@ -37,7 +35,6 @@ void UStatContainerWidget::InitializeStatRows()
 		}
 	}
 
-	//  위젯 생성 & 설명 연결
 	for (const FString& AttributeName : StatWidgetController->AttributeNames)
 	{
 		UStatRowWidget* StatRowWidget = Cast<UStatRowWidget>(
@@ -45,7 +42,6 @@ void UStatContainerWidget::InitializeStatRows()
 		);
 		if (!StatRowWidget) continue;
 
-		// 이름 설정
 		StatRowWidget->SetStatName(AttributeName);
 
 		// =======
@@ -57,24 +53,20 @@ void UStatContainerWidget::InitializeStatRows()
 			}
 			else
 			{
-				UE_LOG(LogTemp, Warning, TEXT("StatInfoMap에 [%s] 키 없음"), *AttributeName);
+				UE_LOG(LogTemp, Warning, TEXT("StatInfoMap [%s]"), *AttributeName);
 			}
 		}
 		else
 		{
-			UE_LOG(LogTemp, Error, TEXT("StatInfoDataAsset이 널입니다! 에셋 연결을 확인하세요."));
-
+			UE_LOG(LogTemp, Error, TEXT("StatInfoDataAsset Error!"));
 		}
 		// ============
-
-		//  DataAsset에서 DisplayName, Description 가져오기
+		
 		if (const FStatInfo* StatInfo = StatInfoDataAsset->StatInfoMap.Find(FName(*AttributeName)))
 		{
-			// FText + FString 함께 전달
 			StatRowWidget->SetStatDescription(StatInfo->Description.ToString(), StatInfo->StatDisplayName);
 		}
-
-		// 기본 위치 배치
+		
 		if (PrimaryStatNames.Contains(AttributeName))
 		{
 			PrimaryStatBox->AddChildToVerticalBox(StatRowWidget);
@@ -83,8 +75,7 @@ void UStatContainerWidget::InitializeStatRows()
 		{
 			SecondaryStatBox->AddChild(StatRowWidget);
 		}
-
-		// 맵에 저장
+		
 		StatNameRowMap.Add(AttributeName, StatRowWidget);
 	}
 }
