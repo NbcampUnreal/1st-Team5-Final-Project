@@ -43,7 +43,7 @@ void ALightningStrikeActor::ActivateStrike()
     if (StrikeCollision)
     {
         StrikeCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-        StrikeCollision->OnComponentBeginOverlap.AddDynamic(this, &ALightningStrikeActor::OnEffectOverlap);
+        StrikeCollision->OnComponentBeginOverlap.AddUniqueDynamic(this, &ALightningStrikeActor::OnEffectOverlap);
     }
 
     Multicast_PlayLightningVFX();

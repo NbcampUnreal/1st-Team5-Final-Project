@@ -62,8 +62,8 @@ void UBuffComponent::OnKnockbackTagChange(const FGameplayTag Tag, int32 TagCount
 	{
 		bIsKnockedBack = true;
 		GetWorld()->GetTimerManager().ClearTimer(KnockbackRecoveryTimer);
-		
-		CancelActiveAbilities();
+
+		// TODO: cancel abilities other than regeneration
 		//DisableMovement();
 		
 		UPRAbilitySystemComponent* ASC =
@@ -117,7 +117,7 @@ void UBuffComponent::OnFrozenTagChange(const FGameplayTag Tag, int32 TagCount)
 	{
 		AnimInstance->Montage_Pause();
 		Mesh->bPauseAnims = true;
-		CancelActiveAbilities();
+		// CancelActiveAbilities();
 		DisableMovement();
 	}
 	else
@@ -134,7 +134,7 @@ void UBuffComponent::OnShockedTagChange(const FGameplayTag Tag, int32 TagCount)
 {
 	if (TagCount > 0)
 	{
-		CancelActiveAbilities();
+		// CancelActiveAbilities();
 		DisableMovement();
 		PlayMontageByTag(Tag);
 	}
