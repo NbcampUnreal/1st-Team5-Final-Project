@@ -38,7 +38,7 @@ void UPRAssetManager::OnLevelDataAssetLoaded()
 		UE_LOG(LogTemp, Warning, TEXT("Failed to load asset directly"));
 		return;
 	}
-	
+#if !WITH_EDITOR
 	TArray<FSoftObjectPath> AssetsToStream;
 
 	// Add all visual references
@@ -64,6 +64,7 @@ void UPRAssetManager::OnLevelDataAssetLoaded()
 		AssetsToStream,
 		FStreamableDelegate::CreateUObject(this, &UPRAssetManager::OnVisualAssetsPreloaded, PreloadAsset)
 	);
+#endif
 }
 
 void UPRAssetManager::OnVisualAssetsPreloaded(ULevelDataAsset* PreloadAsset)
