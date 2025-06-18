@@ -76,6 +76,7 @@ public:
 	FGameplayTag Status_Debuff_Poison;
 	FGameplayTag Status_Debuff_Blind;
 	FGameplayTag Status_Debuff_Knockback;
+	FGameplayTag Status_Debuff_Knockback_Recovery;
 	FGameplayTag Status_Debuff_Frozen;
 	FGameplayTag Status_Debuff_Shocked;
 

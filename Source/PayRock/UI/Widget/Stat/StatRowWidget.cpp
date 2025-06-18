@@ -3,12 +3,18 @@
 
 #include "StatRowWidget.h"
 #include "Components/TextBlock.h"
+#include "PayRock/UI/Manager/UIManager.h"
 
 void UStatRowWidget::SetStatName(const FString& Name)
 {
 	if (StatName)
 	{
-		StatName->SetText(FText::FromString(Name));
+		FString DisplayString = Name;
+		if (UUIManager* UIManager = GetGameInstance()->GetSubsystem<UUIManager>())
+		{
+			DisplayString = UIManager->TranslateEnglishToKorean(DisplayString);
+		}
+		StatName->SetText(FText::FromString(DisplayString));
 	}
 }
 

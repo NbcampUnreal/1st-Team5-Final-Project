@@ -26,7 +26,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 	UQuestManager* GetQuestManager() const;
 
-private:
-	UPROPERTY()
+	
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Quest")
 	UQuestManager* QuestManager;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Quest")
+	TSubclassOf<UQuestManager> QuestManagerClass;
+
 };

@@ -7,6 +7,8 @@
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "UIManager.generated.h"
 
+class UTranslateDataAsset;
+
 UCLASS(BlueprintType)
 class PAYROCK_API UUIManager : public UGameInstanceSubsystem
 {
@@ -39,6 +41,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "UI")
 	UBaseWidgetController* GetWidgetController(const FWidgetControllerParams& WCParams, EWidgetCategory Category);
 
+	UFUNCTION(BlueprintCallable, Category = "UI|Translation")
+	FString TranslateEnglishToKorean(const FString& InString);
+
 private:
 	UUserWidget* InitializeWidget(EWidgetCategory Category);
 	void InitializeWidgetController(UUserWidget* Widget, EWidgetCategory Category);
@@ -49,4 +54,7 @@ private:
 	TMap<EWidgetCategory, UBaseWidgetController*> WidgetControllerMap;
 	UPROPERTY()
 	UWidgetClassData* WidgetClassData;
+
+	UPROPERTY()
+	UTranslateDataAsset* TranslateDataAsset;
 };
