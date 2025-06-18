@@ -30,6 +30,10 @@ protected:
     UPROPERTY(meta = (BindWidgetOptional))
     UButton* OptionsButton;
 
+    /** 안내 버튼 - 필요 시 사용 */
+    UPROPERTY(meta = (BindWidgetOptional))
+    UButton* HelpButton;
+
     /** 크레딧 버튼 - 필요 시 사용 */
     UPROPERTY(meta = (BindWidgetOptional))
     UButton* CreditButton;
@@ -38,6 +42,13 @@ protected:
     //UPROPERTY(EditAnywhere, Category = "UI")
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
     TSubclassOf<UOptionsMenuWidget> OptionsMenuWidgetClass;
+
+    //// WBP_HelpWidget의 클래스를 참조할 수 있도록
+    //UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
+    //TSubclassOf<UUserWidget> HelpWidgetClass;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
+    TSubclassOf<class UHelpWidgetMenu> HelpWidgetClass;
 
 private:
     UFUNCTION()
@@ -48,6 +59,9 @@ private:
 
     UFUNCTION()
     void HandleOptionsClicked();
+
+    UFUNCTION()
+    void HandleHelpClicked();
 
 
 public:

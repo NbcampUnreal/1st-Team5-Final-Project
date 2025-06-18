@@ -122,10 +122,11 @@ private:
 
 	bool bIsSettingsMenuOpen = false;
 
-	void ToggleSettingsMenu(); // ESC 키 입력 시 호출할 함수
-
 	void ToggleHelpMenu();
 
+public:
+	// ; 메인메뉴 옵션 에서도 사용하기 위해서 public 
+	void ToggleSettingsMenu(); // ESC 키 입력 시 호출할 함수
 
 public:
 	// 매칭, 매치후 인게임 UI 다르게 표시 

@@ -352,8 +352,21 @@ void APRPlayerController::ToggleHelpMenu()
 
 	UUserWidget* HelpWidget = UIManager->FindWidget(EWidgetCategory::Help);
 
+	// ; H 눌렀을 때 마우스 보이게
+	FInputModeGameAndUI InputMode;
+	InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+	InputMode.SetHideCursorDuringCapture(false);
+	SetInputMode(InputMode);
+	SetShowMouseCursor(true);
+
 	if (HelpWidget && HelpWidget->IsInViewport())
 	{
+
+		//=== ; 헬프UI 있는 경우에 H 누르면 다시 마우스 안보이게 
+		SetInputMode(FInputModeGameOnly());
+		SetShowMouseCursor(false);
+		bIsSettingsMenuOpen = false;
+		//===
 		UIManager->RemoveWidget(EWidgetCategory::Help);
 	}
 	else
