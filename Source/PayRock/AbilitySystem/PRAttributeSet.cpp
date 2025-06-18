@@ -148,7 +148,7 @@ float UPRAttributeSet::HandleIncomingDamage(const FEffectProperties& Props, cons
 				Character->Die((Props.TargetCharacter->GetActorLocation() - Props.SourceCharacter->GetActorLocation()).GetSafeNormal());
 			}
 
-			UPRAdvancedGameInstance* PRGI = Cast<UPRAdvancedGameInstance>(UGameplayStatics::GetGameInstance(Props.TargetCharacter));
+			UPRAdvancedGameInstance* PRGI = Cast<UPRAdvancedGameInstance>(UGameplayStatics::GetGameInstance(Props.SourceCharacter));
 			if (PRGI)
 			{
 				FString TargetName = PRGI->GetQuestManager()->GetCurrentQuest().TargetName;
