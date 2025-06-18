@@ -17,7 +17,7 @@ AWaterWave::AWaterWave()
 
 	CollisionComponent = CollisionBox;
 
-	CollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AWaterWave::OnEffectOverlap);
+	CollisionBox->OnComponentBeginOverlap.AddUniqueDynamic(this, &AWaterWave::OnEffectOverlap);
 
 	GeometryCacheComp = CreateDefaultSubobject<UGeometryCacheComponent>(TEXT("GeometryCacheComp"));
 	GeometryCacheComp->SetupAttachment(RootComponent);

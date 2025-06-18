@@ -81,6 +81,7 @@ public:
 	
 	void InitializeDefaultAttributes();
 	bool bAreAttributesInitialized = false;
+	bool bOnlyRelevantToOwner = true;
 	
 protected:
 	virtual void BeginPlay() override;

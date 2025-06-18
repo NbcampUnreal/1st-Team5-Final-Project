@@ -16,8 +16,8 @@ ACycloneActor::ACycloneActor()
 	PullRange = CreateDefaultSubobject<USphereComponent>(TEXT("PullRange"));
 	PullRange->InitSphereRadius(600.f);
 	PullRange->SetCollisionProfileName(TEXT("OverlapAll"));
-	PullRange->OnComponentBeginOverlap.AddDynamic(this, &ACycloneActor::OnOverlapBegin);
-	PullRange->OnComponentEndOverlap.AddDynamic(this, &ACycloneActor::OnOverlapEnd);
+	PullRange->OnComponentBeginOverlap.AddUniqueDynamic(this, &ACycloneActor::OnOverlapBegin);
+	PullRange->OnComponentEndOverlap.AddUniqueDynamic(this, &ACycloneActor::OnOverlapEnd);
 	
 	RootComponent = PullRange;
 

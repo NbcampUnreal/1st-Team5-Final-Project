@@ -22,7 +22,7 @@ ARoarCollisionActor::ARoarCollisionActor()
 	RoarEffect->SetupAttachment(RootComponent);
 	RoarEffect->SetAutoActivate(false);
 	
-	CollisionSphere->OnComponentBeginOverlap.AddDynamic(this, &ARoarCollisionActor::OnOverlapBegin);
+	CollisionSphere->OnComponentBeginOverlap.AddUniqueDynamic(this, &ARoarCollisionActor::OnOverlapBegin);
 }
 
 void ARoarCollisionActor::BeginPlay()
