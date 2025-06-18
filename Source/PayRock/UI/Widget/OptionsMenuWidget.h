@@ -78,6 +78,9 @@ public:
     // Ä¿½ºÅÒ ÀÌ´Ö
     void InitOptionsMenu(UMainMenuUserWidget* InMainMenuRef);
     
+protected:
+    virtual FReply NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent) override;
+    virtual void NativeConstruct() override;
 
 };
 

@@ -20,6 +20,7 @@ enum class EWidgetCategory : uint8
 	Stat,
 	Blind,
 	Shop,
+	Help,
 	MAX
 };
 

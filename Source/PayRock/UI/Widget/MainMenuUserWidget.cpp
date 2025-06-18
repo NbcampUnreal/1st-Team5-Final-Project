@@ -6,6 +6,7 @@
 #include "Components/Button.h"
 #include "Kismet/GameplayStatics.h"
 #include "PayRock/UI/Widget/OptionsMenuWidget.h" // UOptionsMenuWidget 헤더
+#include "HelpWidgetMenu.h"
 
 void UMainMenuUserWidget::HandleStartGameClicked()
 {
@@ -43,9 +44,14 @@ void UMainMenuUserWidget::HandleOptionsClicked()
 
 
             APlayerController* PC = GetWorld()->GetFirstPlayerController();
+
+            // 마우스로 클릭 안해도 바로 esc로 꺼지도록 수정 
             if (PC)
             {
-                PC->SetInputMode(FInputModeUIOnly());
+                FInputModeUIOnly InputMode;
+                InputMode.SetWidgetToFocus(OptionsWidget->TakeWidget()); //  이것!
+                InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+                PC->SetInputMode(InputMode);
                 PC->bShowMouseCursor = true;
             }
 
@@ -54,6 +60,33 @@ void UMainMenuUserWidget::HandleOptionsClicked()
 
 
             // 자신 숨기거나 비활성화할 수도 있음
+            this->SetVisibility(ESlateVisibility::Hidden);
+        }
+    }
+}
+
+void UMainMenuUserWidget::HandleHelpClicked()
+{
+    if (HelpWidgetClass)
+    {
+        UHelpWidgetMenu* HelpWidget = CreateWidget<UHelpWidgetMenu>(GetWorld(), HelpWidgetClass);
+
+        if (HelpWidget)
+        {
+            HelpWidget->MainMenuRef = this; //  메인 메뉴 위젯 참조 넘기기
+
+            HelpWidget->AddToViewport();
+
+            APlayerController* PC = GetWorld()->GetFirstPlayerController();
+            if (PC)
+            {
+                FInputModeUIOnly InputMode;
+                InputMode.SetWidgetToFocus(HelpWidget->TakeWidget());
+                InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+                PC->SetInputMode(InputMode);
+                PC->bShowMouseCursor = true;
+            }
+
             this->SetVisibility(ESlateVisibility::Hidden);
         }
     }
@@ -78,5 +111,11 @@ void UMainMenuUserWidget::NativeOnInitialized()
     if (OptionsButton)
     {
         OptionsButton->OnClicked.AddDynamic(this, &UMainMenuUserWidget::HandleOptionsClicked);
+    }
+
+
+    if (HelpButton)
+    {
+        HelpButton->OnClicked.AddDynamic(this, &UMainMenuUserWidget::HandleHelpClicked);
     }
 }
