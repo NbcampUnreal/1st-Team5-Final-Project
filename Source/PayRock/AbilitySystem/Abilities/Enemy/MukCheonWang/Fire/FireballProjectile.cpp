@@ -27,8 +27,8 @@ AFireballProjectile::AFireballProjectile()
 	CapsuleCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
 	CapsuleCollision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 	CapsuleCollision->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
-	CapsuleCollision->OnComponentBeginOverlap.AddDynamic(this, &AFireballProjectile::OnEffectOverlap);
-	CapsuleCollision->OnComponentHit.AddDynamic(this, &AFireballProjectile::OnHit);
+	CapsuleCollision->OnComponentBeginOverlap.AddUniqueDynamic(this, &AFireballProjectile::OnEffectOverlap);
+	CapsuleCollision->OnComponentHit.AddUniqueDynamic(this, &AFireballProjectile::OnHit);
 
 	SetRootComponent(CapsuleCollision);
 	CollisionComponent = CapsuleCollision;

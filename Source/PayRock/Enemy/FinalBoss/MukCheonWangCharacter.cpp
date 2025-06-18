@@ -24,8 +24,8 @@ AMukCheonWangCharacter::AMukCheonWangCharacter()
     AIPerception = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerception"));
 
     SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("SightConfig"));
-    SightConfig->SightRadius = 5000.f;
-    SightConfig->LoseSightRadius = 5000.f;
+    SightConfig->SightRadius = 3000.f;
+    SightConfig->LoseSightRadius = 3200.f;
     SightConfig->PeripheralVisionAngleDegrees = 360.f;
     SightConfig->DetectionByAffiliation.bDetectEnemies = true;
     SightConfig->DetectionByAffiliation.bDetectFriendlies = true;

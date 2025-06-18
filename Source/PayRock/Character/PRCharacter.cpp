@@ -69,7 +69,10 @@ APRCharacter::APRCharacter()
     GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
 
     MouseSensitivity = 1.0f;
-
+    
+    bReplicates = true;
+    bAlwaysRelevant = true;
+    
     GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
     GetCharacterMovement()->SetCrouchedHalfHeight(60.f);
 
