@@ -20,6 +20,13 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetQuestData(const FQuestData& Quest);
 
+	//블루프린트함수
+	UFUNCTION(BlueprintImplementableEvent, Category = "Quest")
+	void CheckItemCollectQuest();
+
+	//래핑함수
+	UFUNCTION(BlueprintCallable, Category = "Quest")
+	void CallCheckItemCollectQuest();
 
 	//디폴트값 귀찮으니 설정
 private:
