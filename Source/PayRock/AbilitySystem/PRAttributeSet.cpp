@@ -7,6 +7,8 @@
 #include "PayRock/PRGameplayTags.h"
 #include "PayRock/Character/BaseCharacter.h"
 #include "Abilities/Blessing/BaseBlessingAbility.h"
+#include "Kismet/GameplayStatics.h"
+#include "PayRock/GameSystem/PRAdvancedGameInstance.h"
 
 UPRAttributeSet::UPRAttributeSet()
 {
@@ -145,6 +147,27 @@ float UPRAttributeSet::HandleIncomingDamage(const FEffectProperties& Props, cons
 			{
 				Character->Die((Props.TargetCharacter->GetActorLocation() - Props.SourceCharacter->GetActorLocation()).GetSafeNormal());
 			}
+
+			UPRAdvancedGameInstance* PRGI = Cast<UPRAdvancedGameInstance>(UGameplayStatics::GetGameInstance(Props.TargetCharacter));
+			if (PRGI)
+			{
+				FString TargetName = PRGI->GetQuestManager()->GetCurrentQuest().TargetName;
+
+				const UEnum* EnumPtr = FindObject<UEnum>(ANY_PACKAGE, TEXT("ECharacterType"), true);
+				
+				FString CharacterTypeString = EnumPtr->GetNameByValue((int64)Character->CharacterType).ToString();
+				FString ShortName;
+				CharacterTypeString.Split(TEXT("::"), nullptr, &ShortName);
+				if (TargetName == ShortName)
+				{
+					PRGI->GetQuestManager()->UpdateProgress();
+					
+					UE_LOG(LogTemp, Log, TEXT("[QuestManager] 타겟 이름 일치 퀘스트 진행도 상승: Target = %s"), *ShortName);
+				}
+			}
+			
+
+			
 		}
 	}
 	return CalculatedDamage;
