@@ -179,15 +179,11 @@ void UQuestManager::ToggleQuestUI()
 	if (!QuestWidget) return;
 
 	APlayerController* PC = GetWorld()->GetFirstPlayerController();
+	QuestWidget->CallCheckItemCollectQuest();
 	
 	if (QuestWidget->IsVisible())
 	{
 		QuestWidget->SetVisibility(ESlateVisibility::Hidden);
-		if (PC)
-		{
-			PC->SetShowMouseCursor(false);
-			PC->SetInputMode(FInputModeGameOnly());
-		}
 		UE_LOG(LogTemp, Error, TEXT("[QuestManager] 토글퀘스트 숨기기"));
 	}
 	else
@@ -200,14 +196,6 @@ void UQuestManager::ToggleQuestUI()
 			QuestWidget->SetQuestData(CurrentQuest);
 			QuestWidget->SetVisibility(ESlateVisibility::Visible);
 
-		if (PC)
-		{
-			FInputModeGameAndUI InputMode;
-			InputMode.SetWidgetToFocus(QuestWidget->TakeWidget());
-			InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-			PC->SetInputMode(InputMode);
-			PC->SetShowMouseCursor(true);
-		}
 			UE_LOG(LogTemp, Error, TEXT("[QuestManager] 토글퀘스트 보이기"));
 	}
 }

@@ -14,6 +14,12 @@ class PAYROCK_API UPRAssetManager : public UAssetManager
 public:
 	static UPRAssetManager& Get();
 
+	bool bAssetsLoaded = false;
+
 protected:
 	virtual void StartInitialLoading() override;
+
+	void OnLevelDataAssetLoaded();
+
+	void OnVisualAssetsPreloaded(class ULevelDataAsset* PreloadAsset);
 };
