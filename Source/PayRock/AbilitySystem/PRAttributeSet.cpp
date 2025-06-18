@@ -153,15 +153,14 @@ float UPRAttributeSet::HandleIncomingDamage(const FEffectProperties& Props, cons
 			{
 				FString TargetName = PRGI->GetQuestManager()->GetCurrentQuest().TargetName;
 
-				const UEnum* EnumPtr = FindObject<UEnum>(ANY_PACKAGE, TEXT("ECharacterType"), true);
+				FName CharacterTypeName = StaticEnum<ECharacterType>()->GetNameByValue((int64)Character->CharacterType);
 				
-				FString CharacterTypeString = EnumPtr->GetNameByValue((int64)Character->CharacterType).ToString();
+				FString CharacterTypeString = CharacterTypeName.ToString();
 				FString ShortName;
 				CharacterTypeString.Split(TEXT("::"), nullptr, &ShortName);
 				if (TargetName == ShortName)
 				{
 					PRGI->GetQuestManager()->UpdateProgress();
-					
 					UE_LOG(LogTemp, Log, TEXT("[QuestManager] 타겟 이름 일치 퀘스트 진행도 상승: Target = %s"), *ShortName);
 				}
 			}
