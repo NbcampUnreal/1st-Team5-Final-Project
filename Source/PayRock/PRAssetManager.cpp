@@ -38,6 +38,7 @@ void UPRAssetManager::OnLevelDataAssetLoaded()
 		UE_LOG(LogTemp, Warning, TEXT("Failed to load asset directly"));
 		return;
 	}
+
 #if !WITH_EDITOR
 	TArray<FSoftObjectPath> AssetsToStream;
 
