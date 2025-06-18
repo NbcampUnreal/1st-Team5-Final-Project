@@ -48,6 +48,25 @@ void UStatContainerWidget::InitializeStatRows()
 		// 이름 설정
 		StatRowWidget->SetStatName(AttributeName);
 
+		// =======
+		if (StatInfoDataAsset)
+		{
+			if (const FStatInfo* StatInfo = StatInfoDataAsset->StatInfoMap.Find(FName(*AttributeName)))
+			{
+				StatRowWidget->SetStatDescription(StatInfo->Description.ToString(), StatInfo->StatDisplayName);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("StatInfoMap에 [%s] 키 없음"), *AttributeName);
+			}
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("StatInfoDataAsset이 널입니다! 에셋 연결을 확인하세요."));
+
+		}
+		// ============
+
 		//  DataAsset에서 DisplayName, Description 가져오기
 		if (const FStatInfo* StatInfo = StatInfoDataAsset->StatInfoMap.Find(FName(*AttributeName)))
 		{
