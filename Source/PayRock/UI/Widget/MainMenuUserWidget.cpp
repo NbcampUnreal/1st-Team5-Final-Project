@@ -5,13 +5,14 @@
 #include "MainMenuUserWidget.h"
 #include "Components/Button.h"
 #include "Kismet/GameplayStatics.h"
-#include "PayRock/UI/Widget/OptionsMenuWidget.h" // UOptionsMenuWidget Çì´õ
+#include "PayRock/UI/Widget/OptionsMenuWidget.h" // UOptionsMenuWidget ï¿½ï¿½ï¿½
+#include "HelpWidgetMenu.h"
 
 void UMainMenuUserWidget::HandleStartGameClicked()
 {
-    // ¸ÞÀÎ ·¹º§ ÀÌ¸§À» Á¤È®ÇÏ°Ô ¼³Á¤ÇÏ¼¼¿ä (¿¹: "MainLevel")
-    // ½ÃÀÛ ¹öÆ° ´©¸¦¶§ -> ·Îºñ ·Î 
-    UGameplayStatics::OpenLevel(this, FName("SessionLevel"));
+    // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¸ï¿½ï¿½ï¿½ ï¿½ï¿½È®ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¼ï¿½ï¿½ï¿½ (ï¿½ï¿½: "MainLevel")
+    // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ° ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ -> ï¿½Îºï¿½ ï¿½ï¿½ 
+    UGameplayStatics::OpenLevel(this, FName("TempMainMenu"));
 }
 
 void UMainMenuUserWidget::HandleQuitGameClicked()
@@ -22,7 +23,7 @@ void UMainMenuUserWidget::HandleQuitGameClicked()
 
 void UMainMenuUserWidget::HandleOptionsClicked()
 {
-    // ¿É¼Ç UI ¶Ç´Â ¼³Á¤ Ã¢ ¿­±â ·ÎÁ÷ (ÃßÈÄ ±¸Çö)
+    // ï¿½É¼ï¿½ UI ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã¢ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
     if (OptionsMenuWidgetClass) // TSubclassOf<UOptionsMenuWidget>
     {
         UOptionsMenuWidget* OptionsWidget = CreateWidget<UOptionsMenuWidget>(GetWorld(), OptionsMenuWidgetClass);
@@ -31,21 +32,26 @@ void UMainMenuUserWidget::HandleOptionsClicked()
 
         if (OptionsWidget)
         {
-            //// ;¿É¼Ç À§Á¬ÀÌ °¡Áö°í ÀÖ´Â Ref ¸ÞÀÎ¸Þ´º ³Ñ°ÜÁÖ±â!!! ¼ø¼­ Á¶½É!
+            //// ;ï¿½É¼ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ Ref ï¿½ï¿½ï¿½Î¸Þ´ï¿½ ï¿½Ñ°ï¿½ï¿½Ö±ï¿½!!! ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
             //OptionsWidget->MainMenuRef = this;
 
             OptionsWidget->AddToViewport();
-            //// ;¿É¼Ç À§Á¬ÀÌ °¡Áö°í ÀÖ´Â Ref ¸ÞÀÎ¸Þ´º ³Ñ°ÜÁÖ±â!!! ¼ø¼­ Á¶½É!
+            //// ;ï¿½É¼ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ Ref ï¿½ï¿½ï¿½Î¸Þ´ï¿½ ï¿½Ñ°ï¿½ï¿½Ö±ï¿½!!! ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
             //OptionsWidget->MainMenuRef = this;
 
-            // Ä¿½ºÅÒ ÇÔ¼ö
-            OptionsWidget->InitOptionsMenu(this); //  ±× ´ÙÀ½ ÂüÁ¶ ¼¼ÆÃ
+            // Ä¿ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½
+            OptionsWidget->InitOptionsMenu(this); //  ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
 
             APlayerController* PC = GetWorld()->GetFirstPlayerController();
+
+            // ï¿½ï¿½ï¿½ì½ºï¿½ï¿½ Å¬ï¿½ï¿½ ï¿½ï¿½ï¿½Øµï¿½ ï¿½Ù·ï¿½ escï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 
             if (PC)
             {
-                PC->SetInputMode(FInputModeUIOnly());
+                FInputModeUIOnly InputMode;
+                InputMode.SetWidgetToFocus(OptionsWidget->TakeWidget()); //  ï¿½Ì°ï¿½!
+                InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+                PC->SetInputMode(InputMode);
                 PC->bShowMouseCursor = true;
             }
 
@@ -53,7 +59,34 @@ void UMainMenuUserWidget::HandleOptionsClicked()
             //OptionsWidget->AddToViewport();
 
 
-            // ÀÚ½Å ¼û±â°Å³ª ºñÈ°¼ºÈ­ÇÒ ¼öµµ ÀÖÀ½
+            // ï¿½Ú½ï¿½ ï¿½ï¿½ï¿½ï¿½Å³ï¿½ ï¿½ï¿½È°ï¿½ï¿½È­ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+            this->SetVisibility(ESlateVisibility::Hidden);
+        }
+    }
+}
+
+void UMainMenuUserWidget::HandleHelpClicked()
+{
+    if (HelpWidgetClass)
+    {
+        UHelpWidgetMenu* HelpWidget = CreateWidget<UHelpWidgetMenu>(GetWorld(), HelpWidgetClass);
+
+        if (HelpWidget)
+        {
+            HelpWidget->MainMenuRef = this; //  ï¿½ï¿½ï¿½ï¿½ ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ±ï¿½ï¿½
+
+            HelpWidget->AddToViewport();
+
+            APlayerController* PC = GetWorld()->GetFirstPlayerController();
+            if (PC)
+            {
+                FInputModeUIOnly InputMode;
+                InputMode.SetWidgetToFocus(HelpWidget->TakeWidget());
+                InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+                PC->SetInputMode(InputMode);
+                PC->bShowMouseCursor = true;
+            }
+
             this->SetVisibility(ESlateVisibility::Hidden);
         }
     }
@@ -78,5 +111,11 @@ void UMainMenuUserWidget::NativeOnInitialized()
     if (OptionsButton)
     {
         OptionsButton->OnClicked.AddDynamic(this, &UMainMenuUserWidget::HandleOptionsClicked);
+    }
+
+
+    if (HelpButton)
+    {
+        HelpButton->OnClicked.AddDynamic(this, &UMainMenuUserWidget::HandleHelpClicked);
     }
 }

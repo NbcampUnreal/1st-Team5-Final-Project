@@ -25,9 +25,6 @@
 #include "Perception/AISense_Damage.h"
 #include "Perception/AISense_Sight.h"
 #include "Blueprint/UserWidget.h"
-#include "Components/WidgetComponent.h"
-#include "Animation/WidgetAnimation.h"
-#include "Kismet/KismetSystemLibrary.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "UMG.h"
@@ -82,7 +79,10 @@ APRCharacter::APRCharacter()
     GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
 
     MouseSensitivity = 1.0f;
-
+    
+    bReplicates = true;
+    bAlwaysRelevant = true;
+    
     GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
     GetCharacterMovement()->SetCrouchedHalfHeight(60.f);
 
@@ -717,6 +717,11 @@ void APRCharacter::Landed(const FHitResult& Hit)
     if (bIsDoubleJumping)
     {
         Server_DoubleJumpLanded();    
+    }
+
+    if (IsValid(BuffComponent) && BuffComponent->IsKnockedBack())
+    {
+        BuffComponent->StartKnockbackRecovery();
     }
 }
 

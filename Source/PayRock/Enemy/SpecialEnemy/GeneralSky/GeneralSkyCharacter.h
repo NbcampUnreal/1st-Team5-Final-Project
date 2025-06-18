@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "PayRock/Enemy/EnemyCharacter.h"
+#include "NiagaraSystem.h"
 #include "GeneralSkyCharacter.generated.h"
 
 /**
@@ -32,6 +33,12 @@ public:
 	UAnimMontage* GetChargingMontage();
 	UAnimMontage* GetStampMontage();
 
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_PlayStampEffect(FVector SpawnLocation);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VFX")
+	TObjectPtr<UNiagaraSystem> StampVFX;
+	
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material")
 	UMaterialInstanceDynamic* BodyMat;

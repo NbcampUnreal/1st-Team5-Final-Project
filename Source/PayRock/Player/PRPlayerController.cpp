@@ -48,10 +48,14 @@ void APRPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
 
+
 	if (UEnhancedInputComponent* EIComp = Cast<UEnhancedInputComponent>(InputComponent))
 	{
-		// 한번 눌렀을 때만 발동 하게! 
+		// 한번 눌렀을 때만 발동 하게! esc
 		EIComp->BindAction(ToggleMenuAction, ETriggerEvent::Started, this, &APRPlayerController::ToggleSettingsMenu);
+
+		// H눌렀을때 Help  바인딩 
+		EIComp->BindAction(ShowHelpAction, ETriggerEvent::Started, this, &APRPlayerController::ToggleHelpMenu);
 	}
 }
 
@@ -287,6 +291,7 @@ void APRPlayerController::ToggleSettingsMenu()
 		EWidgetCategory::Stat,
 		EWidgetCategory::Stash,
 		EWidgetCategory::Blessing,
+		EWidgetCategory::Help,
 	};
 
 	for (EWidgetCategory Category : UICheckList)
@@ -340,6 +345,36 @@ void APRPlayerController::ToggleSettingsMenu()
 	}
 }
 
+void APRPlayerController::ToggleHelpMenu()
+{
+	UUIManager* UIManager = GetGameInstance()->GetSubsystem<UUIManager>();
+	if (!UIManager) return;
+
+	UUserWidget* HelpWidget = UIManager->FindWidget(EWidgetCategory::Help);
+
+	// ; H 눌렀을 때 마우스 보이게
+	FInputModeGameAndUI InputMode;
+	InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+	InputMode.SetHideCursorDuringCapture(false);
+	SetInputMode(InputMode);
+	SetShowMouseCursor(true);
+
+	if (HelpWidget && HelpWidget->IsInViewport())
+	{
+
+		//=== ; 헬프UI 있는 경우에 H 누르면 다시 마우스 안보이게 
+		SetInputMode(FInputModeGameOnly());
+		SetShowMouseCursor(false);
+		bIsSettingsMenuOpen = false;
+		//===
+		UIManager->RemoveWidget(EWidgetCategory::Help);
+	}
+	else
+	{
+		UIManager->ShowWidget(EWidgetCategory::Help);
+	}
+}
+
 void APRPlayerController::HandleMatchFlowStateChanged(EMatchFlowState NewState)
 {
 	// UE_LOG(LogTemp, Error, TEXT("HandleMatchFlowStateChanged: %d"), static_cast<int32>(NewState));
@@ -351,19 +386,22 @@ void APRPlayerController::HandleMatchFlowStateChanged(EMatchFlowState NewState)
 	switch (NewState)
 	{
 	case EMatchFlowState::WaitingToStart:
-		UIManager->RemoveWidget(EWidgetCategory::Loading);
+		UIManager->RemoveAllWidgets();
+		UIManager->RemoveAllWidgetControllers();
 		UIManager->ShowWidget(EWidgetCategory::MatchHUD);
 		break;
 	case EMatchFlowState::MatchInProgress:
-		UIManager->RemoveWidget(EWidgetCategory::MatchHUD);
+		UIManager->RemoveAllWidgets();
+		UIManager->RemoveAllWidgetControllers();
 		UIManager->ShowWidget(EWidgetCategory::InGameHUD);
 		break;
 	case EMatchFlowState::ExtractionEnabled:
-		// 추가 UI 업데이트 원하면 여기에
+		// 탈출구 나타났음을 알림
 		break;
 	case EMatchFlowState::MatchEnded:
 		UIManager->RemoveAllWidgets();
 		UIManager->RemoveAllWidgetControllers();
+		// 매치 종료를 알림
 		break;
 	}
 }

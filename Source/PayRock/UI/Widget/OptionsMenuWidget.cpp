@@ -8,6 +8,8 @@
 #include "BaseUserWidget.h"
 #include "Components/Button.h"
 #include "Components/WidgetSwitcher.h"
+#include "MainMenuUserWidget.h"
+#include "PayRock/Player/PRPlayerController.h"
 
 void UOptionsMenuWidget::OnVideoButtonClicked()
 {
@@ -121,5 +123,54 @@ void UOptionsMenuWidget::InitOptionsMenu(UMainMenuUserWidget* InMainMenuRef)
     // 하위  키설 정에서 들도록 설정
 
     // 하위 게임 플레이
+
+}
+
+
+FReply UOptionsMenuWidget::NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent)
+{
+    if (InKeyEvent.GetKey() == EKeys::Escape)
+    {
+        // 메인 메뉴에서 ESC → 복귀
+        if (MainMenuRef)
+        {
+            MainMenuRef->SetVisibility(ESlateVisibility::Visible);
+            RemoveFromParent();
+
+            APlayerController* PC = GetWorld()->GetFirstPlayerController();
+            if (PC)
+            {
+                FInputModeUIOnly InputMode;
+                InputMode.SetWidgetToFocus(MainMenuRef->TakeWidget());
+                InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+                PC->SetInputMode(InputMode);
+                PC->bShowMouseCursor = true;
+            }
+
+            return FReply::Handled();
+        }
+
+        // 인게임에서는 PRPlayerController가 ToggleSettingsMenu() 처리
+        APlayerController* PC = GetWorld()->GetFirstPlayerController();
+        if (PC)
+        {
+            if (APRPlayerController* PRPC = Cast<APRPlayerController>(PC))
+            {
+                PRPC->ToggleSettingsMenu();
+                return FReply::Handled();
+            }
+        }
+
+        // 어느 쪽도 아니면 무시
+    }
+
+    return Super::NativeOnKeyDown(InGeometry, InKeyEvent);
+}
+
+void UOptionsMenuWidget::NativeConstruct()
+{
+    // ESC 키 입력을 받기 위해 포커스 가능하게 설정
+    SetIsFocusable(true);
+
 
 }
