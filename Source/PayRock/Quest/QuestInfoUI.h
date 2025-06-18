@@ -19,7 +19,9 @@ class PAYROCK_API UQuestInfoUI : public UUserWidget
 public:
 	UFUNCTION(BlueprintCallable)
 	void SetQuestData(const FQuestData& Quest);
-
+	
+	UFUNCTION(BlueprintImplementableEvent, Category = "Quest")
+	void CheckItemCollectQuest();
 
 	//디폴트값 귀찮으니 설정
 private:
