@@ -57,12 +57,12 @@ void UStatContainerWidget::InitializeStatRows()
 			}
 			else
 			{
-				UE_LOG(LogTemp, Warning, TEXT("StatInfoMap에 [%s] 키 없음"), *AttributeName);
+				UE_LOG(LogTemp, Warning, TEXT("StatInfoMap에 [%s] key X"), *AttributeName);
 			}
 		}
 		else
 		{
-			UE_LOG(LogTemp, Error, TEXT("StatInfoDataAsset이 널입니다! 에셋 연결을 확인하세요."));
+			UE_LOG(LogTemp, Error, TEXT("StatInfoDataAsset is NULL"));
 
 		}
 		// ============
