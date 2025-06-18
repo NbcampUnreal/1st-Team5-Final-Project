@@ -24,7 +24,7 @@ ANecroCharacter::ANecroCharacter()
 	GetCharacterMovement()->bSnapToPlaneAtStart = true;
 	GetCharacterMovement()->bUseControllerDesiredRotation = false;
 	GetCharacterMovement()->bIgnoreClientMovementErrorChecksAndCorrection = false;
-	GetCharacterMovement()->MaxWalkSpeed = 300.f;
+	GetCharacterMovement()->MaxWalkSpeed = 550.f;
 
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = true;
