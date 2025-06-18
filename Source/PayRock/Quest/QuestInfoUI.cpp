@@ -46,3 +46,8 @@ void UQuestInfoUI::SetQuestData(const FQuestData& Quest)
 
 
 }
+
+void UQuestInfoUI::CallCheckItemCollectQuest()
+{
+	CheckItemCollectQuest();
+}
