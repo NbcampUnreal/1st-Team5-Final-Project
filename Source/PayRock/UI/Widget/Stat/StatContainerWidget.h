@@ -8,6 +8,7 @@
 
 class UScrollBox;
 class UVerticalBox;
+class UStatInfoDataAsset;
 
 UCLASS(meta = (DisableNativeTick))
 class PAYROCK_API UStatContainerWidget : public UBaseUserWidget
@@ -34,6 +35,14 @@ private:
 	TSubclassOf<UUserWidget> StatRowWidgetClass;
 	UPROPERTY()
 	TMap<FString, UUserWidget*> StatNameRowMap;
+
+	// ;Stat 이름과 설명을 매핑하는 맵
+	UPROPERTY()
+	TMap<FString, FString> StatDescriptions;
+
+	// ;데이터 에셋 참조
+	UPROPERTY(EditDefaultsOnly, Category = "Stat")
+	UStatInfoDataAsset* StatInfoDataAsset;
 
 	/*
 	* TODO: This is STUPID!!! Separate Primary / Secondary using GameplayTag?
