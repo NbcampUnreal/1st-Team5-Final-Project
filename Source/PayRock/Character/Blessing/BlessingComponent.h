@@ -63,6 +63,9 @@ private:
 	UAbilitySystemComponent* GetAbilitySystemComponent();
 
 public:
+	UPROPERTY()
+	UTexture2D* LocalEquippedActiveBlessingIcon;
+	
 	FOnActiveBlessingChanged OnActiveBlessingChange;
 	FOnPassiveBlessingChanged OnPassiveBlessingChange;
 	FOnBlessingAcquired OnBlessingAcquired;

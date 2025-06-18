@@ -166,17 +166,6 @@ void APRGameState::TickMatchCountdown()
 
 	MatchStart_CountDown--;
 
-	if (MatchStart_CountDown == 20)
-	{
-		for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
-		{
-			if (APRPlayerController* PC = Cast<APRPlayerController>(*It))
-			{
-				PC->Client_OnTwentySecondsLeft();
-			}
-		}
-	}
-
 	if (MatchStart_CountDown <= 0)
 	{
 		GetWorld()->GetTimerManager().ClearTimer(MatchStartTimerHandle);
@@ -410,8 +399,6 @@ void APRGameState::OnRep_MatchFlowState()
 		}
 	}
 }
-
-
 
 void APRGameState::SetMatchFlowState(EMatchFlowState NewState)
 {

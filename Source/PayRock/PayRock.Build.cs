@@ -10,7 +10,7 @@ public class PayRock : ModuleRules
 	
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "PhysicsCore",
             "EnhancedInput", "GameplayAbilities", "GameplayTags", "GameplayTasks", "AIModule", "NavigationSystem", "UMG","OnlineSubsystem"
-		});
+        });
 
 		PrivateDependencyModuleNames.AddRange(new string[] { "Niagara","GeometryCache" });
 

@@ -9,6 +9,7 @@ AKappaMonster::AKappaMonster()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	
+	CharacterType = ECharacterType::Kappa;
 	LeftHandCollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("LeftHandCollision"));
 	check(LeftHandCollisionComp);
 	RightHandCollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("RightHandCollision"));

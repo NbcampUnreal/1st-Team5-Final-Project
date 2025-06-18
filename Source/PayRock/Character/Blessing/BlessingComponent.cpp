@@ -2,7 +2,6 @@
 
 #include "BlessingComponent.h"
 #include "BlessingDataAsset.h"
-#include "Net/UnrealNetwork.h"
 #include "PayRock/AbilitySystem/PRAbilitySystemComponent.h"
 #include "PayRock/AbilitySystem/PRAttributeSet.h"
 #include "PayRock/Character/PRCharacter.h"
@@ -144,6 +143,17 @@ void UBlessingComponent::Server_UnequipPassiveBlessing_Implementation()
 void UBlessingComponent::Client_BroadcastActiveBlessing_Implementation(const FBlessingData& Blessing)
 {
 	OnActiveBlessingChange.Broadcast(Blessing);
+
+	// client needs to find the texture from savedata subsystem
+	if (!GetWorld() || GetWorld()->bIsTearingDown) return;
+	USaveDataSubsystem* SaveDataSystem = GetWorld()->GetGameInstance()->GetSubsystem<USaveDataSubsystem>();
+	if (!SaveDataSystem) return;
+
+	const UBlessingDataAsset* BlessingDA = SaveDataSystem->GetBlessingDataAsset();
+	if (const auto FoundBlessing = BlessingDA->ActiveBlessings.Find(Blessing.BlessingName.ToString()))
+	{
+		LocalEquippedActiveBlessingIcon = FoundBlessing->Icon;
+	}
 }
 
 void UBlessingComponent::Client_BroadcastPassiveBlessing_Implementation(const FBlessingData& Blessing)

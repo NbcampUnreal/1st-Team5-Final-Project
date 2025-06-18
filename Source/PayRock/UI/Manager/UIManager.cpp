@@ -21,6 +21,9 @@ void UUIManager::Initialize(FSubsystemCollectionBase& Collection)
 	{
 		UE_LOG(LogTemp, Error, TEXT("Failed to load WidgetClassData!"));
 	}
+
+	FCoreUObjectDelegates::PreLoadMap.AddUObject(this, &UUIManager::ShowLoadingScreen);
+	FCoreUObjectDelegates::PostLoadMapWithWorld.AddUObject(this, &UUIManager::RemoveLoadingScreen);
 }
 
 UUserWidget* UUIManager::ShowWidget(EWidgetCategory Category)
@@ -95,6 +98,17 @@ UUserWidget* UUIManager::FindWidget(EWidgetCategory Category)
 		return *WidgetPtr;
 	}
 	return nullptr;
+}
+
+void UUIManager::ShowLoadingScreen(const FString& MapName)
+{
+	RemoveWidget(EWidgetCategory::Loading);
+	ShowWidget(EWidgetCategory::Loading);
+}
+
+void UUIManager::RemoveLoadingScreen(UWorld* LoadedWorld)
+{
+	RemoveWidget(EWidgetCategory::Loading);
 }
 
 UUserWidget* UUIManager::InitializeWidget(EWidgetCategory Category)

@@ -6,6 +6,7 @@
 #include "BaseCharacter.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "PayRock/Item/PRItemEnum.h"
+#include "Blueprint/UserWidget.h"
 #include "PayRock/AbilitySystem/PRAttributeSet.h"
 #include "PRCharacter.generated.h"
 
@@ -38,6 +39,17 @@ public:
 	virtual void Die(FVector HitDirection = FVector::ZeroVector) override;
 	UPROPERTY(Replicated)
 	bool bIsDead = false;
+
+	void ShakeCamera();
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UUserWidget> HitOverlayWidgetClass;
+
+	UUserWidget* HitOverlayWidget = nullptr;
+
+	void PlayHitOverlay();
+
+	FTimerHandle CameraShakeTimerHandle;
 
 	/* Extraction */
 	UFUNCTION()
@@ -132,12 +144,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Movement|Interp")
 	float SpeedInterpRateWalk = 3.f;
 
-
-	UPROPERTY(EditDefaultsOnly, Category = "Abilities")
-	TSubclassOf<UGameplayAbility> GA_UseHealItemClass;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Blessing")
 	class UBlessingComponent* BlessingComponent;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Blessing")
+	class UBuffComponent* BuffComponent;
 
 	// Mouse Sensitivity
 	UPROPERTY(EditAnywhere, Category = "Input")
@@ -286,6 +296,12 @@ public:
 	USoundBase* GetLandingSoundBySurface(EPhysicalSurface SurfaceType);
 
 	void Landed(const FHitResult& Hit);
+
+	UFUNCTION(Server, Reliable)
+	void ServerPlayAttackSound(USoundBase* Sound, FVector Location);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastPlayAttackSound(USoundBase* Sound, FVector Location);
 
 protected:
 	virtual void BeginPlay() override;

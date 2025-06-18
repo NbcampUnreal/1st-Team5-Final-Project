@@ -7,6 +7,8 @@
 #include "PayRock/PRGameplayTags.h"
 #include "PayRock/Character/BaseCharacter.h"
 #include "Abilities/Blessing/BaseBlessingAbility.h"
+#include "Kismet/GameplayStatics.h"
+#include "PayRock/GameSystem/PRAdvancedGameInstance.h"
 
 UPRAttributeSet::UPRAttributeSet()
 {
@@ -106,6 +108,16 @@ void UPRAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
 float UPRAttributeSet::HandleIncomingDamage(const FEffectProperties& Props, const FGameplayEffectModCallbackData& Data)
 {
 	const float LocalIncomingDamage = GetIncomingDamage();
+	if (LocalIncomingDamage <= 0.f) return 0.f;
+
+	// Activate Hit React
+	FGameplayTagContainer TagContainer;
+	TagContainer.AddTag(FPRGameplayTags::Get().Effects_HitReact);
+	if (Props.TargetASC)
+	{
+		Props.TargetASC->TryActivateAbilitiesByTag(TagContainer);	
+	}
+	
 	SetIncomingDamage(0.f);
 	const float CalculatedDamage = GetCalculatedDamage(LocalIncomingDamage, Props);
 	if (CalculatedDamage > 0.f)
@@ -127,14 +139,6 @@ float UPRAttributeSet::HandleIncomingDamage(const FEffectProperties& Props, cons
 			*GetOwningAbilitySystemComponent()->GetAvatarActor()->GetName(),
 			LocalIncomingDamage, CalculatedDamage, HealthCurrent, GetMaxHealth());*/
 
-		// Activate Hit React
-		FGameplayTagContainer TagContainer;
-		TagContainer.AddTag(FPRGameplayTags::Get().Effects_HitReact);
-		if (Props.TargetASC)
-		{
-			Props.TargetASC->TryActivateAbilitiesByTag(TagContainer);	
-		}
-
 		if (NewHealth <= 0.f)
 		{
 			// Handle death
@@ -143,6 +147,27 @@ float UPRAttributeSet::HandleIncomingDamage(const FEffectProperties& Props, cons
 			{
 				Character->Die((Props.TargetCharacter->GetActorLocation() - Props.SourceCharacter->GetActorLocation()).GetSafeNormal());
 			}
+
+			UPRAdvancedGameInstance* PRGI = Cast<UPRAdvancedGameInstance>(UGameplayStatics::GetGameInstance(Props.TargetCharacter));
+			if (PRGI)
+			{
+				FString TargetName = PRGI->GetQuestManager()->GetCurrentQuest().TargetName;
+
+				const UEnum* EnumPtr = FindObject<UEnum>(ANY_PACKAGE, TEXT("ECharacterType"), true);
+				
+				FString CharacterTypeString = EnumPtr->GetNameByValue((int64)Character->CharacterType).ToString();
+				FString ShortName;
+				CharacterTypeString.Split(TEXT("::"), nullptr, &ShortName);
+				if (TargetName == ShortName)
+				{
+					PRGI->GetQuestManager()->UpdateProgress();
+					
+					UE_LOG(LogTemp, Log, TEXT("[QuestManager] 타겟 이름 일치 퀘스트 진행도 상승: Target = %s"), *ShortName);
+				}
+			}
+			
+
+			
 		}
 	}
 	return CalculatedDamage;
@@ -152,7 +177,7 @@ float UPRAttributeSet::GetCalculatedDamage(float LocalIncomingDamage, const FEff
 {
 	// TODO: Block
 
-	if (!Props.SourceASC) return 0.f;
+	if (!Props.SourceASC || LocalIncomingDamage <= 0.f) return 0.f;
 	
 	const UPRAttributeSet* AttackerAttributeSet =
 		Cast<UPRAttributeSet>(Props.SourceASC->GetAttributeSet(UPRAttributeSet::StaticClass()));
@@ -195,6 +220,8 @@ float UPRAttributeSet::GetCalculatedDamage(float LocalIncomingDamage, const FEff
 
 void UPRAttributeSet::HandleLifeSteal(const FEffectProperties& Props, float DealtDamage)
 {
+	if (DealtDamage <= 0.f) return;
+	
 	FGameplayTag LifeStealTag = FPRGameplayTags::Get().Status_Buff_LifeSteal;
 	if (!Props.SourceASC || !Props.SourceASC->HasMatchingGameplayTag(LifeStealTag)) return;
 
@@ -229,6 +256,7 @@ void UPRAttributeSet::HandleLifeSteal(const FEffectProperties& Props, float Deal
 		FGameplayEffectContextHandle ContextHandle = Props.SourceASC->MakeEffectContext();
 		FGameplayEffectSpecHandle SpecHandle = Props.SourceASC->MakeOutgoingSpec(
 			LifeStealEffectClass, LifeStealLevel, ContextHandle);
+		// TODO : make this generic for different buffs
 		float LifeStealMultiplier = 0.2f + static_cast<float>(LifeStealLevel) * 0.1f;
 		UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(
 			SpecHandle, FPRGameplayTags::Get().Status_Buff_LifeSteal,

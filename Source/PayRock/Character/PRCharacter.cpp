@@ -1,6 +1,8 @@
 // PayRockGames
 
 #include "PRCharacter.h"
+#include "TimerManager.h"
+#include "Engine/World.h"
 #include "Net/UnrealNetwork.h"
 #include "DrawDebugHelpers.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -10,6 +12,7 @@
 #include "EnhancedInputComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Blessing/BlessingComponent.h"
+#include "Buff/BuffComponent.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "PayRock/PRGameplayTags.h"
@@ -21,10 +24,19 @@
 #include "PayRock/Interface/PRInterface.h"
 #include "Perception/AISense_Damage.h"
 #include "Perception/AISense_Sight.h"
+#include "Blueprint/UserWidget.h"
+#include "Components/WidgetComponent.h"
+#include "Animation/WidgetAnimation.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "UObject/ConstructorHelpers.h"
+#include "Blueprint/WidgetBlueprintLibrary.h"
+#include "UMG.h"
 
 APRCharacter::APRCharacter()
 {
     PrimaryActorTick.bCanEverTick = true;
+
+    CharacterType = ECharacterType::PlayerCharacter;
 
     GetCharacterMovement()->bOrientRotationToMovement = false;
     GetCharacterMovement()->RotationRate = FRotator(0, 400.f, 0);
@@ -57,6 +69,7 @@ APRCharacter::APRCharacter()
     Weapon2->SetupAttachment(GetMesh(), Weapon2SocketName);
     Weapon2->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     BlessingComponent = CreateDefaultSubobject<UBlessingComponent>(TEXT("BlessingComponent"));
+    BuffComponent = CreateDefaultSubobject<UBuffComponent>(TEXT("BuffComponent"));
 
     NormalSpeed = 300.0f;
     SprintSpeedMultiplier = 2.0f;
@@ -86,6 +99,16 @@ void APRCharacter::BeginPlay()
 {
     Super::BeginPlay();
 
+    if (IsLocallyControlled() && HitOverlayWidgetClass)
+    {
+        HitOverlayWidget = CreateWidget<UUserWidget>(GetWorld(), HitOverlayWidgetClass);
+        if (HitOverlayWidget)
+        {
+            HitOverlayWidget->AddToViewport();
+            HitOverlayWidget->SetVisibility(ESlateVisibility::Hidden);
+        }
+    }
+
     if (SpringArmComp)
     {
         DefaultArmLength = SpringArmComp->TargetArmLength;
@@ -112,6 +135,23 @@ void APRCharacter::BeginPlay()
     LeftHandCollisionComp->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
     LeftHandCollisionComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
+
+void APRCharacter::PlayHitOverlay()
+{
+    if (IsLocallyControlled() && HitOverlayWidget)
+    {
+        HitOverlayWidget->SetVisibility(ESlateVisibility::Visible);
+
+        static const FString FuncName = TEXT("PlayHitOverlay");
+        FOutputDeviceNull ar;
+        HitOverlayWidget->CallFunctionByNameWithArguments(*FuncName, ar, nullptr, true);
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[HitOverlay] Conditions not met or widget is null"));
+    }
+}
+
 
 void APRCharacter::PossessedBy(AController* NewController)
 {
@@ -162,6 +202,15 @@ void APRCharacter::BindToTagChange()
     // Invisible Tag Binding
     AbilitySystemComponent->RegisterGameplayTagEvent(FPRGameplayTags::Get().Status_Buff_Invisible).AddUObject(
         BlessingComponent, &UBlessingComponent::OnInvisibleTagChanged);
+
+    AbilitySystemComponent->RegisterGameplayTagEvent(FPRGameplayTags::Get().Status_Debuff_Blind).AddUObject(
+        BuffComponent, &UBuffComponent::OnBlindTagChange);
+    AbilitySystemComponent->RegisterGameplayTagEvent(FPRGameplayTags::Get().Status_Debuff_Knockback).AddUObject(
+        BuffComponent, &UBuffComponent::OnKnockbackTagChange);
+    AbilitySystemComponent->RegisterGameplayTagEvent(FPRGameplayTags::Get().Status_Debuff_Frozen).AddUObject(
+        BuffComponent, &UBuffComponent::OnFrozenTagChange);
+    AbilitySystemComponent->RegisterGameplayTagEvent(FPRGameplayTags::Get().Status_Debuff_Shocked).AddUObject(
+        BuffComponent, &UBuffComponent::OnShockedTagChange);
 }
 
 void APRCharacter::SetupStimuliSource()
@@ -665,6 +714,31 @@ void APRCharacter::MulticastPlayLandingSound_Implementation(FVector Location, US
     );
 }
 
+void APRCharacter::ServerPlayAttackSound_Implementation(USoundBase* Sound, FVector Location)
+{
+    MulticastPlayAttackSound(Sound, Location);
+}
+
+void APRCharacter::MulticastPlayAttackSound_Implementation(USoundBase* Sound, FVector Location)
+{
+    if (HasAuthority() && IsLocallyControlled())
+    {
+        // 서버장이자 로컬 컨트롤러면, 이미 재생했으니 멀티캐스트에서 재생하지 않음
+        return;
+    }
+
+    UGameplayStatics::PlaySoundAtLocation(
+        this,
+        Sound,
+        Location,
+        FRotator::ZeroRotator,
+        1.0f,
+        1.0f,
+        0.0f,
+        FootstepAttenuation
+    );
+}
+
 USoundBase* APRCharacter::GetLandingSoundBySurface(EPhysicalSurface SurfaceType)
 {
     return DefaultLandSound;
@@ -1122,4 +1196,26 @@ void APRCharacter::AbilityInputTagHeld(FGameplayTag InputTag)
     {
         ASC->AbilityInputTagHeld(InputTag);
     }
+}
+
+void APRCharacter::ShakeCamera()
+{
+    if (!SpringArmComp) return;
+
+    FVector OriginalLocation = SpringArmComp->GetRelativeLocation();
+    FVector Offset = FVector(
+        FMath::FRandRange(-5.f, 5.f),
+        FMath::FRandRange(-5.f, 5.f),
+        FMath::FRandRange(-5.f, 5.f)
+    );
+
+    SpringArmComp->SetRelativeLocation(OriginalLocation + Offset);
+
+    GetWorld()->GetTimerManager().SetTimer(CameraShakeTimerHandle, [this, OriginalLocation]()
+        {
+            if (SpringArmComp)
+            {
+                SpringArmComp->SetRelativeLocation(OriginalLocation);
+            }
+        }, 0.05f, false);
 }

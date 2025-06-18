@@ -104,7 +104,7 @@ void UBaseWeaponAbility::OnOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 	
 	if (GetAvatarActorFromActorInfo()->HasAuthority())
 	{
-		CauseDamage(OtherActor, bIsBackAttack);
+		CauseDamage(OtherActor, SweepResult, bIsBackAttack);
 	}
 }
 

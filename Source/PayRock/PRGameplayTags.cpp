@@ -116,6 +116,9 @@ void FPRGameplayTags::InitializeNativeGameplayTags()
     GameplayTags.InputTag_Z = UGameplayTagsManager::Get().AddNativeGameplayTag(
         FName("InputTag.Z")
         );
+    GameplayTags.InputTag_G = UGameplayTagsManager::Get().AddNativeGameplayTag(
+        FName("InputTag.G")
+    );
 
     /*
      * Combat Socket
@@ -194,6 +197,25 @@ void FPRGameplayTags::InitializeNativeGameplayTags()
     GameplayTags.Status_Debuff_Poison = UGameplayTagsManager::Get().AddNativeGameplayTag(
         FName("Status.Debuff.Poison")
         );
+    GameplayTags.Status_Debuff_Blind = UGameplayTagsManager::Get().AddNativeGameplayTag(
+        FName("Status.Debuff.Blind")
+        );
+    GameplayTags.Status_Debuff_Knockback = UGameplayTagsManager::Get().AddNativeGameplayTag(
+        FName("Status.Debuff.Knockback")
+        );
+    GameplayTags.Status_Debuff_Frozen = UGameplayTagsManager::Get().AddNativeGameplayTag(
+      FName("Status.Debuff.Frozen")
+      );
+    GameplayTags.Status_Debuff_Shocked = UGameplayTagsManager::Get().AddNativeGameplayTag(
+      FName("Status.Debuff.Shocked")
+      );
+
+    /*
+     *  Necro
+     */
+    GameplayTags.Status_Necro_Visible = UGameplayTagsManager::Get().AddNativeGameplayTag(
+        FName("Status.Necro.Visible")
+        );
 
     /*
      *  Cooldown
@@ -215,4 +237,11 @@ void FPRGameplayTags::InitializeNativeGameplayTags()
     GameplayTags.Cooldown_Attack = UGameplayTagsManager::Get().AddNativeGameplayTag(
         FName("Cooldown.Attack")
         );
+
+    /*
+     * Guard
+     */
+    GameplayTags.Ability_Guard = UGameplayTagsManager::Get().AddNativeGameplayTag(
+        FName("Guard.Active")
+	);
 }

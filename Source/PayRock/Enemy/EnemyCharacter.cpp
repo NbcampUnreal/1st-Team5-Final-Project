@@ -153,7 +153,8 @@ void AEnemyCharacter::Die(FVector HitDirection)
 			);
 		}
 	}
-	SetLifeSpan(2.0f);
+
+	Destroy();
 	
 }
 
