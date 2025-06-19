@@ -183,6 +183,7 @@ void UBaseAreaEffectAbility::ApplyEffectToActorsWithinRadius()
 						*SpecHandle.Data.Get(),
 						TargetASC
 					);
+					
 				/*ApplyGameplayEffectSpecToTarget(
 					GetCurrentAbilitySpecHandle(),
 					GetCurrentActorInfo(),

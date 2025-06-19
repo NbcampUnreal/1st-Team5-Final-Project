@@ -28,7 +28,6 @@ void UPRAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 
 	/* Secondary Attributes */
 	DOREPLIFETIME_CONDITION_NOTIFY(UPRAttributeSet, Armor, COND_None, REPNOTIFY_Always);
-	// DOREPLIFETIME_CONDITION_NOTIFY(UPRAttributeSet, BlockChance, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UPRAttributeSet, CriticalResistance, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UPRAttributeSet, DebuffResistance, COND_None, REPNOTIFY_Always);
 
@@ -132,12 +131,12 @@ float UPRAttributeSet::HandleIncomingDamage(const FEffectProperties& Props, cons
 		}
 		
 		SetHealth(NewHealth);
-
-		/*const float HealthCurrent = GetHealth();
+		
 		UE_LOG(LogTemp, Warning, TEXT(
-			"[DAMAGE] AvatarActor: %s / IncomingDamage: %f / CalculatedDamage: %f / GetHealth: %f / GetMaxHealth: %f"),
+			"[DAMAGE] From: %s / To: %s / IncomingDamage: %f / CalculatedDamage: %f / GetHealth: %f / GetMaxHealth: %f"),
+			*Props.SourceAvatarActor->GetName(),
 			*GetOwningAbilitySystemComponent()->GetAvatarActor()->GetName(),
-			LocalIncomingDamage, CalculatedDamage, HealthCurrent, GetMaxHealth());*/
+			LocalIncomingDamage, CalculatedDamage, GetHealth(), GetMaxHealth());
 
 		if (NewHealth <= 0.f)
 		{
@@ -164,9 +163,6 @@ float UPRAttributeSet::HandleIncomingDamage(const FEffectProperties& Props, cons
 					UE_LOG(LogTemp, Log, TEXT("[QuestManager] 타겟 이름 일치 퀘스트 진행도 상승: Target = %s"), *ShortName);
 				}
 			}
-			
-
-			
 		}
 	}
 	return CalculatedDamage;
@@ -174,8 +170,6 @@ float UPRAttributeSet::HandleIncomingDamage(const FEffectProperties& Props, cons
 
 float UPRAttributeSet::GetCalculatedDamage(float LocalIncomingDamage, const FEffectProperties& Props)
 {
-	// TODO: Block
-
 	if (!Props.SourceASC || LocalIncomingDamage <= 0.f) return 0.f;
 	
 	const UPRAttributeSet* AttackerAttributeSet =
@@ -211,8 +205,6 @@ float UPRAttributeSet::GetCalculatedDamage(float LocalIncomingDamage, const FEff
 	const float DamageAfterArmor = LocalIncomingDamage * (1.f - ArmorReduction);
 
 	const float FinalDamage = DamageAfterArmor * CriticalMultiplier;
-
-	//++ Debugging
 	
 	return FinalDamage;
 }
@@ -337,11 +329,6 @@ void UPRAttributeSet::OnRep_Armor(const FGameplayAttributeData& OldArmor) const
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UPRAttributeSet, Armor, OldArmor);
 }
-
-/*void UPRAttributeSet::OnRep_BlockChance(const FGameplayAttributeData& OldBlockChance) const
-{
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UPRAttributeSet, BlockChance, OldBlockChance);
-}*/
 
 void UPRAttributeSet::OnRep_CriticalResistance(const FGameplayAttributeData& OldCriticalResistance) const
 {
