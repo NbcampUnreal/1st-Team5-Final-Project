@@ -35,7 +35,7 @@ public: // For Class Member Function
 	void EndThisMatch();
 
 	// Necro Character
-	void SpawnAndPossessNecroCharacter(APlayerController* RequestingController);
+	void SpawnAndPossessNecroCharacter(APlayerController* RequestingController, FVector Location);
 	
 protected: // For Class Member Function
 

@@ -416,7 +416,7 @@ void APRPlayerController::ServerRequestNecroCharacter_Implementation()
 
 	if (APRGameMode* GameMode = GetWorld()->GetAuthGameMode<APRGameMode>())
 	{
-		GameMode->SpawnAndPossessNecroCharacter(this);
+		GameMode->SpawnAndPossessNecroCharacter(this, GetCharacter()->GetActorLocation());
 	}
 
 	ClientOnNecroPossessed();

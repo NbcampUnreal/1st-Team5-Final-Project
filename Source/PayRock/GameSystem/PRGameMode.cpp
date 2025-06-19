@@ -87,7 +87,7 @@ AActor* APRGameMode::ChooseMatchStartSpot()
 	return Chosen;
 }
 
-void APRGameMode::SpawnAndPossessNecroCharacter(APlayerController* RequestingController)
+void APRGameMode::SpawnAndPossessNecroCharacter(APlayerController* RequestingController, FVector Location)
 {
 	if (!IsValid(RequestingController))
 	{
@@ -95,9 +95,9 @@ void APRGameMode::SpawnAndPossessNecroCharacter(APlayerController* RequestingCon
 		return;
 	}
 
-	FVector SpawnLocation = FVector::ZeroVector;
+	FVector SpawnLocation = Location;
 	FRotator SpawnRotation = FRotator::ZeroRotator;
-	if (MatchStartClass)
+	/*if (MatchStartClass)
 	{
 		TArray<AActor*> FoundSpots;
 		UGameplayStatics::GetAllActorsOfClass(this, MatchStartClass, FoundSpots);
@@ -112,7 +112,7 @@ void APRGameMode::SpawnAndPossessNecroCharacter(APlayerController* RequestingCon
 		{
 			UE_LOG(LogTemp, Warning, TEXT("APRGameMode::SpawnAndPossessNecroCharacter(): FoundSpots is empty. Spawning at (0, 0, 0)"))
 		}
-	}
+	}*/
 	SpawnLocation.Z += 300;
 
 	FActorSpawnParameters SpawnParams;

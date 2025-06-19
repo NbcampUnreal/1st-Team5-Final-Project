@@ -32,6 +32,27 @@ void UQuestManager::Init()
 
 	if (!QuestWidget && QuestWidgetClass)
 	{
+
+		
+		// if (UWorld* World = GEngine->GetWorldFromContextObjectChecked(this))
+		// {
+		// 	if (APlayerController* PC = UGameplayStatics::GetPlayerController(World, 0))
+		// 	{
+		// 		if (PC->IsLocalController())  
+		// 		{
+		// 			QuestWidget = CreateWidget<UQuestInfoUI>(PC, QuestWidgetClass);
+		// 			if (QuestWidget)
+		// 			{
+		// 				QuestWidget->SetQuestData(CurrentQuest);
+		// 				QuestWidget->SetVisibility(ESlateVisibility::Visible);
+		// 				QuestWidget->AddToViewport();
+		// 				UE_LOG(LogTemp, Warning, TEXT("[QuestManager] 퀘스트위젯 생성"));
+		// 			}
+		// 		}
+		// 	}
+		// }
+		
+		
 		if (UWorld* World = GEngine->GetWorldFromContextObjectChecked(this))
 		{
 			QuestWidget = CreateWidget<UQuestInfoUI>(World, QuestWidgetClass);
