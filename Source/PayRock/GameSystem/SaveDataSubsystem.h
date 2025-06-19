@@ -42,15 +42,7 @@ public:
 	const FBlessingData& GetEquippedActiveBlessing() const { return EquippedActiveBlessing; }
 	UFUNCTION(BlueprintCallable, Category = "Blessing")
 	const FBlessingData& GetEquippedPassiveBlessing() const { return EquippedPassiveBlessing; }
-
-	/**
-	 * Money
-	 */
-	UFUNCTION(BlueprintCallable, Category = "Money")
-	void SetSavedMoney(const int32& Amount) { SavedMoney = Amount; }
-	UFUNCTION(BlueprintCallable, Category = "Money")
-	const int32& GetSavedMoney() const { return SavedMoney; }
-
+	
 	FOnBlessingSaved OnBlessingSaved;
 
 private:
@@ -65,7 +57,4 @@ private:
 	FBlessingData EquippedPassiveBlessing;
 	UPROPERTY()
 	UBlessingDataAsset* BlessingDataAsset;
-
-	UPROPERTY()
-	int32 SavedMoney;
 };

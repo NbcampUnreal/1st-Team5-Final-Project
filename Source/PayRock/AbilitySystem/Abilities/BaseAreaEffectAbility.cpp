@@ -6,6 +6,7 @@
 #include "Abilities/Tasks/AbilityTask_SpawnActor.h"
 #include "Engine/OverlapResult.h"
 #include "PayRock/Actor/ApplyEffectZone.h"
+#include "PayRock/Enemy/EnemyCharacter.h"
 
 
 void UBaseAreaEffectAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
@@ -47,16 +48,23 @@ void UBaseAreaEffectAbility::EndAbility(const FGameplayAbilitySpecHandle Handle,
 	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
 	bool bReplicateEndAbility, bool bWasCancelled)
 {
-	if (IsValid(EffectToApplyToSelfOnEnd) && !ActiveEndEffectHandle.IsValid())
+	if (IsValid(EffectToApplyToSelfOnEnd) && !ActiveEndEffectHandle.IsValid() && bEndAbilityOnDurationEnd)
 	{
-		FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(
-			EffectToApplyToSelfOnEnd, GetAbilityLevel());
-		ActiveEndEffectHandle = ApplyGameplayEffectSpecToOwner(
-			GetCurrentAbilitySpecHandle(),
-			GetCurrentActorInfo(),
-			GetCurrentActivationInfo(),
-			SpecHandle);
+		if (UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo())
+		{
+			FGameplayEffectContextHandle ContextHandle = SourceASC->MakeEffectContext();
+			ContextHandle.AddOrigin(GetAvatarActorFromActorInfo()->GetActorLocation());
+			FGameplayEffectSpecHandle SpecHandle = SourceASC->MakeOutgoingSpec(
+				EffectToApplyToSelfOnEnd, GetAbilityLevel(), ContextHandle);
+			ActiveEndEffectHandle = ApplyGameplayEffectSpecToOwner(
+				GetCurrentAbilitySpecHandle(),
+				GetCurrentActorInfo(),
+				GetCurrentActivationInfo(),
+				SpecHandle);
+		}
 	}
+
+	UniqueActors.Empty();
 	
 	if (IsValid(SpawnedActor))
 	{
@@ -132,12 +140,15 @@ void UBaseAreaEffectAbility::ApplyEffectToActorsWithinRadius()
 		QueryParams.AddIgnoredActor(GetAvatarActorFromActorInfo());	
 	}
 	QueryParams.bTraceIntoSubComponents = false;
+
+	FCollisionObjectQueryParams CollisionParams;
+	CollisionParams.AddObjectTypesToQuery(ECC_Pawn);
 	
 	bool bHit = GetWorld()->OverlapMultiByObjectType(
 		Overlaps,
 		Origin,
 		FQuat::Identity,
-		FCollisionObjectQueryParams(ECollisionChannel::ECC_Pawn),
+		CollisionParams,
 		Sphere,
 		QueryParams
 	);
@@ -146,14 +157,14 @@ void UBaseAreaEffectAbility::ApplyEffectToActorsWithinRadius()
 	{
 		UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo();
 		if (!SourceASC) return;
-
-		TSet<AActor*> UniqueActors;
 		
 		for (const FOverlapResult& Result : Overlaps)
 		{
 			if (AActor* Actor = Result.GetActor())
 			{
 				if (UniqueActors.Contains(Actor)) continue;
+				if (!bIncludeAICharacters && Actor->IsA<AEnemyCharacter>()) continue;
+
 				UniqueActors.Add(Actor);
 				
 				if (UAbilitySystemComponent* TargetASC =
@@ -163,6 +174,11 @@ void UBaseAreaEffectAbility::ApplyEffectToActorsWithinRadius()
 					ContextHandle.AddOrigin(Actor->GetActorLocation());
 					FGameplayEffectSpecHandle SpecHandle = SourceASC->MakeOutgoingSpec(
 						EffectToApplyToOverlapActors, GetAbilityLevel(), ContextHandle);
+					if (bIsSetByCaller)
+					{
+						UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(
+						SpecHandle, SetByCallerTag, SetByCallerMagnitude.GetValueAtLevel(GetAbilityLevel()));	
+					}
 					SourceASC->ApplyGameplayEffectSpecToTarget(
 						*SpecHandle.Data.Get(),
 						TargetASC
