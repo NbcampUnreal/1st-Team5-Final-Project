@@ -60,7 +60,7 @@ void AEnemyController::Tick(float DeltaTime)
 	float Distance = 0.f;
 	APRCharacter* NearestPlayer = FindNearestPlayer(Distance);
 
-	if (NearestPlayer && Distance <= 4000.f)
+	if (NearestPlayer && Distance <= 6000.f)
 	{
 		if (!bIsAIActive)
 		{
