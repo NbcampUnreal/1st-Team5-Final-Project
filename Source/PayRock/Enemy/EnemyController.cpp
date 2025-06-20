@@ -70,17 +70,23 @@ APRCharacter* AEnemyController::FindNearestPlayer(float& OutDistance)
 	AActor* MyPawn = GetPawn();
 	if (!MyPawn) return nullptr;
 
-	// 단일 플레이어 기준 (멀티 지원 시 수정)
-	APRCharacter* Player = Cast<APRCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
-	if (Player && !Player->GetbIsDead() && !Player->GetbIsExtracted() && !Player->GetbIsInvisible())
+	for (TActorIterator<APRCharacter> It(GetWorld()); It; ++It)
 	{
-		float Dist = FVector::Dist(Player->GetActorLocation(), MyPawn->GetActorLocation());
-		OutDistance = Dist;
-		NearestPlayer = Player;
+		APRCharacter* Player = *It;
+		if (!Player || Player->GetbIsDead() || Player->GetbIsExtracted() || Player->GetbIsInvisible())
+			continue;
+
+		const float Dist = FVector::Dist(Player->GetActorLocation(), MyPawn->GetActorLocation());
+		if (Dist < OutDistance)
+		{
+			OutDistance = Dist;
+			NearestPlayer = Player;
+		}
 	}
 
 	return NearestPlayer;
 }
+
 
 void AEnemyController::ActivateAI()
 {
