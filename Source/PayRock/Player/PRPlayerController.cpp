@@ -163,7 +163,7 @@ void APRPlayerController::SetSpectateTarget(AActor* NewTarget)
 {
 	if (!NewTarget) return;
 
-	//UnPossess();
+	UnPossess();
 
 	if (APRCharacter* TargetCharacter = Cast<APRCharacter>(NewTarget))
 	if (TargetCharacter)

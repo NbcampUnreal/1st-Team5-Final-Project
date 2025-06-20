@@ -10,6 +10,7 @@
 #include "PayRock/AbilitySystem/PRAttributeSet.h"
 #include "PRCharacter.generated.h"
 
+class UBoxComponent;
 class UNiagaraSystem;
 class USphereComponent;
 class UPRInputConfig;
@@ -45,6 +46,8 @@ public:
 	USphereComponent* LeftHandCollisionComp;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CollisionComponent")
 	USphereComponent* RightHandCollisionComp;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CollisionComponent")
+	UBoxComponent* WeaponCollision;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	USkeletalMeshComponent* Weapon2;
 	UPROPERTY(EditAnywhere, Category = "Weapon")
