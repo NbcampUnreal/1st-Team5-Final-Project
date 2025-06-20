@@ -35,7 +35,13 @@ public:
 	void ForceDeath();
 	UFUNCTION(BlueprintCallable)
     void Extract();
-	
+
+	UFUNCTION(BlueprintCallable)
+	FLinearColor GetClothesColor() const { return ClothesColor; }
+	UFUNCTION(BlueprintCallable)
+	void SetClothesColor(const FLinearColor& Color) { ClothesColor = Color; }
+
+public:
 	FOnDeathDelegate OnDeathDelegate;
 	FOnExtractionDelegate OnExtractionDelegate;
 
@@ -56,4 +62,6 @@ private:
 	bool bIsDead = false;
 	UPROPERTY(ReplicatedUsing = OnRep_bIsExtracted)
 	bool bIsExtracted = false;
+	UPROPERTY()
+	FLinearColor ClothesColor = FLinearColor::White;
 };

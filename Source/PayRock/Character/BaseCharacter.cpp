@@ -116,12 +116,15 @@ void ABaseCharacter::MulticastRagdoll_Implementation(const FVector& HitDirection
 	GetWorldTimerManager().SetTimer(TimerHandle, [this]()
 	{
 		SpawnLootContainer();
-	}, 0.5f, false);
+		if (GetMesh())
+		{
+			GetMesh()->SetSimulatePhysics(false);
+			GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			GetMesh()->SetCollisionResponseToAllChannels(ECR_Ignore);
+		}
+	}, 1.f, false);
 
 	PrimaryActorTick.bCanEverTick = false;
-
-	// GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	// GetMesh()->SetCollisionResponseToAllChannels(ECR_Ignore);
 }
 
 void ABaseCharacter::ForceDeath()

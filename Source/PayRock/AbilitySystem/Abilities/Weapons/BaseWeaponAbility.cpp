@@ -9,6 +9,8 @@ void UBaseWeaponAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle
                                          const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
                                          const FGameplayEventData* TriggerEventData)
 {
+	/*UE_LOG(LogTemp, Warning, TEXT("[%s] ActivateAbility - Clearing AlreadyHitActors"), 
+	GetWorld()->GetNetMode() == NM_Client ? TEXT("CLIENT") : TEXT("SERVER"));*/
 	AlreadyHitActors.Empty();
 	if (ABaseCharacter* AvatarCharacter = Cast<ABaseCharacter>(GetAvatarActorFromActorInfo()))
 	{
@@ -33,6 +35,8 @@ void UBaseWeaponAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 void UBaseWeaponAbility::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
+	/*UE_LOG(LogTemp, Warning, TEXT("[%s] EndAbility - Clearing AlreadyHitActors"), 
+	GetWorld()->GetNetMode() == NM_Client ? TEXT("CLIENT") : TEXT("SERVER"));*/
 	CurrentAttackType = EAttackType::NormalAttack;
 	AlreadyHitActors.Empty();
 
@@ -52,9 +56,16 @@ void UBaseWeaponAbility::EndAbility(const FGameplayAbilitySpecHandle Handle, con
 
 void UBaseWeaponAbility::ToggleCollision(bool bShouldEnable)
 {
-	if (bShouldEnable)
+	if (!bShouldEnable)
 	{
+		/*UE_LOG(LogTemp, Warning, TEXT("[%s] ToggleCollision(false) - Clearing AlreadyHitActors"), 
+			GetWorld()->GetNetMode() == NM_Client ? TEXT("CLIENT") : TEXT("SERVER"));*/
 		AlreadyHitActors.Empty();
+	}
+	else
+	{
+		/*UE_LOG(LogTemp, Warning, TEXT("[%s] ToggleCollision(true) - NOT clearing AlreadyHitActors"), 
+			GetWorld()->GetNetMode() == NM_Client ? TEXT("CLIENT") : TEXT("SERVER"));*/
 	}
 	for (const auto& CollisionComp : CollisionComponents)
 	{
@@ -92,8 +103,30 @@ void UBaseWeaponAbility::BindCallbackToCollision()
 void UBaseWeaponAbility::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
                                    UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (OtherActor == GetAvatarActorFromActorInfo() || AlreadyHitActors.Contains(OtherActor)) return;
+	if (!IsValid(OtherActor) || OtherActor == GetAvatarActorFromActorInfo()) return;
 
+	/*UE_LOG(LogTemp, Warning, TEXT("[%s] OnOverlap with %s - AlreadyHit: %s - Authority: %s"), 
+	GetWorld()->GetNetMode() == NM_Client ? TEXT("CLIENT") : TEXT("SERVER"),
+	*OtherActor->GetName(),
+	AlreadyHitActors.Contains(OtherActor) ? TEXT("YES") : TEXT("NO"),
+	GetAvatarActorFromActorInfo()->HasAuthority() ? TEXT("YES") : TEXT("NO"));*/
+
+	/*
+	UE_LOG(LogTemp, Warning, TEXT("[%s] OnOverlap Details:"), 
+		GetWorld()->GetNetMode() == NM_Client ? TEXT("CLIENT") : TEXT("SERVER"));
+	UE_LOG(LogTemp, Warning, TEXT("  - Target: %s"), *OtherActor->GetName());
+	UE_LOG(LogTemp, Warning, TEXT("  - Collision Component: %s"), *OverlappedComponent->GetName());
+	UE_LOG(LogTemp, Warning, TEXT("  - AlreadyHitActors Size: %d"), AlreadyHitActors.Num());
+	UE_LOG(LogTemp, Warning, TEXT("  - AlreadyHit: %s"), AlreadyHitActors.Contains(OtherActor) ? TEXT("YES") : TEXT("NO"));
+	UE_LOG(LogTemp, Warning, TEXT("  - Authority: %s"), GetAvatarActorFromActorInfo()->HasAuthority() ? TEXT("YES") : TEXT("NO"));
+*/
+    
+	if (AlreadyHitActors.Contains(OtherActor)) 
+	{
+		return;
+	}
+	
+	//UE_LOG(LogTemp, Warning, TEXT("  - ADDING TO HIT LIST"));
 	AlreadyHitActors.Add(OtherActor);
 	FVector TargetForward = OtherActor->GetActorForwardVector().GetSafeNormal();
 	FVector ToAttacker = (GetAvatarActorFromActorInfo()->GetActorLocation() - OtherActor->GetActorLocation()).GetSafeNormal();
@@ -101,9 +134,10 @@ void UBaseWeaponAbility::OnOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 	float Dot = FVector::DotProduct(TargetForward, ToAttacker);
 
 	bool bIsBackAttack = Dot < -0.5f;
-	
+
 	if (GetAvatarActorFromActorInfo()->HasAuthority())
 	{
+		// UE_LOG(LogTemp, Warning, TEXT("  - CALLING CauseDamage"));
 		CauseDamage(OtherActor, SweepResult, bIsBackAttack);
 	}
 }
