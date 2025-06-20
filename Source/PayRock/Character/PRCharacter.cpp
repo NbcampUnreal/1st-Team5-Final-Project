@@ -1026,6 +1026,20 @@ void APRCharacter::Die(FVector HitDirection)
     }
 }
 
+void APRCharacter::ResetRagdoll()
+{
+    FTimerHandle TimerHandle;
+    GetWorldTimerManager().SetTimer(TimerHandle, [this]()
+    {
+        if (IsValid(this) && IsValid(GetMesh()))
+        {
+            GetMesh()->SetSimulatePhysics(false);
+            GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+            GetMesh()->SetCollisionResponseToAllChannels(ECR_Ignore);
+        }
+    }, 1.f, false);
+}
+
 void APRCharacter::OnExtraction()
 {
     bIsExtracted = true;

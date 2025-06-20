@@ -66,6 +66,7 @@ public:
 	
 	/* Death */
 	virtual void Die(FVector HitDirection = FVector::ZeroVector) override;
+	void ResetRagdoll();
 	UPROPERTY(Replicated)
 	bool bIsDead = false;
 

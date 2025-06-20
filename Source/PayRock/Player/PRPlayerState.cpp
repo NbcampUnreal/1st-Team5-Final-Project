@@ -29,6 +29,9 @@ void APRPlayerState::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>&
 
 	DOREPLIFETIME(APRPlayerState, bIsDead);
 	DOREPLIFETIME(APRPlayerState, bIsExtracted);
+
+	DOREPLIFETIME(APRPlayerState, AccessoryID);
+	DOREPLIFETIME(APRPlayerState, WeaponID);
 }
 
 UAbilitySystemComponent* APRPlayerState::GetAbilitySystemComponent() const
@@ -139,4 +142,12 @@ void APRPlayerState::OnRep_AccessoryID()
 
 void APRPlayerState::OnRep_WeaponID()
 {
+	if (GetPlayerController() && GetPlayerController()->IsLocalController())
+	{
+		if (UUIManager* UIManager = GetGameInstance()->GetSubsystem<UUIManager>())
+		{
+			FSkillData Data = UIManager->GetSkillData(AccessoryID);
+			OnWeaponSkillChangedDelegate.Broadcast(Data);
+		}
+	}
 }
