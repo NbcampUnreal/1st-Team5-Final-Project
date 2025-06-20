@@ -72,6 +72,8 @@ void ABaseCharacter::Die(FVector HitDirection)
 	
 	MulticastRagdoll(HitDirection);
 
+	SpawnLootContainer();
+
 	PrimaryActorTick.bCanEverTick = false;
 }
 
@@ -111,18 +113,6 @@ void ABaseCharacter::MulticastRagdoll_Implementation(const FVector& HitDirection
 		Impulse = -GetActorForwardVector() * 10000.f;
 	}
 	GetMesh()->AddImpulseAtLocation(Impulse, GetActorLocation());
-	
-	FTimerHandle TimerHandle;
-	GetWorldTimerManager().SetTimer(TimerHandle, [this]()
-	{
-		SpawnLootContainer();
-		if (GetMesh())
-		{
-			GetMesh()->SetSimulatePhysics(false);
-			GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-			GetMesh()->SetCollisionResponseToAllChannels(ECR_Ignore);
-		}
-	}, 1.f, false);
 
 	PrimaryActorTick.bCanEverTick = false;
 }

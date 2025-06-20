@@ -4,12 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "BaseCharacter.h"
+#include "NavigationInvokerComponent.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "PayRock/Item/PRItemEnum.h"
 #include "Blueprint/UserWidget.h"
 #include "PayRock/AbilitySystem/PRAttributeSet.h"
 #include "PRCharacter.generated.h"
 
+class UBoxComponent;
 class UNiagaraSystem;
 class USphereComponent;
 class UPRInputConfig;
@@ -45,6 +47,8 @@ public:
 	USphereComponent* LeftHandCollisionComp;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CollisionComponent")
 	USphereComponent* RightHandCollisionComp;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CollisionComponent")
+	UBoxComponent* WeaponCollision;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	USkeletalMeshComponent* Weapon2;
 	UPROPERTY(EditAnywhere, Category = "Weapon")
@@ -62,6 +66,7 @@ public:
 	
 	/* Death */
 	virtual void Die(FVector HitDirection = FVector::ZeroVector) override;
+	void ResetRagdoll();
 	UPROPERTY(Replicated)
 	bool bIsDead = false;
 
@@ -201,6 +206,11 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Sound")
 	USoundBase* DefaultLandSound;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Sound")
+	USoundBase* SpinSound;
+
+
+
 	/* 달리기 Sprint */
 	UFUNCTION(Server, Reliable)
 	void ServerStartSprint();
@@ -268,7 +278,10 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Sound")
 	USoundAttenuation* FootstepAttenuation;
 
-	int32 FootstepSoundIndex = 0; // 순차 재생용 인덱스
+	int32 FootstepSoundIndex = 0;// 순차 재생용 인덱스
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Navigation")
+	UNavigationInvokerComponent* NavInvoker;
 
 protected:
 	virtual void BeginPlay() override;

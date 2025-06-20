@@ -1,7 +1,7 @@
 ﻿// PayRockGames
 
 #include "BaseWeaponAbility.h"
-#include "Components/ShapeComponent.h"
+#include "Components/BoxComponent.h"
 #include "PayRock/Character/PRCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
@@ -14,19 +14,20 @@ void UBaseWeaponAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 	AlreadyHitActors.Empty();
 	if (ABaseCharacter* AvatarCharacter = Cast<ABaseCharacter>(GetAvatarActorFromActorInfo()))
 	{
-		if (CollisionComponents.IsEmpty())
+		if (APRCharacter* PlayerCharacter = Cast<APRCharacter>(AvatarCharacter))
+		{
+			CollisionComponents.Empty();
+			CollisionComponents.Add(PlayerCharacter->WeaponCollision);
+			UpdateCurrentAttackType(PlayerCharacter);
+		}
+		else
 		{
 			if (USkeletalMeshComponent* Weapon = AvatarCharacter->GetWeapon())
 			{
 				GetCollisionComponents(Weapon, CollisionSocketName);
-				BindCallbackToCollision();
 			}
 		}
-
-		if (APRCharacter* PlayerCharacter = Cast<APRCharacter>(AvatarCharacter))
-		{
-			UpdateCurrentAttackType(PlayerCharacter);
-		}
+		BindCallbackToCollision();
 	}
 
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
@@ -37,8 +38,17 @@ void UBaseWeaponAbility::EndAbility(const FGameplayAbilitySpecHandle Handle, con
 {
 	/*UE_LOG(LogTemp, Warning, TEXT("[%s] EndAbility - Clearing AlreadyHitActors"), 
 	GetWorld()->GetNetMode() == NM_Client ? TEXT("CLIENT") : TEXT("SERVER"));*/
+	for (const auto& CollisionComp : CollisionComponents)
+	{
+		if (CollisionComp->OnComponentBeginOverlap.IsBound())
+		{
+			CollisionComp->OnComponentBeginOverlap.RemoveAll(this);
+		}
+	}
+	
 	CurrentAttackType = EAttackType::NormalAttack;
 	AlreadyHitActors.Empty();
+	CollisionComponents.Empty();
 
 	if (APRCharacter* PlayerCharacter = Cast<APRCharacter>(GetAvatarActorFromActorInfo()))
 	{

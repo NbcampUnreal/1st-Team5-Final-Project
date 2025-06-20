@@ -6,6 +6,7 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "PayRock/Character/PRCharacter.h"
 #include "PayRock/Enemy/EnemyCharacter.h"
+#include "Perception/AISense_Hearing.h"
 
 ADoggebiController::ADoggebiController()
 {
