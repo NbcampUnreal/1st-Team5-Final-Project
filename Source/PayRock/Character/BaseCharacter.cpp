@@ -72,6 +72,8 @@ void ABaseCharacter::Die(FVector HitDirection)
 	
 	MulticastRagdoll(HitDirection);
 
+	SpawnLootContainer();
+
 	PrimaryActorTick.bCanEverTick = false;
 }
 
@@ -115,8 +117,7 @@ void ABaseCharacter::MulticastRagdoll_Implementation(const FVector& HitDirection
 	FTimerHandle TimerHandle;
 	GetWorldTimerManager().SetTimer(TimerHandle, [this]()
 	{
-		SpawnLootContainer();
-		if (GetMesh())
+		if (IsValid(this) && IsValid(GetMesh()))
 		{
 			GetMesh()->SetSimulatePhysics(false);
 			GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
