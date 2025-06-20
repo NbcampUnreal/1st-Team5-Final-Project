@@ -5,12 +5,15 @@
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
 #include "GameFramework/PlayerState.h"
+#include "PayRock/UI/Widget/Skill/SkillData.h"
 #include "PRPlayerState.generated.h"
 
 class UAttributeSet;
 
 DECLARE_MULTICAST_DELEGATE(FOnDeathDelegate);
 DECLARE_MULTICAST_DELEGATE(FOnExtractionDelegate);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnWeaponSkillChangedDelegate, const FSkillData&);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnAccessorySkillChangedDelegate, const FSkillData&);
 
 UCLASS()
 class PAYROCK_API APRPlayerState : public APlayerState, public IAbilitySystemInterface
@@ -41,15 +44,26 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetClothesColor(const FLinearColor& Color) { ClothesColor = Color; }
 
+	UFUNCTION(BlueprintCallable)
+	void UpdateAccessoryID(const FName& ID);
+	UFUNCTION(BlueprintCallable)
+	void UpdateWeaponID(const FName& ID);
+
 public:
 	FOnDeathDelegate OnDeathDelegate;
 	FOnExtractionDelegate OnExtractionDelegate;
+	FOnAccessorySkillChangedDelegate OnAccessorySkillChangedDelegate;
+	FOnWeaponSkillChangedDelegate OnWeaponSkillChangedDelegate;
 
 private:
 	UFUNCTION()
 	void OnRep_bIsDead(bool Old_bIsDead);
 	UFUNCTION()
 	void OnRep_bIsExtracted();
+	UFUNCTION()
+	void OnRep_AccessoryID();
+	UFUNCTION()
+	void OnRep_WeaponID();
 
 protected:
 	UPROPERTY()
@@ -62,6 +76,10 @@ private:
 	bool bIsDead = false;
 	UPROPERTY(ReplicatedUsing = OnRep_bIsExtracted)
 	bool bIsExtracted = false;
+	UPROPERTY(ReplicatedUsing = OnRep_AccessoryID)
+	FName AccessoryID;
+	UPROPERTY(ReplicatedUsing = OnRep_WeaponID)
+	FName WeaponID;
 	UPROPERTY()
 	FLinearColor ClothesColor = FLinearColor::White;
 };
