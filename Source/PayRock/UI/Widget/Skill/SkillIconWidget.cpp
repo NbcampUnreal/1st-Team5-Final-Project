@@ -20,6 +20,7 @@ void USkillIconWidget::OnWidgetControllerSet()
 			OverlayWC->OnWeaponSkillChanged.AddUniqueDynamic(this, &USkillIconWidget::OnSkillChanged);
 			break;
 		default:
+			break;
 		}
 		
 		FOnCooldownChanged& Delegate =
