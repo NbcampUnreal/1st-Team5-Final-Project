@@ -6,6 +6,7 @@
 #include "TranslateDataAsset.h"
 #include "PayRock/Player/PRPlayerState.h"
 #include "PayRock/UI/Widget/BaseUserWidget.h"
+#include "PayRock/UI/Widget/Skill/SkillDataAsset.h"
 #include "PayRock/UI/WidgetController/StatWidgetController.h"
 
 void UUIManager::Initialize(FSubsystemCollectionBase& Collection)
@@ -30,6 +31,16 @@ void UUIManager::Initialize(FSubsystemCollectionBase& Collection)
 	else
 	{
 		UE_LOG(LogTemp, Error, TEXT("Failed to load DA_TranslateData!"));
+	}
+
+	FSoftObjectPath SkillDataAssetPath(TEXT("/Game/UI/Data/DA_SkillData"));
+	if (USkillDataAsset* LoadedDataAsset = Cast<USkillDataAsset>(SkillDataAssetPath.TryLoad()))
+	{
+		SkillDataAsset = LoadedDataAsset;
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to load DA_SkillData!"));
 	}
 }
 
@@ -224,4 +235,22 @@ FString UUIManager::TranslateEnglishToKorean(const FString& InString)
 	if (!TranslateDataAsset) return FString("");
 
 	return TranslateDataAsset->TranslateEnglishToKorean(InString);
+}
+
+FSkillData UUIManager::GetSkillData(FName ItemID)
+{
+	if (!IsValid(SkillDataAsset))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("UUIManager::GetSkillData() : SkillDataAsset is not valid!"))
+		return FSkillData();
+	}
+	if (FSkillData* AccessorySkillDataPtr = SkillDataAsset->AccessorySkills.Find(ItemID))
+	{
+		return *AccessorySkillDataPtr;
+	}
+	if (FSkillData* WeaponSkillDataPtr = SkillDataAsset->WeaponSkills.Find(ItemID))
+	{
+		return *WeaponSkillDataPtr;
+	}
+	return FSkillData();
 }

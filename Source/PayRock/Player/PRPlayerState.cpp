@@ -8,6 +8,7 @@
 #include "PayRock/AbilitySystem/PRAbilitySystemComponent.h"
 #include "PayRock/AbilitySystem/PRAttributeSet.h"
 #include "PayRock/Character/PRCharacter.h"
+#include "PayRock/UI/Manager/UIManager.h"
 
 APRPlayerState::APRPlayerState()
 {
@@ -90,6 +91,24 @@ void APRPlayerState::Extract()
 	}
 }
 
+void APRPlayerState::UpdateAccessoryID(const FName& ID)
+{
+	AccessoryID = ID;
+	if (GetNetMode() == NM_ListenServer && GetPlayerController() && GetPlayerController()->IsLocalController())
+	{
+		OnRep_AccessoryID();
+	}
+}
+
+void APRPlayerState::UpdateWeaponID(const FName& ID)
+{
+	WeaponID = ID;
+	if (GetNetMode() == NM_ListenServer && GetPlayerController() && GetPlayerController()->IsLocalController())
+	{
+		OnRep_WeaponID();
+	}
+}
+
 void APRPlayerState::OnRep_bIsDead(bool Old_bIsDead)
 {
 	if (bIsDead && !Old_bIsDead)
@@ -103,6 +122,21 @@ void APRPlayerState::OnRep_bIsExtracted()
 	if (bIsExtracted)
 	{
 		OnExtractionDelegate.Broadcast();
-		
 	}
+}
+
+void APRPlayerState::OnRep_AccessoryID()
+{
+	if (GetPlayerController() && GetPlayerController()->IsLocalController())
+	{
+		if (UUIManager* UIManager = GetGameInstance()->GetSubsystem<UUIManager>())
+		{
+			FSkillData Data = UIManager->GetSkillData(AccessoryID);
+			OnAccessorySkillChangedDelegate.Broadcast(Data);
+		}
+	}
+}
+
+void APRPlayerState::OnRep_WeaponID()
+{
 }
