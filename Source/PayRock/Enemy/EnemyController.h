@@ -59,7 +59,7 @@ protected:
 	float LoseSightRadius = 1800.f;
 	
 	UPROPERTY(EditAnywhere, Category = "AI|Sight")
-	float PeripheralVisionAngle = 90.f;
+	float PeripheralVisionAngle = 180.f;
 	
 	UPROPERTY(EditAnywhere, Category = "AI|Hearing")
 	float LoudnessThreshold = 0.8f;
