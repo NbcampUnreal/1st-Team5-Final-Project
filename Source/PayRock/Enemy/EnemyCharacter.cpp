@@ -31,6 +31,12 @@ AEnemyCharacter::AEnemyCharacter()
 	PawnNoiseEmitterComp = CreateDefaultSubobject<UPawnNoiseEmitterComponent>(TEXT("PawnNoiseEmitter"));
 
 	NavInvoker = CreateDefaultSubobject<UNavigationInvokerComponent>(TEXT("NavInvoker"));
+
+	bReplicates = true;
+	bAlwaysRelevant = true;
+
+	GetMesh()->SetIsReplicated(true);
+	GetMesh()->SetOnlyOwnerSee(false);
 }
 
 void AEnemyCharacter::ToggleWeaponCollision(bool bEnable)

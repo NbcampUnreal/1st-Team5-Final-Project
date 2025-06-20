@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
+#include "PayRock/UI/Widget/Skill/SkillData.h"
 #include "PayRock/UI/WidgetController/BaseWidgetController.h"
 #include "OverlayWidgetController.generated.h"
 
@@ -14,7 +15,10 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnManaChangedSignature, float, NewM
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMaxManaChangedSignature, float, NewMaxMana);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDeathSignature);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnExtractionSignature);
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnActiveBlessingChangedSignature, UTexture2D*, BlessingIconTexture);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAccessorySkillChangedSignature, const FSkillData&, SkillData);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponSkillChangedSignature, const FSkillData&, SkillData);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCooldownChanged, float, RemainingTime);
 
 
@@ -43,6 +47,10 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FOnActiveBlessingChangedSignature OnActiveBlessingChanged;
+	UPROPERTY(BlueprintAssignable)
+	FOnAccessorySkillChangedSignature OnAccessorySkillChanged;
+	UPROPERTY(BlueprintAssignable)
+	FOnWeaponSkillChangedSignature OnWeaponSkillChanged;
 	UPROPERTY()
 	TMap<FGameplayTag, FOnCooldownChanged> CooldownDelegates;
 
@@ -55,6 +63,9 @@ protected:
 	void BroadcastDeath() const;
 	void BroadcastExtraction() const;
 
+	void BroadcastAccessorySkillChange(const FSkillData& SkillData) const;
+	void BroadcastWeaponSkillChange(const FSkillData& SkillData) const;
+	
 	void CooldownChanged(const FGameplayTag Tag, int32 TagCount);
 	void BroadcastCooldown(const FGameplayTag& Tag);
 

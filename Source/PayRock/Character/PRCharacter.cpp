@@ -10,6 +10,7 @@
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "EnhancedInputComponent.h"
+#include "NavigationInvokerComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Blessing/BlessingComponent.h"
 #include "Buff/BuffComponent.h"
@@ -69,6 +70,9 @@ APRCharacter::APRCharacter()
     WeaponCollision->SetIsReplicated(true);
     WeaponCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
+    //Invoke
+    NavInvoker = CreateDefaultSubobject<UNavigationInvokerComponent>(TEXT("NavInvoker"));
+
     /* NOTE: Weapon2 is currently unused */
     Weapon2 = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Weapon2"));
     Weapon2->SetupAttachment(GetMesh(), Weapon2SocketName);
@@ -96,9 +100,8 @@ APRCharacter::APRCharacter()
     GetCharacterMovement()->SetCrouchedHalfHeight(60.f);
 
     SetupStimuliSource();
-
-    bReplicates = true;
-    SetReplicateMovement(true);
+    APRCharacter::SetReplicateMovement(true);
+    
 }
 
 void APRCharacter::BeginPlay()
@@ -894,7 +897,10 @@ void APRCharacter::Tick(float DeltaSeconds)
     /* SPIN - early return */
     if (bShouldSpin)
     {
-        AddActorLocalRotation(FRotator(0.f, SpinSpeed * DeltaSeconds, 0.f));
+        float YawDelta = SpinSpeed * DeltaSeconds;
+
+        AddActorLocalRotation(FRotator(0.f, YawDelta, 0.f));
+
         return;
     }
     
@@ -1018,6 +1024,20 @@ void APRCharacter::Die(FVector HitDirection)
             }
         }
     }
+}
+
+void APRCharacter::ResetRagdoll()
+{
+    FTimerHandle TimerHandle;
+    GetWorldTimerManager().SetTimer(TimerHandle, [this]()
+    {
+        if (IsValid(this) && IsValid(GetMesh()))
+        {
+            GetMesh()->SetSimulatePhysics(false);
+            GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+            GetMesh()->SetCollisionResponseToAllChannels(ECR_Ignore);
+        }
+    }, 1.f, false);
 }
 
 void APRCharacter::OnExtraction()

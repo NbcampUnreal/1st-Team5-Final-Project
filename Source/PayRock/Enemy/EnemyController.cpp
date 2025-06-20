@@ -44,10 +44,12 @@ void AEnemyController::BeginPlay()
 	if (AIPerceptionComponent)
 	{
 		AIPerceptionComponent->OnTargetPerceptionUpdated.AddDynamic(this, &AEnemyController::OnTargetPerceptionUpdated);
+		SetPerceptionActive(false);
 	}
 
 	GetWorldTimerManager().SetTimer(DistanceCheckHandle, this, &AEnemyController::CheckPlayerDistance, 5.f, true);
 }
+
 
 void AEnemyController::CheckPlayerDistance()
 {
@@ -56,11 +58,28 @@ void AEnemyController::CheckPlayerDistance()
 	float Distance = 0.f;
 	APRCharacter* NearestPlayer = FindNearestPlayer(Distance);
 
-	if (Distance > 6000.f && bIsAIActive)
+	if (!NearestPlayer)
+	{
+		if (bIsAIActive)
+		{
+			DeactivateAI();
+			SetPerceptionActive(false);
+		}
+		return;
+	}
+
+	if (Distance <= 5000.f && !bIsAIActive)
+	{
+		SetPerceptionActive(true); 
+		ActivateAI();
+	}
+	else if (Distance > 6000.f && bIsAIActive)
 	{
 		DeactivateAI();
+		SetPerceptionActive(false);
 	}
 }
+
 
 APRCharacter* AEnemyController::FindNearestPlayer(float& OutDistance)
 {
@@ -129,7 +148,10 @@ void AEnemyController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stim
 
 	if (Stimulus.WasSuccessfullySensed())
 	{
-		ActivateAI();
+		if (!bIsAIActive)
+		{
+			ActivateAI();
+		}
 
 		if (BlackboardComponent && !BlackboardComponent->GetValueAsObject(TEXT("TargetActor")))
 		{
@@ -142,6 +164,7 @@ void AEnemyController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stim
 		ClearDetectedPlayer();
 	}
 }
+
 
 void AEnemyController::OnPossess(APawn* InPawn)
 {
@@ -206,4 +229,14 @@ void AEnemyController::ClearDetectedPlayer()
 const TArray<AActor*>& AEnemyController::GetSensedActors() const
 {
 	return SensedActors;
+}
+
+void AEnemyController::SetPerceptionActive(bool bEnable)
+{
+	if (!AIPerceptionComponent) return;
+
+	AIPerceptionComponent->SetComponentTickEnabled(bEnable);
+	AIPerceptionComponent->SetActive(bEnable);
+	AIPerceptionComponent->bAutoActivate = bEnable;
+	AIPerceptionComponent->Activate(bEnable);
 }

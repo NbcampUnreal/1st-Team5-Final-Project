@@ -226,6 +226,13 @@ void FPRGameplayTags::InitializeNativeGameplayTags()
     GameplayTags.Ability_Blessing_Cooldown = UGameplayTagsManager::Get().AddNativeGameplayTag(
         FName("Ability.Blessing.Cooldown")
         );
+    GameplayTags.Ability_AccessorySkill_Cooldown = UGameplayTagsManager::Get().AddNativeGameplayTag(
+        FName("Ability.AccessorySkill.Cooldown")
+        );
+    GameplayTags.Ability_WeaponSkill_Cooldown = UGameplayTagsManager::Get().AddNativeGameplayTag(
+        FName("Ability.WeaponSkill.Cooldown")
+        );
+    
     
     /*
      * Effects

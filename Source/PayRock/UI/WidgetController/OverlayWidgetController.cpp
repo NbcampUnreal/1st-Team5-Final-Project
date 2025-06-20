@@ -65,17 +65,23 @@ void UOverlayWidgetController::BindCallbacksToDependencies()
 	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
 		PRAttributeSet->GetMaxManaAttribute()).AddUObject(this, &UOverlayWidgetController::MaxManaChanged);
 
+	// Cooldown delegates
 	AbilitySystemComponent->RegisterGameplayTagEvent(FPRGameplayTags::Get().Ability_Blessing_Cooldown).AddUObject(
 		this, &UOverlayWidgetController::CooldownChanged);
+	AbilitySystemComponent->RegisterGameplayTagEvent(FPRGameplayTags::Get().Ability_AccessorySkill_Cooldown).AddUObject(
+		this, &UOverlayWidgetController::CooldownChanged);
+	AbilitySystemComponent->RegisterGameplayTagEvent(FPRGameplayTags::Get().Ability_WeaponSkill_Cooldown).AddUObject(
+		this, &UOverlayWidgetController::CooldownChanged);
 
-	/*
-	 *	Bind to Weapon/Accessory Skill Changed Delegate
-	 */
+	// Weapon/Accessory skill changed
+	
 
 	if (APRPlayerState* PS = Cast<APRPlayerState>(PlayerState))
 	{
 		PS->OnDeathDelegate.AddUObject(this, &UOverlayWidgetController::BroadcastDeath);
 		PS->OnExtractionDelegate.AddUObject(this, &UOverlayWidgetController::BroadcastExtraction);
+		PS->OnAccessorySkillChangedDelegate.AddUObject(this, &UOverlayWidgetController::BroadcastAccessorySkillChange);
+		PS->OnWeaponSkillChangedDelegate.AddUObject(this, &UOverlayWidgetController::BroadcastWeaponSkillChange);
 	}
 }
 
@@ -107,6 +113,16 @@ void UOverlayWidgetController::BroadcastDeath() const
 void UOverlayWidgetController::BroadcastExtraction() const
 {
 	OnExtraction.Broadcast();
+}
+
+void UOverlayWidgetController::BroadcastAccessorySkillChange(const FSkillData& SkillData) const
+{
+	OnAccessorySkillChanged.Broadcast(SkillData);
+}
+
+void UOverlayWidgetController::BroadcastWeaponSkillChange(const FSkillData& SkillData) const
+{
+	OnWeaponSkillChanged.Broadcast(SkillData);
 }
 
 void UOverlayWidgetController::CooldownChanged(const FGameplayTag Tag, int32 TagCount)
