@@ -63,9 +63,17 @@ APRCharacter::APRCharacter()
 
     RightHandCollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("RightHandCollision"));
     LeftHandCollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("LefttHandCollision"));
+
+    WeaponCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("WeaponCollision"));
+    WeaponCollision->SetupAttachment(Weapon);
+    WeaponCollision->SetIsReplicated(true);
+    WeaponCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+    /* NOTE: Weapon2 is currently unused */
     Weapon2 = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Weapon2"));
     Weapon2->SetupAttachment(GetMesh(), Weapon2SocketName);
     Weapon2->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    
     BlessingComponent = CreateDefaultSubobject<UBlessingComponent>(TEXT("BlessingComponent"));
     BuffComponent = CreateDefaultSubobject<UBuffComponent>(TEXT("BuffComponent"));
 
