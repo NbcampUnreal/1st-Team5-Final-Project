@@ -897,7 +897,10 @@ void APRCharacter::Tick(float DeltaSeconds)
     /* SPIN - early return */
     if (bShouldSpin)
     {
-        AddActorLocalRotation(FRotator(0.f, SpinSpeed * DeltaSeconds, 0.f));
+        float YawDelta = SpinSpeed * DeltaSeconds;
+
+        AddActorLocalRotation(FRotator(0.f, YawDelta, 0.f));
+
         return;
     }
     
