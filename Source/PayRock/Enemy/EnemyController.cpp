@@ -45,7 +45,7 @@ void AEnemyController::BeginPlay()
 	{
 		AIPerceptionComponent->OnTargetPerceptionUpdated.AddDynamic(this, &AEnemyController::OnTargetPerceptionUpdated);
 	}
-	
+
 	GetWorldTimerManager().SetTimer(DistanceCheckHandle, this, &AEnemyController::CheckPlayerDistance, 5.f, true);
 }
 
@@ -90,15 +90,21 @@ APRCharacter* AEnemyController::FindNearestPlayer(float& OutDistance)
 
 void AEnemyController::ActivateAI()
 {
-	if (!bIsAIActive)
+	if (bIsAIActive || !DefaultBehaviorTree) return;
+	
+	if (!BrainComponent || !BrainComponent->IsRunning())
 	{
-		if (DefaultBehaviorTree && !BrainComponent->IsRunning())
+		const bool bSuccess = RunBehaviorTree(DefaultBehaviorTree);
+		if (!bSuccess)
 		{
-			RunBehaviorTree(DefaultBehaviorTree);
+			return;
 		}
-		bIsAIActive = true;
 	}
+
+	bIsAIActive = true;
 }
+
+
 
 void AEnemyController::DeactivateAI()
 {
@@ -141,20 +147,31 @@ void AEnemyController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
 
-	AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(InPawn);
-	if (!Enemy || !DefaultBehaviorTree) return;
+	if (!InPawn || !DefaultBehaviorTree)
+	{
+		return;
+	}
 
+	AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(InPawn);
+	if (!Enemy)
+	{
+		return;
+	}
+	
 	Enemy->InitAbilityActorInfo();
 	Enemy->InitializeDefaultAttributes();
 	Enemy->AddCharacterAbilities();
-
+	
 	UBlackboardComponent* BBComponent = nullptr;
-	if (UseBlackboard(DefaultBehaviorTree->BlackboardAsset, BBComponent))
+	if (!UseBlackboard(DefaultBehaviorTree->BlackboardAsset, BBComponent) || !BBComponent)
 	{
-		BlackboardComponent = BBComponent;
-		BlackboardComponent->SetValueAsVector(FName("StartPosition"), Enemy->GetActorLocation());
+		return;
 	}
+
+	BlackboardComponent = BBComponent;
+	BlackboardComponent->SetValueAsVector(FName("StartPosition"), Enemy->GetActorLocation());
 }
+
 
 void AEnemyController::OnUnPossess()
 {
