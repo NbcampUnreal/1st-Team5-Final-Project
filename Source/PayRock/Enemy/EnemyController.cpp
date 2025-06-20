@@ -179,3 +179,8 @@ void AEnemyController::ClearDetectedPlayer()
 		BlackboardComponent->SetValueAsBool(TEXT("bPlayerDetect"), false);
 	}
 }
+
+const TArray<AActor*>& AEnemyController::GetSensedActors() const
+{
+	return SensedActors;
+}

@@ -22,7 +22,8 @@ public:
 	virtual void BeginPlay() override;
 	virtual void OnPossess(APawn* InPawn) override;
 	virtual void OnUnPossess() override;
-
+	const TArray<AActor*>& GetSensedActors() const;
+	
 protected:
 	UPROPERTY(EditAnywhere, Category = "AI")
 	TObjectPtr<UBehaviorTree> DefaultBehaviorTree;
@@ -47,9 +48,15 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "AI|Sight")
 	float PeripheralVisionAngle = 180.f;
+
+	UPROPERTY(EditAnywhere, Category = "AI|Hearing")
+	float MinLoudnessToReact = 0.3f;
+
+	UPROPERTY(EditAnywhere, Category = "AI|Hearing")
+	float LoudnessThreshold = 0.8f;
 	
 	UFUNCTION()
-	void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
+	virtual void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
 	
 	APRCharacter* FindNearestPlayer(float& OutDistance);
 	
@@ -69,4 +76,5 @@ protected:
 	bool bIsAIActive = false;
 
 	FTimerHandle DistanceCheckHandle;
+	FTimerHandle ForgetPlayerTimerHandle;
 };
