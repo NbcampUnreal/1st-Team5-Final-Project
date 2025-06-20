@@ -28,6 +28,7 @@
 #include "UObject/ConstructorHelpers.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "UMG.h"
+#include "PayRock/GameSystem/SaveDataSubsystem.h"
 
 APRCharacter::APRCharacter()
 {
@@ -186,6 +187,7 @@ void APRCharacter::PossessedBy(AController* NewController)
 
     InitAbilityActorInfo();
     AddCharacterAbilities();
+    AssignClothesColor();
 }
 
 void APRCharacter::OnRep_PlayerState()
@@ -304,108 +306,51 @@ void APRCharacter::OnRep_MaxWalkSpeed()
 void APRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
     Super::SetupPlayerInputComponent(PlayerInputComponent);
+    
+    UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(PlayerInputComponent);
+    if (!EnhancedInput) return;
+    APRPlayerController* PlayerController = Cast<APRPlayerController>(GetController());
+    if (!PlayerController) return;
 
-    if (UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(PlayerInputComponent))
+    if (PlayerController->MoveAction)
     {
-        if (APRPlayerController* PlayerController = Cast<APRPlayerController>(GetController()))
-        {
-            if (PlayerController->MoveAction)
-            {
-                EnhancedInput->BindAction(
-                    PlayerController->MoveAction,
-                    ETriggerEvent::Triggered,
-                    this,
-                    &APRCharacter::Move
-                );
-            }
-
-            if (PlayerController->JumpAction)
-            {
-                EnhancedInput->BindAction(
-                    PlayerController->JumpAction,
-                    ETriggerEvent::Started,
-                    this,
-                    &APRCharacter::StartJump
-                );
-
-                EnhancedInput->BindAction(
-                    PlayerController->JumpAction,
-                    ETriggerEvent::Completed,
-                    this,
-                    &APRCharacter::StopJump
-                );
-            }
-
-            if (PlayerController->LookAction)
-            {
-                EnhancedInput->BindAction(
-                    PlayerController->LookAction,
-                    ETriggerEvent::Triggered,
-                    this,
-                    &APRCharacter::Look
-                );
-            }
-
-            if (PlayerController->SprintAction)
-            {
-                EnhancedInput->BindAction(
-                    PlayerController->SprintAction,
-                    ETriggerEvent::Triggered,
-                    this,
-                    &APRCharacter::StartSprint
-                );
-                EnhancedInput->BindAction(
-                    PlayerController->SprintAction,
-                    ETriggerEvent::Completed,
-                    this,
-                    &APRCharacter::StopSprint
-                );
-            }
-
-            if (PlayerController->CrouchAction)
-            {
-                EnhancedInput->BindAction(
-                    PlayerController->CrouchAction,
-                    ETriggerEvent::Triggered,
-                    this,
-                    &APRCharacter::StartCrouch
-                );
-                EnhancedInput->BindAction(
-                    PlayerController->CrouchAction,
-                    ETriggerEvent::Completed,
-                    this,
-                    &APRCharacter::StopCrouch
-                );
-            }
-
-            if (PlayerController->AimAction)
-            {
-                EnhancedInput->BindAction(
-                    PlayerController->AimAction,
-                    ETriggerEvent::Ongoing,
-                    this,
-                    &APRCharacter::StartAim
-                );
-                EnhancedInput->BindAction(
-                    PlayerController->AimAction,
-                    ETriggerEvent::Completed,
-                    this,
-                    &APRCharacter::StopAim
-                );
-            }
-
-            if (PlayerController->InteractAction)
-            {
-                EnhancedInput->BindAction(
-                    PlayerController->InteractAction,
-                    ETriggerEvent::Started,
-                    this,
-                    &APRCharacter::Interact
-                );
-            }
-        }
+        EnhancedInput->BindAction(PlayerController->MoveAction, ETriggerEvent::Triggered, this, &APRCharacter::Move);
     }
 
+    if (PlayerController->JumpAction)
+    {
+        EnhancedInput->BindAction(PlayerController->JumpAction, ETriggerEvent::Started, this, &APRCharacter::StartJump);
+        EnhancedInput->BindAction(PlayerController->JumpAction, ETriggerEvent::Completed, this, &APRCharacter::StopJump);
+    }
+
+    if (PlayerController->LookAction)
+    {
+        EnhancedInput->BindAction(PlayerController->LookAction, ETriggerEvent::Triggered, this, &APRCharacter::Look);
+    }
+
+    if (PlayerController->SprintAction)
+    {
+        EnhancedInput->BindAction(PlayerController->SprintAction, ETriggerEvent::Triggered, this, &APRCharacter::StartSprint);
+        EnhancedInput->BindAction(PlayerController->SprintAction, ETriggerEvent::Completed, this, &APRCharacter::StopSprint);
+    }
+
+    if (PlayerController->CrouchAction)
+    {
+        EnhancedInput->BindAction(PlayerController->CrouchAction, ETriggerEvent::Triggered, this, &APRCharacter::StartCrouch);
+        EnhancedInput->BindAction(PlayerController->CrouchAction, ETriggerEvent::Completed, this, &APRCharacter::StopCrouch);
+    }
+
+    if (PlayerController->AimAction)
+    {
+        EnhancedInput->BindAction(PlayerController->AimAction, ETriggerEvent::Ongoing, this, &APRCharacter::StartAim);
+        EnhancedInput->BindAction(PlayerController->AimAction, ETriggerEvent::Completed, this, &APRCharacter::StopAim);
+    }
+
+    if (PlayerController->InteractAction)
+    {
+        EnhancedInput->BindAction(PlayerController->InteractAction, ETriggerEvent::Started, this, &APRCharacter::Interact);
+    }
+    
     if (UPRInputComponent* PRInputComponent = Cast<UPRInputComponent>(PlayerInputComponent))
     {
         PRInputComponent->BindAbilityActions(InputConfig, this,
@@ -684,12 +629,9 @@ USoundBase* APRCharacter::GetFootstepSoundBySurface(EPhysicalSurface SurfaceType
     if (FootstepSounds.Num() > 0)
     {
         USoundBase* SoundToPlay = FootstepSounds[FootstepSoundIndex];
-
         FootstepSoundIndex = (FootstepSoundIndex + 1) % FootstepSounds.Num(); // 순환
-
         return SoundToPlay;
     }
-
     return DefaultFootstepSound;
 }
 
@@ -870,6 +812,9 @@ void APRCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 
     /* Combo Status */
     DOREPLIFETIME(APRCharacter, bResetCombo);
+
+    /* Color */
+    DOREPLIFETIME(APRCharacter, ClothesColor);
 }
 
 void APRCharacter::OnRep_MoveDirection()
@@ -1091,9 +1036,6 @@ void APRCharacter::OnExtraction()
 
 void APRCharacter::MulticastExtraction_Implementation()
 {
-    // NOT WORKING - play extraction montage?
-    Crouch();
-    
     // Spawn Niagara
     FVector SpawnLoc = GetActorLocation();
     SpawnLoc.Z -= GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
@@ -1181,8 +1123,6 @@ void APRCharacter::SetJustJumped(bool bNewValue)
 void APRCharacter::SetWeaponType(EWeaponType NewType)
 {
     CurrentWeaponType = NewType;
-    // 애니메이션 블루프린트에도 알릴 수 있도록 필요하면 이벤트 호출
-    // Client_ForceUpdateWeaponType(NewType);
 }
 
 void APRCharacter::ResetJustJumped()
@@ -1250,4 +1190,28 @@ void APRCharacter::ShakeCamera()
                 SpringArmComp->SetRelativeLocation(OriginalLocation);
             }
         }, 0.05f, false);
+}
+
+void APRCharacter::AssignClothesColor()
+{
+    if (!HasAuthority()) return;
+    if (APRPlayerState* PS = Cast<APRPlayerState>(GetPlayerState()))
+    {
+        ClothesColor = PS->GetClothesColor();
+        if (GetNetMode() == NM_ListenServer && IsLocallyControlled())
+        {
+            OnRep_ClothesColor();
+        }
+    }
+}
+
+void APRCharacter::OnRep_ClothesColor()
+{
+    if (GetMesh())
+    {
+        if (UMaterialInstanceDynamic* Material = GetMesh()->CreateDynamicMaterialInstance(6))
+        {
+            Material->SetVectorParameterValue(FName("[4] To Texture Color"), ClothesColor);
+        }
+    }
 }
