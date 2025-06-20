@@ -201,6 +201,11 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Sound")
 	USoundBase* DefaultLandSound;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Sound")
+	USoundBase* SpinSound;
+
+
+
 	/* 달리기 Sprint */
 	UFUNCTION(Server, Reliable)
 	void ServerStartSprint();
