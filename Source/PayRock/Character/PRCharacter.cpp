@@ -1001,6 +1001,8 @@ void APRCharacter::Die(FVector HitDirection)
 
     bIsDead = true;
     StimuliSourceComponent->UnregisterFromPerceptionSystem();
+
+    Client_StartGrayscaleFade();
     
     if (HasAuthority())
     {
@@ -1021,8 +1023,42 @@ void APRCharacter::Die(FVector HitDirection)
 
                 // 클라이언트에게도 전파
                 PC->Client_OnSpectateTargetDied(this);
+
+                PC->DeathLocation = GetActorLocation();
             }
         }
+    }
+}
+
+void APRCharacter::Client_StartGrayscaleFade_Implementation()
+{
+    if (IsLocallyControlled() && CameraComp)
+    {
+        GrayscaleCurrentBlend = 0.0f;
+        GetWorldTimerManager().SetTimer(GrayscaleFadeTimer, this, &APRCharacter::SetBlackAndWhite, GrayscaleFadeRate,true);
+    }
+}
+
+void APRCharacter::SetBlackAndWhite()
+{
+    if (!CameraComp || !IsLocallyControlled())
+    {
+        GetWorldTimerManager().ClearTimer(GrayscaleFadeTimer);
+        return;
+    }
+
+    GrayscaleCurrentBlend += GrayscaleFadeRate / GrayscaleFadeDuration;
+    GrayscaleCurrentBlend = FMath::Clamp(GrayscaleCurrentBlend, 0.0f, 1.0f);
+    float SaturationValue = 1.0f - GrayscaleCurrentBlend;
+
+    FPostProcessSettings& PPS = CameraComp->PostProcessSettings;
+    PPS.bOverride_ColorSaturation = true;
+    PPS.ColorSaturation = FVector4(SaturationValue, SaturationValue, SaturationValue, 1.0f);
+    CameraComp->PostProcessBlendWeight = 1.0f;
+
+    if (GrayscaleCurrentBlend >= 1.0f)
+    {
+        GetWorldTimerManager().ClearTimer(GrayscaleFadeTimer);
     }
 }
 

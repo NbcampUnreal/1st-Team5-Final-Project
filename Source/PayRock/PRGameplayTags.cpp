@@ -232,7 +232,15 @@ void FPRGameplayTags::InitializeNativeGameplayTags()
     GameplayTags.Ability_WeaponSkill_Cooldown = UGameplayTagsManager::Get().AddNativeGameplayTag(
         FName("Ability.WeaponSkill.Cooldown")
         );
-    
+    GameplayTags.Ability_Necro_Cooldown_Expel = UGameplayTagsManager::Get().AddNativeGameplayTag(
+        FName("Ability.Necro.Cooldown.Expel")
+        );
+    GameplayTags.Ability_Necro_Cooldown_Slow = UGameplayTagsManager::Get().AddNativeGameplayTag(
+        FName("Ability.Necro.Cooldown.Slow")
+        );
+    GameplayTags.Ability_Necro_Cooldown_Blind = UGameplayTagsManager::Get().AddNativeGameplayTag(
+        FName("Ability.Necro.Cooldown.Blind")
+        );
     
     /*
      * Effects

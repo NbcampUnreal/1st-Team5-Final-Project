@@ -5,20 +5,12 @@
 #include "CoreMinimal.h"
 #include "SkillData.generated.h"
 
-UENUM(BlueprintType)
-enum class ESkillItem : uint8
-{
-	Accessory,
-	Weapon,
-	MAX
-};
-
 USTRUCT(BlueprintType)
 struct FSkillData
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	/*UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FName ItemID;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -28,19 +20,19 @@ struct FSkillData
 	FText Description; 
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FText InputKey;
+	FText InputKey;*/
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<UTexture2D> SkillIcon;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	/*UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float ManaCost;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float Cooldown;
+	float Cooldown;*/
 
 	FSkillData()
-		: ItemID(TEXT("")), DisplayName(FText()), Description(FText()), InputKey(FText()), SkillIcon(nullptr),
-	ManaCost(0.0f), Cooldown(0.0f) 
+		: SkillIcon(nullptr) /*, ItemID(TEXT("")), DisplayName(FText()), Description(FText()), InputKey(FText()), 
+	ManaCost(0.0f), Cooldown(0.0f)*/ 
 	{}
 };

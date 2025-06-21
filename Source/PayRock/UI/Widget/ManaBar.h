@@ -25,9 +25,21 @@ private:
 	void OnManaChanged(float NewMana);
 	UFUNCTION()
 	void OnMaxManaChanged(float NewMaxMana);
+	UFUNCTION()
+	void FadeOut();
 
 	UPROPERTY()
 	float Mana;
 	UPROPERTY()
 	float MaxMana;
+	UPROPERTY(Transient, meta = (BindWidgetAnim))
+	UWidgetAnimation* FadeInAnim;
+	UPROPERTY(Transient, meta = (BindWidgetAnim))
+	UWidgetAnimation* FadeOutAnim;
+	UPROPERTY(EditDefaultsOnly, Category = "Fade")
+	float DisplayDuration = 7.5f;
+
+	FTimerHandle FadeOutTimer;
+
+	bool bIsDisplayed = false;
 };
