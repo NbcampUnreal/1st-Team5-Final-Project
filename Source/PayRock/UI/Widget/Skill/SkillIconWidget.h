@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "SkillData.h"
+#include "GameplayTagContainer.h"
 #include "PayRock/UI/Widget/BaseUserWidget.h"
 #include "SkillIconWidget.generated.h"
 
@@ -18,11 +18,11 @@ class PAYROCK_API USkillIconWidget : public UBaseUserWidget
 public:
 	virtual void OnWidgetControllerSet() override;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill", meta=(ExposeOnSpawn))
+	FGameplayTag CooldownTag;
+
 protected:
-	UPROPERTY(EditDefaultsOnly, Category = "Skill")
-	ESkillItem SkillItem;
-	
-	UPROPERTY(meta = (BindWidget))
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta = (BindWidget))
 	UImage* SkillIcon;
 
 	UPROPERTY(meta = (BindWidget))
@@ -33,7 +33,7 @@ protected:
 
 private:
 	UFUNCTION()
-	void OnSkillChanged(const FSkillData& SkillData);
+	void OnSkillChanged(UTexture2D* IconTexture);
 
 	UFUNCTION()
 	void UpdateCooldown(float RemainingTime);

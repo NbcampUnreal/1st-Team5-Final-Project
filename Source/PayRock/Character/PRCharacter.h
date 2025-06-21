@@ -66,9 +66,18 @@ public:
 	
 	/* Death */
 	virtual void Die(FVector HitDirection = FVector::ZeroVector) override;
+	UFUNCTION(Client, Reliable)
+	void Client_StartGrayscaleFade();
+	void SetBlackAndWhite();
 	void ResetRagdoll();
+	
 	UPROPERTY(Replicated)
 	bool bIsDead = false;
+	float GrayscaleCurrentBlend;
+	float GrayscaleFadeRate = 0.05f;
+	float GrayscaleFadeDuration = 1.f;
+	FTimerHandle GrayscaleFadeTimer;
+	
 
 	/* 공격/피격 */
 	UFUNCTION(Server, Reliable)

@@ -4,9 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "BaseUserWidget.h"
+#include "PayRock/UI/WidgetController/OverlayWidgetController.h"
 #include "InGameWidget.generated.h"
-class UHealthBar;
-class UManaBar;
 
 UCLASS()
 class PAYROCK_API UInGameWidget : public UBaseUserWidget
@@ -17,23 +16,42 @@ public:
 	virtual void OnWidgetControllerSet() override;
 	
 private:
-	UPROPERTY(meta = (BindWidget))
-	UHealthBar* HealthBar;
-	UPROPERTY(meta = (BindWidget))
-	UManaBar* ManaBar;
-	UPROPERTY(meta = (BindWidget))
-	UBaseUserWidget* BlessingIcon;
+	UPROPERTY(meta = (BindWidgetOptional))
+	UBaseUserWidget* HealthBar;
+	UPROPERTY(meta = (BindWidgetOptional))
+	UBaseUserWidget* ManaBar;
 
+	UPROPERTY(meta = (BindWidgetOptional))
+	UBaseUserWidget* BlessingSkill;
+	UPROPERTY(meta = (BindWidgetOptional))
+	UBaseUserWidget* AccessorySkill;
+	UPROPERTY(meta = (BindWidgetOptional))
+	UBaseUserWidget* WeaponSkill;
 
-	// ���� �ð� UI
+	UPROPERTY(meta = (BindWidgetOptional))
+	UBaseUserWidget* NecroExpel;
+	UPROPERTY(meta = (BindWidgetOptional))
+	UBaseUserWidget* NecroSlow;
+	UPROPERTY(meta = (BindWidgetOptional))
+	UBaseUserWidget* NecroBlind;
+	
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* Text_RemainingTime;
 
 	UPROPERTY(meta = (BindWidget))
-	class UTextBlock* Text_ExtractionTime;
+	class UBorder* NotificationBackground;
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* NotificationText;
+	UPROPERTY(Transient, meta = (BindWidgetAnim))
+	UWidgetAnimation* NotificationAnim;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Notification")
+	TMap<ENotificationType, FText> NotificationMessages;
 
 	FTimerHandle UpdateTimerHandle;
 
-	// �ֱ��� ���� �Լ�
+	UFUNCTION()
+	void DisplayNotification(ENotificationType Type);
 	void UpdateTimeInfo();
+	
 };
