@@ -118,6 +118,8 @@ public:
 	bool bIsExtracted = false;
 
 	/* Status */
+	UFUNCTION()
+	void UpdateClothesColor();
 	UPROPERTY(Replicated)
 	bool bIsInvisible = false;
 
@@ -378,11 +380,11 @@ private:
 	TObjectPtr<UPRInputConfig> InputConfig;
 	
 	 /*	Clothes Color */
-	UFUNCTION()
-	void AssignClothesColor();
-	UFUNCTION()
-	void OnRep_ClothesColor();
+	UFUNCTION(Server, Reliable)
+	void Server_SetClothesColor(FLinearColor Color);
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_ApplyClothesColor(FLinearColor Color);
 	
-	UPROPERTY(ReplicatedUsing = OnRep_ClothesColor)
+	UPROPERTY(Replicated)
 	FLinearColor ClothesColor;
 };

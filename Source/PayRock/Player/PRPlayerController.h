@@ -83,6 +83,7 @@ public:
 	void OnSpectateTargetDied(AActor* DeadActor); // 관전 타겟 사망시 그 타겟 제거
 
 protected:
+	void UpdateClothesColor();
 	virtual void BeginPlay() override;
 
 	// esc 바인딩 위한 함수 

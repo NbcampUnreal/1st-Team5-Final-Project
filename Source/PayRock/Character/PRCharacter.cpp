@@ -153,6 +153,8 @@ void APRCharacter::BeginPlay()
     LeftHandCollisionComp->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Overlap);
     LeftHandCollisionComp->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
     LeftHandCollisionComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+    UpdateClothesColor();
 }
 
 void APRCharacter::PlayHitOverlay()
@@ -198,7 +200,6 @@ void APRCharacter::PossessedBy(AController* NewController)
 
     InitAbilityActorInfo();
     AddCharacterAbilities();
-    AssignClothesColor();
 }
 
 void APRCharacter::OnRep_PlayerState()
@@ -995,6 +996,17 @@ void APRCharacter::Tick(float DeltaSeconds)
     }
 }
 
+void APRCharacter::UpdateClothesColor()
+{
+    if (IsLocallyControlled())
+    {
+        if (USaveDataSubsystem* Subsystem = GetGameInstance()->GetSubsystem<USaveDataSubsystem>())
+        {
+            Server_SetClothesColor(Subsystem->GetClothesColor());
+        }
+    }
+}
+
 void APRCharacter::Die(FVector HitDirection)
 {
     Super::Die(HitDirection);
@@ -1256,26 +1268,21 @@ void APRCharacter::ShakeCamera()
         }, 0.05f, false);
 }
 
-void APRCharacter::AssignClothesColor()
+void APRCharacter::Server_SetClothesColor_Implementation(FLinearColor Color)
 {
     if (!HasAuthority()) return;
-    if (APRPlayerState* PS = Cast<APRPlayerState>(GetPlayerState()))
-    {
-        ClothesColor = PS->GetClothesColor();
-        if (GetNetMode() == NM_ListenServer && IsLocallyControlled())
-        {
-            OnRep_ClothesColor();
-        }
-    }
+    ClothesColor = Color;
+    Multicast_ApplyClothesColor(Color);
 }
 
-void APRCharacter::OnRep_ClothesColor()
+void APRCharacter::Multicast_ApplyClothesColor_Implementation(FLinearColor Color)
 {
+    ClothesColor = Color;
     if (GetMesh())
     {
         if (UMaterialInstanceDynamic* Material = GetMesh()->CreateDynamicMaterialInstance(6))
         {
-            Material->SetVectorParameterValue(FName("[4] To Texture Color"), ClothesColor);
+            Material->SetVectorParameterValue(FName("[4] To Texture Color"), Color);
         }
     }
 }

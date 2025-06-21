@@ -40,11 +40,6 @@ public:
     void Extract();
 
 	UFUNCTION(BlueprintCallable)
-	FLinearColor GetClothesColor() const { return ClothesColor; }
-	UFUNCTION(BlueprintCallable)
-	void SetClothesColor(const FLinearColor& Color) { ClothesColor = Color; }
-
-	UFUNCTION(BlueprintCallable)
 	void UpdateAccessoryID(const FName& ID);
 	UFUNCTION(BlueprintCallable)
 	void UpdateWeaponID(const FName& ID);
@@ -84,6 +79,4 @@ private:
 	FName AccessoryID;
 	UPROPERTY(ReplicatedUsing = OnRep_WeaponID)
 	FName WeaponID;
-	UPROPERTY()
-	FLinearColor ClothesColor = FLinearColor::White;
 };
