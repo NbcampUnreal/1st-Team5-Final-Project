@@ -391,6 +391,7 @@ void APRPlayerController::HandleMatchFlowStateChanged(EMatchFlowState NewState)
 		UIManager->RemoveAllWidgets();
 		UIManager->RemoveAllWidgetControllers();
 		UIManager->ShowWidget(EWidgetCategory::InGameHUD);
+		UpdateClothesColor();
 		break;
 	case EMatchFlowState::ExtractionEnabled:
 		OnExtractionEnabled.Broadcast();
@@ -402,6 +403,14 @@ void APRPlayerController::HandleMatchFlowStateChanged(EMatchFlowState NewState)
 		if (!Cast<APRPlayerState>(PlayerState)->GetIsExtracted())
 			UIManager->ShowWidget(EWidgetCategory::MatchEnd);
 		break;
+	}
+}
+
+void APRPlayerController::UpdateClothesColor()
+{
+	if (APRCharacter* PRCharacter = Cast<APRCharacter>(GetCharacter()))
+	{
+		PRCharacter->UpdateClothesColor();
 	}
 }
 
