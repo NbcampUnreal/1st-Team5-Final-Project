@@ -47,4 +47,9 @@ protected: // For Class Member Function
 	
 	virtual void Logout(AController* Exiting) override;
 
+
+private:
+	void TotalEnemyCount();
+
+
 };
