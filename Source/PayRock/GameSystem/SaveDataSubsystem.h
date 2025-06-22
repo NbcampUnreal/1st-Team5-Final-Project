@@ -43,15 +43,15 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Blessing")
 	const FBlessingData& GetEquippedPassiveBlessing() const { return EquippedPassiveBlessing; }
 
-	/**
-	 * Money
-	 */
-	UFUNCTION(BlueprintCallable, Category = "Money")
-	void SetSavedMoney(const int32& Amount) { SavedMoney = Amount; }
-	UFUNCTION(BlueprintCallable, Category = "Money")
-	const int32& GetSavedMoney() const { return SavedMoney; }
-
+	UFUNCTION(BlueprintCallable, Category = "Color")
+	void SetClothesColor(const FLinearColor& Color) { ClothesColor = Color; }
+	UFUNCTION(BlueprintCallable, Category = "Color")
+	const FLinearColor& GetClothesColor() const { return ClothesColor; }
+	
 	FOnBlessingSaved OnBlessingSaved;
+
+	UPROPERTY(BlueprintReadWrite, Category = "IntroVideo")
+	bool bHasIntroVideoPlayed;
 
 private:
 	UPROPERTY()
@@ -67,5 +67,5 @@ private:
 	UBlessingDataAsset* BlessingDataAsset;
 
 	UPROPERTY()
-	int32 SavedMoney;
+	FLinearColor ClothesColor = FLinearColor::White;
 };

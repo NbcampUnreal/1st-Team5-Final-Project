@@ -18,11 +18,11 @@ public:
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
 protected:
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void SpawnEffectArea();
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void ApplyEffectToActorsWithinRadius();
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	virtual void RemoveEffectArea();
 	
 protected:
@@ -46,6 +46,10 @@ protected:
 	FScalableFloat Radius;
 	UPROPERTY(EditDefaultsOnly, Category = "Ability|Instant")
 	bool bIgnoreSelf;
+	UPROPERTY(EditDefaultsOnly, Category = "Ability|Instant")
+	bool bIncludeAICharacters;
+	UPROPERTY(BlueprintReadOnly, Category = "Ability|Instant")
+	TSet<AActor*> UniqueActors;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Ability|SetByCaller")
 	bool bIsSetByCaller;

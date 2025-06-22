@@ -69,8 +69,6 @@ public:
 	/* Secondary Attributes */
 	UFUNCTION()
 	void OnRep_Armor(const FGameplayAttributeData& OldArmor) const;
-	/*UFUNCTION()
-	void OnRep_BlockChance(const FGameplayAttributeData& OldBlockChance) const;*/
 	UFUNCTION()
 	void OnRep_CriticalResistance(const FGameplayAttributeData& OldCriticalResistance) const;
 	UFUNCTION()

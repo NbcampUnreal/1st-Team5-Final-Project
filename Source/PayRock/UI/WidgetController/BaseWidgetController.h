@@ -9,6 +9,13 @@
 class UAttributeSet;
 class UAbilitySystemComponent;
 
+UENUM(BlueprintType)
+enum class ENotificationType : uint8
+{
+	ExtractionEnabled,
+	MAX
+};
+
 USTRUCT(BlueprintType)
 struct FWidgetControllerParams
 {

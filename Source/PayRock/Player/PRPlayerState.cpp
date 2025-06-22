@@ -8,6 +8,7 @@
 #include "PayRock/AbilitySystem/PRAbilitySystemComponent.h"
 #include "PayRock/AbilitySystem/PRAttributeSet.h"
 #include "PayRock/Character/PRCharacter.h"
+#include "PayRock/UI/Manager/UIManager.h"
 
 APRPlayerState::APRPlayerState()
 {
@@ -28,6 +29,9 @@ void APRPlayerState::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>&
 
 	DOREPLIFETIME(APRPlayerState, bIsDead);
 	DOREPLIFETIME(APRPlayerState, bIsExtracted);
+
+	DOREPLIFETIME(APRPlayerState, AccessoryID);
+	DOREPLIFETIME(APRPlayerState, WeaponID);
 }
 
 UAbilitySystemComponent* APRPlayerState::GetAbilitySystemComponent() const
@@ -90,6 +94,24 @@ void APRPlayerState::Extract()
 	}
 }
 
+void APRPlayerState::UpdateAccessoryID(const FName& ID)
+{
+	AccessoryID = ID;
+	if (GetNetMode() == NM_ListenServer && GetPlayerController() && GetPlayerController()->IsLocalController())
+	{
+		OnRep_AccessoryID();
+	}
+}
+
+void APRPlayerState::UpdateWeaponID(const FName& ID)
+{
+	WeaponID = ID;
+	if (GetNetMode() == NM_ListenServer && GetPlayerController() && GetPlayerController()->IsLocalController())
+	{
+		OnRep_WeaponID();
+	}
+}
+
 void APRPlayerState::OnRep_bIsDead(bool Old_bIsDead)
 {
 	if (bIsDead && !Old_bIsDead)
@@ -103,6 +125,15 @@ void APRPlayerState::OnRep_bIsExtracted()
 	if (bIsExtracted)
 	{
 		OnExtractionDelegate.Broadcast();
-		
 	}
+}
+
+void APRPlayerState::OnRep_AccessoryID()
+{
+	OnAccessorySkillChangedDelegate.Broadcast(AccessoryID);
+}
+
+void APRPlayerState::OnRep_WeaponID()
+{
+	OnWeaponSkillChangedDelegate.Broadcast(WeaponID);
 }

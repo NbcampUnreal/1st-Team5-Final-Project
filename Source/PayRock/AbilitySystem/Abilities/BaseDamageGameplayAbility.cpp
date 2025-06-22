@@ -94,7 +94,7 @@ void UBaseDamageGameplayAbility::CauseDamage(AActor* TargetActor, const FHitResu
 		}
 	}
 
-	if (const UPRAttributeSet* TargetAttributes = Cast<UPRAttributeSet>(
+	/*if (const UPRAttributeSet* TargetAttributes = Cast<UPRAttributeSet>(
 		TargetASC->GetAttributeSet(UPRAttributeSet::StaticClass())))
 	{
 		float CurrentHP = TargetAttributes->GetHealth();
@@ -106,7 +106,7 @@ void UBaseDamageGameplayAbility::CauseDamage(AActor* TargetActor, const FHitResu
 			ScaledDamage,
 			CurrentHP,
 			MaxHP);
-	}
+	}*/
 
 	UAISense_Damage::ReportDamageEvent(
 		GetWorld(),
