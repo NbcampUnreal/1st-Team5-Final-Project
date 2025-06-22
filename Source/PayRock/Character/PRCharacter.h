@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "BaseCharacter.h"
+#include "NavigationInvokerComponent.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "PayRock/Item/PRItemEnum.h"
 #include "Blueprint/UserWidget.h"
@@ -65,8 +66,18 @@ public:
 	
 	/* Death */
 	virtual void Die(FVector HitDirection = FVector::ZeroVector) override;
+	UFUNCTION(Client, Reliable)
+	void Client_StartGrayscaleFade();
+	void SetBlackAndWhite();
+	void ResetRagdoll();
+	
 	UPROPERTY(Replicated)
 	bool bIsDead = false;
+	float GrayscaleCurrentBlend;
+	float GrayscaleFadeRate = 0.05f;
+	float GrayscaleFadeDuration = 1.f;
+	FTimerHandle GrayscaleFadeTimer;
+	
 
 	/* 공격/피격 */
 	UFUNCTION(Server, Reliable)
@@ -107,6 +118,8 @@ public:
 	bool bIsExtracted = false;
 
 	/* Status */
+	UFUNCTION()
+	void UpdateClothesColor();
 	UPROPERTY(Replicated)
 	bool bIsInvisible = false;
 
@@ -204,6 +217,11 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Sound")
 	USoundBase* DefaultLandSound;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Sound")
+	USoundBase* SpinSound;
+
+
+
 	/* 달리기 Sprint */
 	UFUNCTION(Server, Reliable)
 	void ServerStartSprint();
@@ -271,7 +289,10 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Sound")
 	USoundAttenuation* FootstepAttenuation;
 
-	int32 FootstepSoundIndex = 0; // 순차 재생용 인덱스
+	int32 FootstepSoundIndex = 0;// 순차 재생용 인덱스
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Navigation")
+	UNavigationInvokerComponent* NavInvoker;
 
 protected:
 	virtual void BeginPlay() override;
@@ -359,11 +380,11 @@ private:
 	TObjectPtr<UPRInputConfig> InputConfig;
 	
 	 /*	Clothes Color */
-	UFUNCTION()
-	void AssignClothesColor();
-	UFUNCTION()
-	void OnRep_ClothesColor();
+	UFUNCTION(Server, Reliable)
+	void Server_SetClothesColor(FLinearColor Color);
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_ApplyClothesColor(FLinearColor Color);
 	
-	UPROPERTY(ReplicatedUsing = OnRep_ClothesColor)
+	UPROPERTY(Replicated)
 	FLinearColor ClothesColor;
 };

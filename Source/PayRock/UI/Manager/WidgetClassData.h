@@ -21,6 +21,9 @@ enum class EWidgetCategory : uint8
 	Blind,
 	Shop,
 	Help,
+	MatchEnd,
+	LeaveOptions,
+	NecroHUD,
 	MAX
 };
 

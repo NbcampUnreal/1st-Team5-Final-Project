@@ -12,7 +12,8 @@ struct FInputActionValue;
 class UInputMappingContext;
 class UInputAction;
 class UUserWidget;
-//class EMatchFlowState; // Enum class는 전방선언 불가;; 
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnExtractionEnabled);
 
 UCLASS()
 class PAYROCK_API APRPlayerController : public APlayerController
@@ -63,9 +64,7 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Input|Spectate")
 	TObjectPtr<UInputAction> SpectatePrevAction;
 
-	// 사망/탈출 UI
-	UPROPERTY(EditDefaultsOnly, Category = "UI")
-	TSubclassOf<UUserWidget> DeathOptionsWidgetClass;
+	FOnExtractionEnabled OnExtractionEnabled;
 	
 	UFUNCTION(Client, Reliable)
 	void Client_ShowDeathOptions();
@@ -84,6 +83,7 @@ public:
 	void OnSpectateTargetDied(AActor* DeadActor); // 관전 타겟 사망시 그 타겟 제거
 
 protected:
+	void UpdateClothesColor();
 	virtual void BeginPlay() override;
 
 	// esc 바인딩 위한 함수 
@@ -97,9 +97,6 @@ private:
 	TArray<AActor*> SpectateTargets;
 
 	int32 CurrentSpectateIndex = -1;
-
-	UPROPERTY()
-	UUserWidget* DeathOptionsWidget;
 	
 //=========================================================================
 	// 컨트롤러 내부에 추가:
@@ -139,4 +136,7 @@ public:
 	void ServerRequestNecroCharacter();
 	UFUNCTION(Client, Reliable)
 	void ClientOnNecroPossessed();
+
+	UPROPERTY()
+	FVector DeathLocation;
 };

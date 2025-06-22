@@ -23,7 +23,8 @@ public:
 	virtual void OnPossess(APawn* InPawn) override;
 	virtual void OnUnPossess() override;
 	const TArray<AActor*>& GetSensedActors() const;
-	
+	void SetPerceptionActive(bool bEnable);
+
 protected:
 	UPROPERTY(EditAnywhere, Category = "AI")
 	TObjectPtr<UBehaviorTree> DefaultBehaviorTree;
