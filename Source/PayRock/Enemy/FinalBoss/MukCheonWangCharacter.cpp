@@ -70,7 +70,7 @@ void AMukCheonWangCharacter::BeginPlay()
         AIPerception->OnTargetPerceptionUpdated.AddDynamic(this, &AMukCheonWangCharacter::OnTargetPerceptionUpdated);
     }
     
-    if (Face)
+   /* if (Face)
     {
         TArray<USceneComponent*> Children;
         Face->GetChildrenComponents(true, Children);
@@ -90,7 +90,7 @@ void AMukCheonWangCharacter::BeginPlay()
             );
             OrbitSpeedMap.Add(Child, FMath::FRandRange(30.f, 100.f)); 
         }
-    }
+    }*/
     
     StartFloatingParts();
 
