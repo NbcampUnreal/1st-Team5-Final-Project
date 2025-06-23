@@ -136,5 +136,28 @@ private:
 	
 	FTimerHandle TimerHandle;
 
+
+
+//얼굴관련
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Floating Parts")
+	USceneComponent* Face;
+	
+	TArray<USceneComponent*> OrbitParts; 
+	TMap<USceneComponent*, FTransform> InitialTransforms;
+	TMap<USceneComponent*, FVector> OrbitAxisMap; 
+	TMap<USceneComponent*, float> OrbitSpeedMap; 
+
+	UFUNCTION(BlueprintCallable, Category = "Face")
+	void StartFloatingParts();
+	UFUNCTION(BlueprintCallable, Category = "Face")
+	void RestorePartsToInitial();
+	
+	bool bIsFloating = false;
+	bool bRestoreToInitial = false;
+
+private:
+	void RotateFaceCube(float DeltaTime);
 	
 };
