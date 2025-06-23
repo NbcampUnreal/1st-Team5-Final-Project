@@ -1,7 +1,7 @@
 ﻿// PayRockGames
 
 
-#include "BTService_LightDetection.h"
+#include "BTS_LightDetection.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "AIController.h"
 #include "GameFramework/Actor.h"
@@ -11,13 +11,13 @@
 #include "Components/SpotLightComponent.h"
 #include "Components/DirectionalLightComponent.h"
 
-UBTService_LightDetection::UBTService_LightDetection()
+UBTS_LightDetection::UBTS_LightDetection()
 {
 	NodeName = TEXT("Check Light Level");
 	Interval = 0.5f;
 	RandomDeviation = 0.5f;
 }
-void UBTService_LightDetection::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
+void UBTS_LightDetection::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
 	Super::TickNode(OwnerComp, NodeMemory, DeltaSeconds);
 
