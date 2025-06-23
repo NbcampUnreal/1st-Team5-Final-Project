@@ -69,9 +69,7 @@ APRCharacter::APRCharacter()
     WeaponCollision->SetupAttachment(Weapon);
     WeaponCollision->SetIsReplicated(true);
     WeaponCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
-    //Invoke
-    NavInvoker = CreateDefaultSubobject<UNavigationInvokerComponent>(TEXT("NavInvoker"));
+    
 
     /* NOTE: Weapon2 is currently unused */
     Weapon2 = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Weapon2"));
