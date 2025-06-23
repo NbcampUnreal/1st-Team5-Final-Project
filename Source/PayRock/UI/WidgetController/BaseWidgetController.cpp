@@ -23,3 +23,7 @@ void UBaseWidgetController::BroadcastInitialValues()
 void UBaseWidgetController::BindCallbacksToDependencies()
 {
 }
+
+void UBaseWidgetController::HandleRemoval()
+{
+}

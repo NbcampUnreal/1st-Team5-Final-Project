@@ -69,7 +69,7 @@ void UUIManager::RemoveWidget(EWidgetCategory Category)
 {
 	UUserWidget* Widget = nullptr;
 	WidgetMap.RemoveAndCopyValue(Category, Widget);
-	if (!Widget) return;
+	if (!IsValid(Widget)) return;
 	Widget->RemoveFromParent();
 }
 
@@ -106,6 +106,10 @@ void UUIManager::RemoveAllWidgetControllers()
 	{
 		UBaseWidgetController* ControllerToRemove = nullptr;
 		WidgetControllerMap.RemoveAndCopyValue(Key, ControllerToRemove);
+		if (IsValid(ControllerToRemove))
+		{
+			ControllerToRemove->HandleRemoval();
+		}
 	}
 }
 
