@@ -3,15 +3,11 @@
 
 //#include "UI/Widget/VideoSettingsWidget.h"
 #include "VideoSettingsWidget.h"
-#include "BaseUserWidget.h"
 #include "MainMenuUserWidget.h"
 #include "OptionsMenuWidget.h"
 #include "Components/ComboBoxString.h"
-#include "Components/Slider.h"
 #include "Components/Button.h"
 #include "GameFramework/GameUserSettings.h"
-#include "Kismet/GameplayStatics.h"
-
 
 void UVideoSettingsWidget::NativeOnInitialized()
 {
@@ -27,28 +23,34 @@ void UVideoSettingsWidget::NativeOnInitialized()
         BackButton->OnClicked.AddDynamic(this, &UVideoSettingsWidget::OnBackClicked);
     }
 
-    // ¿¹½Ã ÇØ»óµµ ¸ñ·Ï Ãß°¡
+    UGameUserSettings* Settings = GEngine->GetGameUserSettings();
+    Settings->LoadSettings();
     if (ResolutionComboBox)
     {
-        ResolutionComboBox->AddOption(TEXT("1920x1080"));
-        ResolutionComboBox->AddOption(TEXT("1600x900"));
-        ResolutionComboBox->AddOption(TEXT("1280x720"));
-        ResolutionComboBox->SetSelectedIndex(0);
+        if (Settings)
+        {
+            FIntPoint DesktopRes = Settings->GetDesktopResolution();
+            FIntPoint CurrentRes = Settings->GetScreenResolution();
+            InitResolutionOptions(DesktopRes, CurrentRes);
+        }
     }
 
     if (FullscreenComboBox)
     {
-        FullscreenComboBox->AddOption(TEXT("Fullscreen"));
-        FullscreenComboBox->AddOption(TEXT("Windowed"));
-        FullscreenComboBox->AddOption(TEXT("Borderless"));
-        FullscreenComboBox->SetSelectedIndex(0);
+        if (Settings)
+        {
+            EWindowMode::Type WindowMode = Settings->GetFullscreenMode();
+            InitWindowModeOptions(WindowMode);
+        }
     }
 
-    if (QualitySlider)
+    if (QualityComboBox)
     {
-        QualitySlider->SetMinValue(0.0f);
-        QualitySlider->SetMaxValue(3.0f);
-        QualitySlider->SetValue(2.0f); // ±âº»°ª Medium
+        if (Settings)
+        {
+            int32 QualityLevel = Settings->GetOverallScalabilityLevel();
+            InitQualityOptions(QualityLevel);
+        }
     }
 }
 
@@ -59,7 +61,7 @@ void UVideoSettingsWidget::OnApplyClicked()
 
 void UVideoSettingsWidget::OnBackClicked()
 {  
-    // MainMenu ´Ù½Ã º¸¿©ÁÖ±â
+    // MainMenu ï¿½Ù½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ö±ï¿½
     if (MainMenuRef)  //; Ã¼Å© 
     {
         MainMenuRef->SetVisibility(ESlateVisibility::Visible);
@@ -67,7 +69,7 @@ void UVideoSettingsWidget::OnBackClicked()
         APlayerController* PC = GetWorld()->GetFirstPlayerController();
         if (PC)
         {
-            //; ÀÎÇ²¸ðµå º¯°æ 
+            //; ï¿½ï¿½Ç²ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 
             FInputModeUIOnly InputMode;
             InputMode.SetWidgetToFocus(MainMenuRef->TakeWidget());
             InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
@@ -76,7 +78,7 @@ void UVideoSettingsWidget::OnBackClicked()
         }
 
 
-        //  ÀÌÁ¦´Â Á÷Á¢ ÂüÁ¶ÇØ¼­ ¼û±â±â -> ±¸Á¶°¡ switcher ±¸Á¶¶ó¼­..
+        //  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ø¼ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ -> ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ switcher ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½..
         if (OptionsMenuRef)
         {
             OptionsMenuRef->SetVisibility(ESlateVisibility::Hidden);
@@ -84,30 +86,87 @@ void UVideoSettingsWidget::OnBackClicked()
     }
 }
 
+void UVideoSettingsWidget::InitResolutionOptions(const FIntPoint& DesktopRes, const FIntPoint& CurrentRes)
+{
+    if (!ResolutionComboBox) return;
+    
+    ResolutionComboBox->ClearOptions();
+    
+    int CurrentResIndex = -1;
+    int ComboBoxIndex = 0;
+    for (const auto& Resolution : SupportedResolutions)
+    {
+        if (DesktopRes.X < Resolution.X || DesktopRes.Y < Resolution.Y) continue;
+        ResolutionComboBox->AddOption(FString::Printf(TEXT("%dX%d"), Resolution.X, Resolution.Y));
+        if (CurrentRes.X == Resolution.X && CurrentRes.Y == Resolution.Y)
+        {
+            CurrentResIndex = ComboBoxIndex; 
+        }
+        ComboBoxIndex++;
+    }
+    if (CurrentResIndex == -1 && ComboBoxIndex > 0)
+    {
+        CurrentResIndex = 0;
+    }
+    ResolutionComboBox->SetSelectedIndex(CurrentResIndex);
+}
+
+void UVideoSettingsWidget::InitWindowModeOptions(EWindowMode::Type CurrentMode)
+{
+    if (!FullscreenComboBox) return;
+    FullscreenComboBox->ClearOptions();
+    FullscreenComboBox->AddOption(TEXT("ì „ì²´í™”ë©´"));
+    FullscreenComboBox->AddOption(TEXT("ì°½ ëª¨ë“œ"));
+    FullscreenComboBox->AddOption(TEXT("ì°½ ëª¨ë“œ ì „ì²´í™”ë©´"));
+    
+    switch (CurrentMode)
+    {
+    case EWindowMode::Fullscreen:
+        FullscreenComboBox->SetSelectedIndex(0);
+        break;
+    case EWindowMode::Windowed:
+        FullscreenComboBox->SetSelectedIndex(1);
+        break;
+    case EWindowMode::WindowedFullscreen:
+        FullscreenComboBox->SetSelectedIndex(2);
+        break;
+    default:
+        FullscreenComboBox->SetSelectedIndex(2);
+    }
+}
+
+void UVideoSettingsWidget::InitQualityOptions(int32 CurrentQuality)
+{
+    // 0:ë‚®ìŒ, 1:ì¤‘ê°„, 2:ë†’ìŒ, 3:ë§¤ìš° ë†’ìŒ
+    if (!QualityComboBox) return;
+    
+    QualityComboBox->ClearOptions();
+    for (const FString& Quality : SupportedQualities)
+    {
+        QualityComboBox->AddOption(Quality);
+    }
+    QualityComboBox->SetSelectedIndex(CurrentQuality);
+}
+
 void UVideoSettingsWidget::ApplySettings()
 {
     if (UGameUserSettings* Settings = GEngine->GetGameUserSettings())
     {
-        // ÇØ»óµµ Àû¿ë
         FString SelectedResolution = ResolutionComboBox->GetSelectedOption();
         FIntPoint Res = ParseResolution(SelectedResolution);
         Settings->SetScreenResolution(Res);
-
-        // ÀüÃ¼È­¸é ¸ðµå
+        
         FString SelectedMode = FullscreenComboBox->GetSelectedOption();
         EWindowMode::Type WindowMode = EWindowMode::Fullscreen;
-        if (SelectedMode == TEXT("Windowed")) WindowMode = EWindowMode::Windowed;
-        else if (SelectedMode == TEXT("Borderless")) WindowMode = EWindowMode::WindowedFullscreen;
-
+        if (SelectedMode == TEXT("ì°½ ëª¨ë“œ")) WindowMode = EWindowMode::Windowed;
+        else if (SelectedMode == TEXT("ì°½ ëª¨ë“œ ì „ì²´í™”ë©´")) WindowMode = EWindowMode::WindowedFullscreen;
         Settings->SetFullscreenMode(WindowMode);
+        
+        int32 SelectedQuality = QualityComboBox->GetSelectedIndex();
+        Settings->SetOverallScalabilityLevel(SelectedQuality >= 0 && SelectedQuality <= 3 ? SelectedQuality : 0);
 
-        // Ç°Áú ¼³Á¤
-        int32 QualityLevel = FMath::RoundToInt(QualitySlider->GetValue());
-        Settings->SetOverallScalabilityLevel(QualityLevel);
-
-        // Àû¿ë
-        Settings->ApplySettings(false);
         Settings->SaveSettings();
+        Settings->ApplySettings(false);
     }
 }
 

@@ -217,8 +217,15 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Sound")
 	USoundBase* DefaultLandSound;
 
+	FTimerHandle SpinSoundTimerHandle;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Spin")
+	float SpinSoundInterval = 0.25f;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Sound")
 	USoundBase* SpinSound;
+
+	void PlaySpinSound();
 
 
 
@@ -291,8 +298,6 @@ public:
 
 	int32 FootstepSoundIndex = 0;// 순차 재생용 인덱스
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Navigation")
-	UNavigationInvokerComponent* NavInvoker;
 
 protected:
 	virtual void BeginPlay() override;

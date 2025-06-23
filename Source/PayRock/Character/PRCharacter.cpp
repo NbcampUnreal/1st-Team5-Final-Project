@@ -69,9 +69,7 @@ APRCharacter::APRCharacter()
     WeaponCollision->SetupAttachment(Weapon);
     WeaponCollision->SetIsReplicated(true);
     WeaponCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
-    //Invoke
-    NavInvoker = CreateDefaultSubobject<UNavigationInvokerComponent>(TEXT("NavInvoker"));
+    
 
     /* NOTE: Weapon2 is currently unused */
     Weapon2 = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Weapon2"));
@@ -419,19 +417,17 @@ void APRCharacter::StartJump(const FInputActionValue& Value)
 
     if (GetCharacterMovement()->IsFalling())
     {
-        // 공중이면 더블점프만 허용
         if (CanDoubleJump())
         {
             Server_DoubleJump();
         }
-        return; // 중복 방지
+        return;
     }
 
-    // 지상 점프 (마나 확인 포함)
     if (PRAttributeSet->GetMana() < 10.f) return;
     {
-        Jump();             // 로컬 반응
-        ServerStartJump();  // 서버 처리 + 마나 소모 + SetJustJumped
+        Jump();
+        ServerStartJump();
 
         if (HasAuthority())
         {
@@ -528,13 +524,39 @@ bool APRCharacter::CanDoubleJump()
 void APRCharacter::StartSpin()
 {
     bShouldSpin = true;
+
+    GetWorldTimerManager().SetTimer(
+        SpinSoundTimerHandle,
+        this,
+        &APRCharacter::PlaySpinSound,
+        SpinSoundInterval,
+        true
+    );
 }
 
 void APRCharacter::StopSpin()
 {
     bShouldSpin = false;
+
+    GetWorldTimerManager().ClearTimer(SpinSoundTimerHandle);
 }
 /*** Spin ***/
+
+void APRCharacter::PlaySpinSound()
+{
+    if (!SpinSound) return;
+
+    UGameplayStatics::PlaySoundAtLocation(
+        this,
+        SpinSound,
+        GetActorLocation(),
+        FRotator::ZeroRotator,
+        1.f,
+        1.f,
+        0.f, 
+        FootstepAttenuation
+    );
+}
 
 void APRCharacter::Look(const FInputActionValue& value)
 {
