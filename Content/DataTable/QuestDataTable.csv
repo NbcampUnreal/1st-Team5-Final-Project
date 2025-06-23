@@ -1,5 +1,21 @@
-,QuestID,QuestName,QuestDescription,QuestType,TargetName,RequiredCount,RewardItem,RewardAmount
-Quest1,1,요골귀를 잡아라,주술의 희생량이 된 주민들이 변한 요골귀를 잡으시오,MonsterKill,Skeleton,5,Gabsang,1
-Quest2,2,악사 상의를 가져와라,궁궐에 들어가 요괴를 해치우거나 탐색해서 악사를 가져오시오,ItemCollect,Aksa,1,Gabsang,1
-Quest3,3,장승을해치워라,저주에 물든 수호신 장승을 해치워라,MonsterKill,GeneralSky,2,Gabsang,1
-Quest4,4,시장광대를 해치우시오,한에 사무쳐 원한이 한곳에모인 시장광대를 해치우시오,MonsterKill,Clown,1,Gabsang,1
+﻿,QuestID,QuestName,QuestDescription,QuestType,TargetName,RequiredCount,RewardItem,RewardAmount
+Quest1,1,요골귀 사냥,주술의 희생량이 된 주민들이 변한 요골귀를 잡아 나라에 해악을 끊으시오.,MonsterKill,Skeleton,3,Aksa,1
+Quest2,2,옷은 잘 받았는가,인벤토리를 확인하여 아이템을 확인해 보시오,ItemCollect,Aksa,1,Hyeobdo,1
+Quest3,3,갓파 사냥,저주에 이끌려 조선에까지 발을 디딘 일본요괴 갓파를 사냥하시오,MonsterKill,Kappa,3,Jurip,1
+Quest4,4,갓파의 전리품 ,갓파를 사냥하고 얻은 등껍질을 내게 가져오게나.귀한 약재로 쓰인다네,ItemCollect,HealPotion,1,Heokchosang,1
+Quest5,5,물약은 든든히,상점에서 회복포션을 다량 구매하여 마굴의 진입을 대비하게,ItemCollect,HealPotion,5,Apple,5
+Quest6,6,요괴사냥의 증거,요괴를 사냥했을때 나오는 귀중품을 내게도 보여주게나,ItemCollect,Gem,1,Malgun,1
+Quest7,7,골이아파 ,머리가 아픈걸보니 오골귀의 개체수가 많아진거같네 어서 잡고 두개골 몇개만 가져와주게나,ItemCollect,Skull,2,Mugijichima,1
+Quest8,8,내가 이상한건가,두눈박이 세상에 외눈박이가 있으니 그놈이 이상한거 아니겠나 어서 저 해괴망측한걸 사냥해주게,MonsterKill,OneEyed,2,Gabsang,1
+Quest9,9,눈에 영양소가 가득해요,요즘 저잣거리에 외눈박이의 눈을 먹으면 시력이 좋아진다는 소문이있네 어서 가져오게,ItemCollect,Eyeball,1,Heay,1
+Quest10,10,공포의 원인을 제거해라,마굴에 들어간 요괴사냥꾼들이 자기가 죽은지도 모른 표정으로 죽어있다는 소문이있네 이 소문이 왜 떠도는지 확인하고 원흉을 제거하게,MonsterKill,Samurai,3,Hwangchorip,1
+Quest11,11,사과에 금을 발랐나,요즘 사과가 금인거 알지? 비싼 사과 맛좀 보고싶네,ItemCollect,Apple,5,Gonbang,1
+Quest12,12,호환마마,민가에 괴상한 이야기가 떠돌고다니네 사람의 목소리를 요괴가 낼 수 있다니 말이네,MonsterKill,JangSanbum,1,SSangsudo,1
+Quest13,13,사람은 죽어 이름을 남기고,호랑이는 죽어서 가죽을 남기지. 가죽을 가져오게나,ItemCollect,Pelt,1,Oyoroi,1
+Quest14,14,엽전,가는길에 돈이라도 많았으면 좋겠구만 그래 돈은 어느정도 모았는가?,ItemCollect,Coin,5,Woldo,1
+Quest15,15,"저주에 물든 마장의 장승을 제거하여, 마을의 안녕을 되찾으시오.",저주에 물든 마장의 장승을 제거하여. 마을의 안녕을 되찾으시오.,MonsterKill,GeneralSky,2,Gabsang,1
+Quest16,16,먼지가 되어,장승을 해치하고 얻은 잿가루를 가져오게 귀한 영약의 재료가 되니 말이야,ItemCollect,Ash,1,Jaebok,1
+Quest17,17,시장의 즐거움,시장은 즐거워야하는거 아니겠나 하지만 요즘은 그곳에 갈 수가 없네 그곳을 점령한 요괴를 잡아주게,MonsterKill,MarketClown,1,Cheonggun,1
+Quest18,18,에이녀.비녀.씨녀,요즘 아낙네들이 끼는 비녀가 너무나도 귀하네 가져와주게,ItemCollect,HairPin2,1,Jeokseok,1
+Quest19,19,성공하면 혁명! 실패하면...,이 저주를 일으킨 원흉을 제거해서 이 악몽을 끝내버리자고,MonsterKill,Mukcheon,1,Hyeobdo,1
+Quest20,20,계속계속,다음 패치를 기대해주세요,MonsterKill,Skeleton,999,Aksa,1

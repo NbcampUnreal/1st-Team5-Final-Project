@@ -50,6 +50,9 @@ public:
 	
 	FOnBlessingSaved OnBlessingSaved;
 
+	UPROPERTY(BlueprintReadWrite, Category = "IntroVideo")
+	bool bHasIntroVideoPlayed;
+
 private:
 	UPROPERTY()
 	UBuffDataAsset* BuffDataAsset;

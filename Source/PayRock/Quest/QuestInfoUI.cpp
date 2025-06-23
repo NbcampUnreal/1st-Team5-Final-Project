@@ -14,6 +14,7 @@ void UQuestInfoUI::SetQuestData(const FQuestData& Quest)
 
 	if (UTextBlock* QuestNameText = Cast<UTextBlock>(GetWidgetFromName(QuestNameTextName)))
 	{
+		QuestNameText->SetText(FText::FromString(Quest.QuestName));
 	}
 	if (UTextBlock* DescText = Cast<UTextBlock>(GetWidgetFromName(DescriptionTextName)))
 	{
