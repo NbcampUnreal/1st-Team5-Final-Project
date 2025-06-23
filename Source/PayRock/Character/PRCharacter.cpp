@@ -416,21 +416,23 @@ void APRCharacter::StartJump(const FInputActionValue& Value)
 {
     if (GetCharacterMovement()->IsCrouching()) return;
     if (!AbilitySystemComponent || !GE_JumpManaCost || !PRAttributeSet) return;
-    if (PRAttributeSet->GetMana() < 10.f) return; // 마나 부족 시 점프 금지
 
-    Jump(); // 클라이언트에서 즉시 점프 반응
-
-    // 로컬에서 실행하지 않고 서버에 요청
-    ServerStartJump();
-    
-    if (CanDoubleJump())
+    if (GetCharacterMovement()->IsFalling())
     {
-        Server_DoubleJump();
+        // 공중이면 더블점프만 허용
+        if (CanDoubleJump())
+        {
+            Server_DoubleJump();
+        }
+        return; // 중복 방지
     }
-    else
+
+    // 지상 점프 (마나 확인 포함)
+    if (PRAttributeSet->GetMana() < 10.f) return;
     {
-        Jump();
-        
+        Jump();             // 로컬 반응
+        ServerStartJump();  // 서버 처리 + 마나 소모 + SetJustJumped
+
         if (HasAuthority())
         {
             SetJustJumped(true);

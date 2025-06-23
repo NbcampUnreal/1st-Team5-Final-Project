@@ -11,6 +11,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "PayRock/AbilitySystem/PRAbilitySystemComponent.h"
 #include "PayRock/AbilitySystem/PRAttributeSet.h"
+#include "PayRock/GameSystem/PRGameState.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "Perception/AISense_Hearing.h"
 
@@ -135,6 +136,13 @@ void AEnemyCharacter::Die(FVector HitDirection)
 		AICon->UnPossess();
 	}
 
+	if (HasAuthority())
+	{
+		if (APRGameState* GS = GetWorld()->GetGameState<APRGameState>())
+		{
+			GS->DieMonsterCount++;
+		}
+	}
 	if (ContainerClass)
 	{
 		FVector Start = GetActorLocation() + FVector(0.f, 0.f, 100.f);
