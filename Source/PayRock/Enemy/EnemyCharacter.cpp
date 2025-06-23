@@ -31,8 +31,6 @@ AEnemyCharacter::AEnemyCharacter()
 	
 	PawnNoiseEmitterComp = CreateDefaultSubobject<UPawnNoiseEmitterComponent>(TEXT("PawnNoiseEmitter"));
 
-	NavInvoker = CreateDefaultSubobject<UNavigationInvokerComponent>(TEXT("NavInvoker"));
-
 	bReplicates = true;
 	bAlwaysRelevant = true;
 
