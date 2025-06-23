@@ -3,6 +3,8 @@
 #include "AbilitySystemComponent.h"
 #include "AIController.h"
 #include "PayRock/Enemy/EnemyCharacter.h"
+#include "GameFramework/Actor.h"
+#include "Kismet/KismetMathLibrary.h"
 
 UBTTask_Attack::UBTTask_Attack()
 {
@@ -17,12 +19,27 @@ EBTNodeResult::Type UBTTask_Attack::ExecuteTask(UBehaviorTreeComponent& OwnerCom
 	AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(AICon ? AICon->GetPawn() : nullptr);
 	if (!Enemy || !AttackAbility) return EBTNodeResult::Failed;
 	if (Enemy->IsDead()) return EBTNodeResult::Failed;
-	if (UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent())
+
+	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
+	if (!BB || BB->GetValueAsBool(FName("bIsDead")))
 	{
-		if (BB->GetValueAsBool(FName("bIsDead")))
-		{
-			return EBTNodeResult::Failed;
-		}
+		return EBTNodeResult::Failed;
+	}
+
+	AActor* Target = Cast<AActor>(BB->GetValueAsObject(FName("TargetActor")));
+	if (Target)
+	{
+		const FVector Direction = (Target->GetActorLocation() - Enemy->GetActorLocation()).GetSafeNormal();
+		FRotator TargetRot = Direction.Rotation();
+		TargetRot.Pitch = 0.f;
+		TargetRot.Roll = 0.f;
+
+		const FRotator CurrentRot = Enemy->GetActorRotation();
+		const float InterpSpeed = 25.f;
+		const float DeltaTime = 0.03f;
+
+		const FRotator NewRot = FMath::RInterpTo(CurrentRot, TargetRot, DeltaTime, InterpSpeed);
+		Enemy->SetActorRotation(NewRot);
 	}
 
 	if (AICon)
@@ -35,7 +52,7 @@ EBTNodeResult::Type UBTTask_Attack::ExecuteTask(UBehaviorTreeComponent& OwnerCom
 
 	if (ASC->TryActivateAbilityByClass(AttackAbility))
 	{
-		if (UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent())
+		if (BB)
 		{
 			BB->SetValueAsBool(FName("bIsBusy"), true);
 			BB->SetValueAsBool(FName("bInAttackRange"), false);
