@@ -6,7 +6,9 @@
 #include "PayRock/AbilitySystem/PRAttributeSet.h"
 #include "PayRock/Character/PRCharacter.h"
 #include "PayRock/Character/Blessing/BlessingComponent.h"
+#include "PayRock/Player/PRPlayerController.h"
 #include "PayRock/Player/PRPlayerState.h"
+#include "PayRock/UI/Manager/UIManager.h"
 
 void UOverlayWidgetController::BroadcastInitialValues()
 {
@@ -37,6 +39,12 @@ void UOverlayWidgetController::BroadcastInitialValues()
 				OnActiveBlessingChanged.Broadcast(Character->BlessingComponent->LocalEquippedActiveBlessingIcon);
 			}
 		}
+	}
+
+	if (APRPlayerState* PS = Cast<APRPlayerState>(PlayerState))
+	{
+		BroadcastAccessorySkillChange(PS->GetCurrentAccessoryID());
+		BroadcastWeaponSkillChange(PS->GetCurrentWeaponID());
 	}
 }
 
@@ -72,16 +80,19 @@ void UOverlayWidgetController::BindCallbacksToDependencies()
 		this, &UOverlayWidgetController::CooldownChanged);
 	AbilitySystemComponent->RegisterGameplayTagEvent(FPRGameplayTags::Get().Ability_WeaponSkill_Cooldown).AddUObject(
 		this, &UOverlayWidgetController::CooldownChanged);
-
-	// Weapon/Accessory skill changed
 	
-
 	if (APRPlayerState* PS = Cast<APRPlayerState>(PlayerState))
 	{
 		PS->OnDeathDelegate.AddUObject(this, &UOverlayWidgetController::BroadcastDeath);
 		PS->OnExtractionDelegate.AddUObject(this, &UOverlayWidgetController::BroadcastExtraction);
+		
 		PS->OnAccessorySkillChangedDelegate.AddUObject(this, &UOverlayWidgetController::BroadcastAccessorySkillChange);
 		PS->OnWeaponSkillChangedDelegate.AddUObject(this, &UOverlayWidgetController::BroadcastWeaponSkillChange);
+	}
+
+	if (APRPlayerController* PC = Cast<APRPlayerController>(PlayerController))
+	{
+		PC->OnExtractionEnabled.AddUniqueDynamic(this, &UOverlayWidgetController::BroadcastExtractionEnabled);
 	}
 }
 
@@ -105,6 +116,11 @@ void UOverlayWidgetController::MaxManaChanged(const FOnAttributeChangeData& Data
 	OnMaxManaChanged.Broadcast(Data.NewValue);
 }
 
+void UOverlayWidgetController::BroadcastExtractionEnabled()
+{
+	OnNotificationRequest.Broadcast(ENotificationType::ExtractionEnabled);
+}
+
 void UOverlayWidgetController::BroadcastDeath() const
 {
 	OnDeath.Broadcast();
@@ -115,14 +131,28 @@ void UOverlayWidgetController::BroadcastExtraction() const
 	OnExtraction.Broadcast();
 }
 
-void UOverlayWidgetController::BroadcastAccessorySkillChange(const FSkillData& SkillData) const
+void UOverlayWidgetController::BroadcastAccessorySkillChange(const FName& AccessoryID) const
 {
-	OnAccessorySkillChanged.Broadcast(SkillData);
+	if (IsValid(PlayerController) && PlayerController->IsLocalController())
+	{
+		if (UUIManager* UIManager = PlayerController->GetGameInstance()->GetSubsystem<UUIManager>())
+		{
+			FSkillData Data = UIManager->GetSkillData(AccessoryID);
+			OnAccessorySkillChanged.Broadcast(Data.SkillIcon);
+		}
+	}
 }
 
-void UOverlayWidgetController::BroadcastWeaponSkillChange(const FSkillData& SkillData) const
+void UOverlayWidgetController::BroadcastWeaponSkillChange(const FName& WeaponID) const
 {
-	OnWeaponSkillChanged.Broadcast(SkillData);
+	if (IsValid(PlayerController) && PlayerController->IsLocalController())
+	{
+		if (UUIManager* UIManager = PlayerController->GetGameInstance()->GetSubsystem<UUIManager>())
+		{
+			FSkillData Data = UIManager->GetSkillData(WeaponID);
+			OnWeaponSkillChanged.Broadcast(Data.SkillIcon);
+		}
+	}
 }
 
 void UOverlayWidgetController::CooldownChanged(const FGameplayTag Tag, int32 TagCount)

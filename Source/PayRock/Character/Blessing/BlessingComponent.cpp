@@ -8,7 +8,8 @@
 #include "PayRock/GameSystem/SaveDataSubsystem.h"
 
 UBlessingComponent::UBlessingComponent() :
-	CachedAbilitySystemComponent(nullptr)
+	LocalEquippedActiveBlessingIcon(nullptr), OwningPRCharacter(nullptr), CachedAbilitySystemComponent(nullptr),
+	InvisibleMaterial(nullptr), InvisibleMaterialDynamic(nullptr)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 	PrimaryComponentTick.bStartWithTickEnabled = false;
@@ -106,11 +107,6 @@ void UBlessingComponent::Server_EquipPassiveBlessing_Implementation(const FBless
 	PassiveBlessingHandle = CachedAbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 	EquippedPassiveBlessingData = Blessing;
 	Client_BroadcastPassiveBlessing(Blessing);
-
-	/*if (ABaseCharacter* Character = Cast<ABaseCharacter>(GetOwner()))
-	{
-		Character->RecalculateSecondaryAttributes();
-	}*/
 }
 
 void UBlessingComponent::Server_UnequipActiveBlessing_Implementation()

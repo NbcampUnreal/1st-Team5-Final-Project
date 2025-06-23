@@ -54,7 +54,7 @@ UUserWidget* UUIManager::ShowWidget(EWidgetCategory Category)
 		Widget = InitializeWidget(Category);
 	}
 	if (!Widget) return nullptr;
-	Widget->SetVisibility(ESlateVisibility::Visible);
+	Widget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 	return Widget;
 }
 

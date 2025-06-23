@@ -12,8 +12,8 @@ class UAttributeSet;
 
 DECLARE_MULTICAST_DELEGATE(FOnDeathDelegate);
 DECLARE_MULTICAST_DELEGATE(FOnExtractionDelegate);
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnWeaponSkillChangedDelegate, const FSkillData&);
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnAccessorySkillChangedDelegate, const FSkillData&);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnWeaponSkillChangedDelegate, const FName&);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnAccessorySkillChangedDelegate, const FName&);
 
 UCLASS()
 class PAYROCK_API APRPlayerState : public APlayerState, public IAbilitySystemInterface
@@ -40,14 +40,13 @@ public:
     void Extract();
 
 	UFUNCTION(BlueprintCallable)
-	FLinearColor GetClothesColor() const { return ClothesColor; }
-	UFUNCTION(BlueprintCallable)
-	void SetClothesColor(const FLinearColor& Color) { ClothesColor = Color; }
-
-	UFUNCTION(BlueprintCallable)
 	void UpdateAccessoryID(const FName& ID);
 	UFUNCTION(BlueprintCallable)
 	void UpdateWeaponID(const FName& ID);
+	UFUNCTION(BlueprintPure)
+	const FName& GetCurrentWeaponID() const { return WeaponID; };
+	UFUNCTION(BlueprintPure)
+	const FName& GetCurrentAccessoryID() const { return AccessoryID; };
 
 public:
 	FOnDeathDelegate OnDeathDelegate;
@@ -80,6 +79,4 @@ private:
 	FName AccessoryID;
 	UPROPERTY(ReplicatedUsing = OnRep_WeaponID)
 	FName WeaponID;
-	UPROPERTY()
-	FLinearColor ClothesColor = FLinearColor::White;
 };

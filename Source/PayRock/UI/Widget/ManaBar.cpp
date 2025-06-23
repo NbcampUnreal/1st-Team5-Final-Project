@@ -18,9 +18,23 @@ void UManaBar::OnWidgetControllerSet()
 
 void UManaBar::OnManaChanged(float NewMana)
 {
+	if (!GetWorld() || GetWorld()->bIsTearingDown) return;
+	
+	float OldMana = Mana;
 	Mana = NewMana;
 	if (!IsValid(ManaBar)) return;
 	ManaBar->SetPercent(Mana / (MaxMana == 0 ? 1 : MaxMana));
+
+	// Fade in if Mana decreased by more than 1 and is currently not displayed
+	if (Mana < OldMana - 1.f)
+	{
+		if (!bIsDisplayed && FadeInAnim)
+		{
+			bIsDisplayed = true;
+			PlayAnimation(FadeInAnim);
+		}
+		GetWorld()->GetTimerManager().SetTimer(FadeOutTimer, this, &UManaBar::FadeOut, DisplayDuration);
+	}
 }
 
 void UManaBar::OnMaxManaChanged(float NewMaxMana)
@@ -28,4 +42,11 @@ void UManaBar::OnMaxManaChanged(float NewMaxMana)
 	MaxMana = NewMaxMana;
 	if (!IsValid(ManaBar)) return;
 	ManaBar->SetPercent(Mana / (MaxMana == 0 ? 1 : MaxMana));
+}
+
+void UManaBar::FadeOut()
+{
+	if (!FadeOutAnim || !bIsDisplayed) return;
+	PlayAnimation(FadeOutAnim);
+	bIsDisplayed = false;
 }

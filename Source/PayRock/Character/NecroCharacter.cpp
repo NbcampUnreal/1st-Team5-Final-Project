@@ -221,8 +221,7 @@ void ANecroCharacter::InitAbilityActorInfo()
 		if (!UIManager) return;
 		UIManager->RemoveAllWidgets();
 		UIManager->RemoveAllWidgetControllers();
-		// TODO: Show Necro HUD
-		UIManager->ShowWidget(EWidgetCategory::InGameHUD);
+		UIManager->ShowWidget(EWidgetCategory::NecroHUD);
 	}
 }
 

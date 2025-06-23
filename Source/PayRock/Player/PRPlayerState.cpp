@@ -130,24 +130,10 @@ void APRPlayerState::OnRep_bIsExtracted()
 
 void APRPlayerState::OnRep_AccessoryID()
 {
-	if (GetPlayerController() && GetPlayerController()->IsLocalController())
-	{
-		if (UUIManager* UIManager = GetGameInstance()->GetSubsystem<UUIManager>())
-		{
-			FSkillData Data = UIManager->GetSkillData(AccessoryID);
-			OnAccessorySkillChangedDelegate.Broadcast(Data);
-		}
-	}
+	OnAccessorySkillChangedDelegate.Broadcast(AccessoryID);
 }
 
 void APRPlayerState::OnRep_WeaponID()
 {
-	if (GetPlayerController() && GetPlayerController()->IsLocalController())
-	{
-		if (UUIManager* UIManager = GetGameInstance()->GetSubsystem<UUIManager>())
-		{
-			FSkillData Data = UIManager->GetSkillData(AccessoryID);
-			OnWeaponSkillChangedDelegate.Broadcast(Data);
-		}
-	}
+	OnWeaponSkillChangedDelegate.Broadcast(WeaponID);
 }
