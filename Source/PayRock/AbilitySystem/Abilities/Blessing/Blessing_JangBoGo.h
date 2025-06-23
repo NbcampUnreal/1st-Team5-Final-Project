@@ -3,6 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "PayRock/AbilitySystem/Abilities/BaseDamageGameplayAbility.h"
 #include "Blessing_JangBoGo.generated.h"
 
@@ -25,6 +27,8 @@ protected:
 
 	UFUNCTION()
 	void StopSpawning();
+	UFUNCTION()
+	void OnTagReceived(FGameplayEventData Payload);
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Blessing")
 	float SpawnInterval = 0.2f;
@@ -40,6 +44,17 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Blessing")
 	TObjectPtr<UAnimMontage> EndMontage;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Blessing")
+	TObjectPtr<UAnimMontage> ActivationMontage;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Blessing")
+	FGameplayTag StartSpawnTag;
+
+	UPROPERTY()
+	UAbilityTask_WaitGameplayEvent* WaitEventTask;
+	UPROPERTY()
+	UAbilityTask_PlayMontageAndWait* MontageTask;
 
 	UPROPERTY(BlueprintAssignable)
 	FOnDurationEnd OnDurationEnd;
