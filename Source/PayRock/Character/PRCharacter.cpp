@@ -69,9 +69,7 @@ APRCharacter::APRCharacter()
     WeaponCollision->SetupAttachment(Weapon);
     WeaponCollision->SetIsReplicated(true);
     WeaponCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
-    //Invoke
-    NavInvoker = CreateDefaultSubobject<UNavigationInvokerComponent>(TEXT("NavInvoker"));
+    
 
     /* NOTE: Weapon2 is currently unused */
     Weapon2 = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Weapon2"));
@@ -416,21 +414,21 @@ void APRCharacter::StartJump(const FInputActionValue& Value)
 {
     if (GetCharacterMovement()->IsCrouching()) return;
     if (!AbilitySystemComponent || !GE_JumpManaCost || !PRAttributeSet) return;
-    if (PRAttributeSet->GetMana() < 10.f) return; // 마나 부족 시 점프 금지
 
-    Jump(); // 클라이언트에서 즉시 점프 반응
-
-    // 로컬에서 실행하지 않고 서버에 요청
-    ServerStartJump();
-    
-    if (CanDoubleJump())
+    if (GetCharacterMovement()->IsFalling())
     {
-        Server_DoubleJump();
+        if (CanDoubleJump())
+        {
+            Server_DoubleJump();
+        }
+        return;
     }
-    else
+
+    if (PRAttributeSet->GetMana() < 10.f) return;
     {
         Jump();
-        
+        ServerStartJump();
+
         if (HasAuthority())
         {
             SetJustJumped(true);
@@ -526,13 +524,39 @@ bool APRCharacter::CanDoubleJump()
 void APRCharacter::StartSpin()
 {
     bShouldSpin = true;
+
+    GetWorldTimerManager().SetTimer(
+        SpinSoundTimerHandle,
+        this,
+        &APRCharacter::PlaySpinSound,
+        SpinSoundInterval,
+        true
+    );
 }
 
 void APRCharacter::StopSpin()
 {
     bShouldSpin = false;
+
+    GetWorldTimerManager().ClearTimer(SpinSoundTimerHandle);
 }
 /*** Spin ***/
+
+void APRCharacter::PlaySpinSound()
+{
+    if (!SpinSound) return;
+
+    UGameplayStatics::PlaySoundAtLocation(
+        this,
+        SpinSound,
+        GetActorLocation(),
+        FRotator::ZeroRotator,
+        1.f,
+        1.f,
+        0.f, 
+        FootstepAttenuation
+    );
+}
 
 void APRCharacter::Look(const FInputActionValue& value)
 {
