@@ -6,6 +6,17 @@
 #include "PayRock/AbilitySystem/PRAbilitySystemComponent.h"
 #include "PayRock/Player/PRPlayerController.h"
 
+void UNecroWidgetController::HandleRemoval()
+{
+	for (auto& Pair : CooldownUpdateTimers.Array())
+	{
+		if (GetWorld() && !GetWorld()->bIsTearingDown)
+		{
+			GetWorld()->GetTimerManager().ClearTimer(Pair.Value);	
+		}
+	}
+}
+
 void UNecroWidgetController::BroadcastInitialValues()
 {
 }
