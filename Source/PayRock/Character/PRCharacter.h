@@ -217,8 +217,15 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Sound")
 	USoundBase* DefaultLandSound;
 
+	FTimerHandle SpinSoundTimerHandle;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Spin")
+	float SpinSoundInterval = 0.25f;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Sound")
 	USoundBase* SpinSound;
+
+	void PlaySpinSound();
 
 
 
