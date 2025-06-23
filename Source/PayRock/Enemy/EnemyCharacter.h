@@ -79,7 +79,5 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
 	TObjectPtr<UPawnNoiseEmitterComponent> PawnNoiseEmitterComp;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Navigation")
-	UNavigationInvokerComponent* NavInvoker;
+	
 };

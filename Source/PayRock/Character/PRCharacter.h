@@ -298,8 +298,6 @@ public:
 
 	int32 FootstepSoundIndex = 0;// 순차 재생용 인덱스
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Navigation")
-	UNavigationInvokerComponent* NavInvoker;
 
 protected:
 	virtual void BeginPlay() override;
