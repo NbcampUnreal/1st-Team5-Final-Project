@@ -24,6 +24,7 @@ void UVideoSettingsWidget::NativeOnInitialized()
     }
 
     UGameUserSettings* Settings = GEngine->GetGameUserSettings();
+    Settings->LoadSettings();
     if (ResolutionComboBox)
     {
         if (Settings)
@@ -48,7 +49,7 @@ void UVideoSettingsWidget::NativeOnInitialized()
         if (Settings)
         {
             int32 QualityLevel = Settings->GetOverallScalabilityLevel();
-            InitQualityOptions(CurrentQuality);
+            InitQualityOptions(QualityLevel);
         }
     }
 }
@@ -136,7 +137,7 @@ void UVideoSettingsWidget::InitWindowModeOptions(EWindowMode::Type CurrentMode)
 
 void UVideoSettingsWidget::InitQualityOptions(int32 CurrentQuality)
 {
-    // 0:low, 1:medium, 2:high, 3:epic, 4:cinematic (not supported)
+    // 0:낮음, 1:중간, 2:높음, 3:매우 높음
     if (!QualityComboBox) return;
     
     QualityComboBox->ClearOptions();
@@ -161,12 +162,11 @@ void UVideoSettingsWidget::ApplySettings()
         else if (SelectedMode == TEXT("창 모드 전체화면")) WindowMode = EWindowMode::WindowedFullscreen;
         Settings->SetFullscreenMode(WindowMode);
         
-        FString SelectedQuality = QualityComboBox->GetSelectedOption();
-        int32 Index = QualityComboBox->FindOptionIndex(SelectedQuality);
-        Settings->SetOverallScalabilityLevel(Index >= 0 && Index <= 3 ? Index : 0);
-        
-        Settings->ApplySettings(false);
+        int32 SelectedQuality = QualityComboBox->GetSelectedIndex();
+        Settings->SetOverallScalabilityLevel(SelectedQuality >= 0 && SelectedQuality <= 3 ? SelectedQuality : 0);
+
         Settings->SaveSettings();
+        Settings->ApplySettings(false);
     }
 }
 
