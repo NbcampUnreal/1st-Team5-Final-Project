@@ -75,7 +75,7 @@ void AEnemyController::CheckPlayerDistance()
 		return;
 	}
 
-	if (Distance <= 3000.f && !bIsAIActive)
+	if (Distance <= 1800.f && !bIsAIActive)
 	{
 		SetPerceptionActive(true); 
 		ActivateAI();
@@ -85,7 +85,7 @@ void AEnemyController::CheckPlayerDistance()
 			EnemyChar->RestoreAnimInstance();
 		}
 	}
-	else if (Distance > 4000.f && bIsAIActive)
+	else if (Distance > 2200.f && bIsAIActive)
 	{
 		DeactivateAI();
 		SetPerceptionActive(false);
