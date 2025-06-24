@@ -18,6 +18,7 @@ void APRGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 	TotalEnemyCount();
+	OptimizeReplicatedEnemies();
 }
 
 void APRGameMode::OnPostLogin(AController* NewPlayer)
@@ -148,4 +149,23 @@ void APRGameMode::SpawnAndPossessNecroCharacter(APlayerController* RequestingCon
 	}
 
 	RequestingController->Possess(NecroCharacter);
+}
+
+void APRGameMode::OptimizeReplicatedEnemies()
+{
+	TArray<AActor*> FoundEnemies;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AEnemyCharacter::StaticClass(), FoundEnemies);
+
+	for (AActor* Actor : FoundEnemies)
+	{
+		if (AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(Actor))
+		{
+			Enemy->SetNetUpdateFrequency(10.0f);
+			Enemy->SetMinNetUpdateFrequency(2.0f);
+			Enemy->SetNetCullDistanceSquared(4000000.0f); // 2000cm
+			Enemy->SetNetDormancy(ENetDormancy::DORM_Initial);
+
+			UE_LOG(LogTemp, Log, TEXT("[OptimizeReplicatedEnemies] Applied to %s"), *Enemy->GetName());
+		}
+	}
 }

@@ -131,11 +131,9 @@ int32 APRGameState::GetAlivePlayerCount() const
 void APRGameState::CheckAlivePlayers()
 {
 	const int32 AliveCount = GetAlivePlayerCount();
-	UE_LOG(LogTemp, Warning, TEXT("Alive Player count: %i"), AliveCount);
 
 	if (AliveCount <= 0)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("All Players DEAD. End the Match...."));
 		MatchEnd();
 	}
 	
@@ -143,7 +141,6 @@ void APRGameState::CheckAlivePlayers()
 
 void APRGameState::MatchEnd() 
 {
-	UE_LOG(LogTemp, Warning, TEXT("Match Ended"));
 	GetWorld()->GetTimerManager().ClearTimer(AliveCheckTimerHandle);
 	GetWorld()->GetTimerManager().ClearTimer(ExtractionActivationTimerHandle);
 	for (APlayerState* PS : PlayerArray)
@@ -181,7 +178,6 @@ void APRGameState::TickMatchCountdown()
 
 void APRGameState::StartMatch()
 {
-	UE_LOG(LogTemp, Warning, TEXT("MatchStarting... Teleporting Players..."));
 
 	APRGameMode* GM = Cast<APRGameMode>(GetWorld()->GetAuthGameMode());
 	if (!GM) return;
@@ -248,10 +244,7 @@ void APRGameState::StartMatch()
 
 	// ; 탈출구 열리는 시간 받아오기 !!
 	RemainingExtractionTime = ExtractionActivationTime;
-
-
-	UE_LOG(LogTemp, Warning, TEXT("Match timer started. Duration: %d seconds"), MatchDurationSeconds);
-
+	
 
 	SetMatchFlowState(EMatchFlowState::MatchInProgress); // ;여기 추가
 
@@ -266,7 +259,6 @@ void APRGameState::ForceStartMatch()
 		bForceStarted = true;
 		MatchStart_CountDown = 30;
 		GetWorld()->GetTimerManager().SetTimer(MatchStartTimerHandle, this, &APRGameState::TickMatchCountdown, 1.0f, true);
-		UE_LOG(LogTemp, Warning, TEXT("60 Second ForceStartMatch"));
 	}
 }
 
@@ -274,7 +266,6 @@ void APRGameState::ForceStartMatch()
 void APRGameState::OnRep_MatchStart_CountDown()
 {
 	if (!HasAuthority()) return;
-	UE_LOG(LogTemp, Warning, TEXT("CountDown: %d"), MatchStart_CountDown);
 	OnMatchStart_CountDown.Broadcast(MatchStart_CountDown);
 }
 
@@ -293,7 +284,6 @@ void APRGameState::EnableExtractionZones()
 	if (!HasAuthority()) return;
 	if (!ExtractionZoneClass)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("ExtractionZoneClass is not set!"));
 		return;
 	}
 
@@ -316,8 +306,6 @@ void APRGameState::EnableExtractionZones()
 			}
 		}
 	}
-
-	UE_LOG(LogTemp, Warning, TEXT("Activated %d Extraction Zones"), ActivatedCount);
 
 
 	// ; 
@@ -355,7 +343,6 @@ void APRGameState::TickExtractionTimer() // ; 탈출구 열리는 타이머
 void APRGameState::OnRep_RemainingMatchTime() const
 {
 	if (!HasAuthority())
-	// UE_LOG(LogTemp, Warning, TEXT("남은 매치 시간: %d초"), RemainingMatchTime);
 	OnRemainingMatchTime.Broadcast(RemainingMatchTime);
 }
 

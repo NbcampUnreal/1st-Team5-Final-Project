@@ -51,5 +51,6 @@ protected: // For Class Member Function
 private:
 	void TotalEnemyCount();
 
+	void OptimizeReplicatedEnemies(); // 👈 여기에 추가
 
 };

@@ -110,7 +110,6 @@ APRCharacter* AEnemyController::FindNearestPlayer(float& OutDistance)
 void AEnemyController::ActivateAI()
 {
 	if (bIsAIActive || !DefaultBehaviorTree) return;
-	
 	if (!BrainComponent || !BrainComponent->IsRunning())
 	{
 		const bool bSuccess = RunBehaviorTree(DefaultBehaviorTree);
@@ -120,7 +119,7 @@ void AEnemyController::ActivateAI()
 		}
 	}
 
-	bIsAIActive = true;
+	bIsAIActive = true; 
 }
 
 

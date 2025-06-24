@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "NavigationInvokerComponent.h"
+#include "Components/SphereComponent.h"
 #include "PayRock/Character/BaseCharacter.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "EnemyCharacter.generated.h"
@@ -55,7 +56,32 @@ public:
 	void Multicast_PlayAttackSound(USoundBase* Sound);
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Sound")
 	USoundAttenuation* AttackAttenuation;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="LOD")
+	UStaticMesh* LODStaticMesh;
+
+private:
+	FTimerHandle ServerDistanceCheckHandle;
+	void Server_CheckPlayerProximity();
+	bool bIsServerFar = false;
 	
+	USphereComponent* ActivationSphere;
+	float ActivationRadius;
+	
+	TSet<APawn*> OverlappingPlayers;
+	bool bIsActivated;
+
+	UFUNCTION()
+	void OnActivationOverlapBegin(UPrimitiveComponent* Overlapped, AActor* Other,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
+	bool bFromSweep, const FHitResult& Sweep);
+
+	UFUNCTION()
+	void OnActivationOverlapEnd(UPrimitiveComponent* Overlapped, AActor* Other,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+	
+	void SetActivated(bool bNewActive);
+	bool IsPlayerCurrentlyDetected() const;
 protected:
 	virtual void Die(FVector HitDirection = FVector::ZeroVector) override;
 
@@ -82,4 +108,7 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Navigation")
 	UNavigationInvokerComponent* NavInvoker;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="LOD", meta=(AllowPrivateAccess="true"))
+	UStaticMeshComponent* LODMeshComp;
 };
