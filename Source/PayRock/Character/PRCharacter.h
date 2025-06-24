@@ -269,9 +269,16 @@ public:
 	void StartSpin();
 	UFUNCTION(BlueprintCallable)
 	void StopSpin();
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_PlaySpinSound();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_StopAllSpinSounds();
 	UPROPERTY(Replicated)
 	bool bShouldSpin;
 	float SpinSpeed = 1440.f;
+	UPROPERTY()
+	TArray<UAudioComponent*> ActiveSpinSounds;
 	
 	/* Weapon */
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
