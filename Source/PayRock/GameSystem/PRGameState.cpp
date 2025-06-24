@@ -138,7 +138,6 @@ void APRGameState::CheckAlivePlayers()
 		UE_LOG(LogTemp, Warning, TEXT("All Players DEAD. End the Match...."));
 		MatchEnd();
 	}
-	
 }
 
 void APRGameState::MatchEnd() 
@@ -159,11 +158,8 @@ void APRGameState::MatchEnd()
 		false
 	);
 	
-
-
 	//;
 	SetMatchFlowState(EMatchFlowState::MatchEnded); // 여기 추가
-
 }
 
 void APRGameState::TickMatchCountdown()
@@ -412,6 +408,15 @@ void APRGameState::SetMatchFlowState(EMatchFlowState NewState)
 	{
 		MatchFlowState = NewState;
 		OnRep_MatchFlowState(); // 서버에서도 처리되도록 직접 호출
+	}
+}
+
+void APRGameState::AddDieMonsterCount()
+{
+	++DieMonsterCount;
+	if (HasAuthority())
+	{
+		OnRep_MonsterCountUpdated();
 	}
 }
 
