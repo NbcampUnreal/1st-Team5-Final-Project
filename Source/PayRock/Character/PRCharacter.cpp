@@ -412,6 +412,8 @@ void APRCharacter::StopAim(const FInputActionValue& Value)
 
 void APRCharacter::StartJump(const FInputActionValue& Value)
 {
+    if (!bCanJumpCooldown) return;
+
     if (GetCharacterMovement()->IsCrouching()) return;
     if (!AbilitySystemComponent || !GE_JumpManaCost || !PRAttributeSet) return;
 
@@ -420,25 +422,37 @@ void APRCharacter::StartJump(const FInputActionValue& Value)
         if (CanDoubleJump())
         {
             Server_DoubleJump();
+
+            bCanJumpCooldown = false;
+            GetWorldTimerManager().SetTimer(
+                JumpCooldownHandle, this, &APRCharacter::ResetJumpCooldown,
+                JumpCooldownDuration, false
+            );
         }
         return;
     }
 
     if (PRAttributeSet->GetMana() < 10.f) return;
-    {
-        Jump();
-        ServerStartJump();
 
-        if (HasAuthority())
-        {
-            SetJustJumped(true);
-        }
-        else
-        {
-            ServerStartJump();
-        }
+    Jump();
+    ServerStartJump();
+
+    if (HasAuthority())
+    {
+        SetJustJumped(true);
     }
+    else
+    {
+        ServerStartJump();
+    }
+
+    bCanJumpCooldown = false;
+    GetWorldTimerManager().SetTimer(
+        JumpCooldownHandle, this, &APRCharacter::ResetJumpCooldown,
+        JumpCooldownDuration, false
+    );
 }
+
 
 void APRCharacter::ServerStartJump_Implementation()
 {
@@ -519,6 +533,11 @@ bool APRCharacter::CanDoubleJump()
         GetAbilitySystemComponent()->HasMatchingGameplayTag(FPRGameplayTags::Get().Status_Buff_DoubleJump);
 }
 /*** Double Jump ***/
+
+void APRCharacter::ResetJumpCooldown()
+{
+    bCanJumpCooldown = true;
+}
 
 /*** Spin ***/
 void APRCharacter::StartSpin()
