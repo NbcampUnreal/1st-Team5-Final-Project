@@ -17,14 +17,9 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-	virtual void Tick(float DeltaTime) override;
-
 
 	
 public:
-	void OnPlayerDetected(AActor* DetectedActor);
-	
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CollisionComponent")
 	USphereComponent* LeftHandCollisionComp;
 

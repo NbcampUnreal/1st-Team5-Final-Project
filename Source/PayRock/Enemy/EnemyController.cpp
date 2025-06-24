@@ -47,7 +47,7 @@ void AEnemyController::BeginPlay()
 		SetPerceptionActive(false);
 	}
 
-	GetWorldTimerManager().SetTimer(DistanceCheckHandle, this, &AEnemyController::CheckPlayerDistance, 5.f, true);
+	GetWorldTimerManager().SetTimer(DistanceCheckHandle, this, &AEnemyController::CheckPlayerDistance, 1.5f, true);
 }
 
 
@@ -75,7 +75,7 @@ void AEnemyController::CheckPlayerDistance()
 		return;
 	}
 
-	if (Distance <= 3000.f && !bIsAIActive)
+	if (Distance <= 2200.f && !bIsAIActive)
 	{
 		SetPerceptionActive(true); 
 		ActivateAI();
@@ -85,7 +85,7 @@ void AEnemyController::CheckPlayerDistance()
 			EnemyChar->RestoreAnimInstance();
 		}
 	}
-	else if (Distance > 4000.f && bIsAIActive)
+	else if (Distance > 2500.f && bIsAIActive)
 	{
 		DeactivateAI();
 		SetPerceptionActive(false);
