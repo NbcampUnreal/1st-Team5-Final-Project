@@ -537,27 +537,52 @@ void APRCharacter::StartSpin()
 void APRCharacter::StopSpin()
 {
     bShouldSpin = false;
-
     GetWorldTimerManager().ClearTimer(SpinSoundTimerHandle);
+
+    if (HasAuthority())
+    {
+        Multicast_StopAllSpinSounds();
+    }
 }
 /*** Spin ***/
-
 void APRCharacter::PlaySpinSound()
+{
+    if (HasAuthority())
+    {
+        Multicast_PlaySpinSound();
+    }
+}
+void APRCharacter::Multicast_PlaySpinSound_Implementation()
 {
     if (!SpinSound) return;
 
-    UGameplayStatics::PlaySoundAtLocation(
+    UAudioComponent* ActiveSound = UGameplayStatics::SpawnSoundAtLocation(
         this,
         SpinSound,
         GetActorLocation(),
         FRotator::ZeroRotator,
         1.f,
         1.f,
-        0.f, 
+        0.f,
         FootstepAttenuation
     );
-}
 
+    if (IsValid(ActiveSound))
+    {
+        ActiveSpinSounds.Add(ActiveSound);
+    }
+}
+void APRCharacter::Multicast_StopAllSpinSounds_Implementation()
+{
+    for (UAudioComponent* Comp : ActiveSpinSounds)
+    {
+        if (IsValid(Comp))
+        {
+            Comp->Stop();
+        }
+    }
+    ActiveSpinSounds.Empty();
+}
 void APRCharacter::Look(const FInputActionValue& value)
 {
     FVector2D LookInput = value.Get<FVector2D>();

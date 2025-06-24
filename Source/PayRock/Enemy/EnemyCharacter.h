@@ -49,7 +49,11 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_PlayDetectMontage(UAnimMontage* Montage);
 	void PlayDetectMontage(UAnimMontage* Montage);
-	
+	UFUNCTION()
+	void DisableAnimInstance();
+	UFUNCTION()
+	void RestoreAnimInstance();
+
 	//Sound
 	UFUNCTION(BlueprintCallable,NetMulticast, Unreliable)
 	void Multicast_PlayAttackSound(USoundBase* Sound);
@@ -79,5 +83,7 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
 	TObjectPtr<UPawnNoiseEmitterComponent> PawnNoiseEmitterComp;
-	
+
+	UPROPERTY()
+	TSubclassOf<UAnimInstance> SavedAnimClass;
 };
