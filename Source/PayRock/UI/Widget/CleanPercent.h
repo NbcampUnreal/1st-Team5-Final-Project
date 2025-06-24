@@ -3,14 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Blueprint/UserWidget.h"
+#include "BaseUserWidget.h"
 #include "CleanPercent.generated.h"
 
-/**
- * 
- */
+
 UCLASS()
-class PAYROCK_API UCleanPercent : public UUserWidget
+class PAYROCK_API UCleanPercent : public UBaseUserWidget
 {
 	GENERATED_BODY()
 	
