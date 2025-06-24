@@ -16,6 +16,8 @@
 //#include "PayRock/GameSystem/PRGameState.h"
 #include "PayRock/GameSystem/PRGameMode.h"
 #include "PayRock/UI/Manager/UIManager.h"
+#include "PayRock/UI/Widget/CleanPercent.h"
+#include "PayRock/UI/Widget/InGameWidget.h"
 
 APRPlayerController::APRPlayerController()
 {
@@ -392,6 +394,7 @@ void APRPlayerController::HandleMatchFlowStateChanged(EMatchFlowState NewState)
 		UIManager->RemoveAllWidgetControllers();
 		UIManager->ShowWidget(EWidgetCategory::InGameHUD);
 		UpdateClothesColor();
+		UpdateCleanData();
 		break;
 	case EMatchFlowState::ExtractionEnabled:
 		OnExtractionEnabled.Broadcast();
@@ -403,6 +406,21 @@ void APRPlayerController::HandleMatchFlowStateChanged(EMatchFlowState NewState)
 		if (!Cast<APRPlayerState>(PlayerState)->GetIsExtracted())
 			UIManager->ShowWidget(EWidgetCategory::MatchEnd);
 		break;
+	}
+}
+
+void APRPlayerController::UpdateCleanData()
+{
+	if (IsLocalController())
+	{
+		UUIManager* UIManager = GetGameInstance()->GetSubsystem<UUIManager>();
+		if (!UIManager) return;
+		UUserWidget* FoundWidget = UIManager->FindWidget(EWidgetCategory::InGameHUD);
+		if (!FoundWidget) return;
+		if (UInGameWidget* InGameHUD = Cast<UInGameWidget>(FoundWidget))
+		{
+			InGameHUD->UpdateCleanPercent();
+		}
 	}
 }
 

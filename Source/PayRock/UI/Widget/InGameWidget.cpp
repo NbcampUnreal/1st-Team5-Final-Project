@@ -2,6 +2,8 @@
 
 
 #include "InGameWidget.h"
+
+#include "CleanPercent.h"
 #include "PayRock/GameSystem/PRGameState.h"
 #include "Components/TextBlock.h"
 #include "Components/Border.h"
@@ -30,6 +32,14 @@ void UInGameWidget::OnWidgetControllerSet()
 	if (UOverlayWidgetController* OverlayWC = Cast<UOverlayWidgetController>(WidgetController))
 	{
 		OverlayWC->OnNotificationRequest.AddUniqueDynamic(this, &UInGameWidget::DisplayNotification);
+	}
+}
+
+void UInGameWidget::UpdateCleanPercent()
+{
+	if (CleanPercent)
+	{
+		CleanPercent->SetCleanData();
 	}
 }
 

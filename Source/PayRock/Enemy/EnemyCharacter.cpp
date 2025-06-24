@@ -1,5 +1,4 @@
 #include "EnemyCharacter.h"
-
 #include "AIController.h"
 #include "BrainComponent.h"
 #include "GenericTeamAgentInterface.h"
@@ -58,7 +57,7 @@ void AEnemyCharacter::BeginPlay()
 
 	if (GetMesh() && GetMesh()->GetAnimInstance())
 	{
-		SavedAnimClass = GetMesh()->GetAnimClass();
+		SavedAnimClass = GetMesh()->GetAnimInstance() ? GetMesh()->GetAnimInstance()->GetClass() : nullptr;
 	}
 }
 
@@ -254,15 +253,16 @@ void AEnemyCharacter::Multicast_PlayDetectMontage_Implementation(UAnimMontage* M
 
 void AEnemyCharacter::DisableAnimInstance()
 {
-	if (GetMesh())
+	if (GetMesh() && GetMesh()->GetAnimInstance())
 	{
+		SavedAnimClass = GetMesh()->GetAnimInstance()->GetClass();
 		GetMesh()->SetAnimInstanceClass(nullptr);
 	}
 }
 
 void AEnemyCharacter::RestoreAnimInstance()
 {
-	if (GetMesh() && *SavedAnimClass)
+	if (GetMesh() && SavedAnimClass)
 	{
 		GetMesh()->SetAnimInstanceClass(SavedAnimClass);
 	}

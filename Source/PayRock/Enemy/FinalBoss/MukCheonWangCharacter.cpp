@@ -7,6 +7,7 @@
 #include "Perception/AISenseConfig_Hearing.h"
 #include "Perception/AISenseConfig_Damage.h"
 #include "AIController.h"
+#include "MukCheonWangController.h"
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "BehaviorTree/BlackboardComponent.h"
@@ -23,7 +24,9 @@ AMukCheonWangCharacter::AMukCheonWangCharacter()
     PrimaryActorTick.bCanEverTick = true;
     
     CharacterType = ECharacterType::Boss;
-
+    AIControllerClass = AMukCheonWangController::StaticClass();
+    AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+    
     AIPerception = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerception"));
 
     SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("SightConfig"));

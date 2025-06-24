@@ -136,6 +136,7 @@ public:
 	void ServerRequestNecroCharacter();
 	UFUNCTION(Client, Reliable)
 	void ClientOnNecroPossessed();
+	void UpdateCleanData();
 
 	UPROPERTY()
 	FVector DeathLocation;

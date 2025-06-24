@@ -101,6 +101,7 @@ void UPRAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
 	{
 		float Damage = HandleIncomingDamage(Props, Data);
 		HandleLifeSteal(Props, Damage);
+		HandleAutoCounter(Props, Damage);
 	}
 }
 
@@ -257,6 +258,22 @@ void UPRAttributeSet::HandleLifeSteal(const FEffectProperties& Props, float Deal
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("LifeSteal Buff is applied, but the LifeStealEffectClass was not set in the attack ability"))
+	}
+}
+
+void UPRAttributeSet::HandleAutoCounter(const FEffectProperties& Props, float DealtDamage)
+{
+	if (DealtDamage <= 0.f) return;
+
+	FGameplayTag AutoCounterTag = FPRGameplayTags::Get().Status_Buff_AutoCounter;
+	if (Props.TargetASC->HasMatchingGameplayTag(AutoCounterTag))
+	{
+		FGameplayTagContainer Tags;
+		Tags.AddTagFast(AutoCounterTag);
+		if (!Props.TargetASC->TryActivateAbilitiesByTag(Tags))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("AutoCounter Buff is applied, but failed to activate ability"))
+		}
 	}
 }
 
