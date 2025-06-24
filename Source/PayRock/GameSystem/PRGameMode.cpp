@@ -51,7 +51,7 @@ void APRGameMode::TotalEnemyCount()
 	// GameState에 전달
 	if (APRGameState* PRGS = GetGameState<APRGameState>())
 	{
-		PRGS->TotalEnemyCount = FoundMonsters.Num();
+		PRGS->SetTotalEnemyCount(FoundMonsters.Num());
 	}
 }
 
