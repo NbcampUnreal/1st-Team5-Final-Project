@@ -10,6 +10,7 @@
 #include "Components/PointLightComponent.h"
 #include "Components/SpotLightComponent.h"
 #include "Components/DirectionalLightComponent.h"
+#include "PayRock/Enemy/SpecialEnemy/OneEyed/OneEyedMonster.h"
 
 UBTS_LightDetection::UBTS_LightDetection()
 {
@@ -19,7 +20,7 @@ UBTS_LightDetection::UBTS_LightDetection()
 }
 void UBTS_LightDetection::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
-	Super::TickNode(OwnerComp, NodeMemory, DeltaSeconds);
+Super::TickNode(OwnerComp, NodeMemory, DeltaSeconds);
 
 	AAIController* AICon = OwnerComp.GetAIOwner();
 	if (!AICon) return;
@@ -72,6 +73,25 @@ void UBTS_LightDetection::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* Nod
 		}
 	}
 
-	bool bVisible = LightLevel >= LightDetectionThreshold;
-	BB->SetValueAsBool(TEXT("bPlayerDetectedByLight"), bVisible);
+	bool bVisibleByLight = LightLevel >= LightDetectionThreshold;
+	BB->SetValueAsBool(TEXT("bPlayerDetectedByLight"), bVisibleByLight);
+
+	bool bSight = BB->GetValueAsBool("bPlayerDetectedBySight");
+	bool bPrevDetect = BB->GetValueAsBool(TEXT("bPlayerDetect"));
+	bool bFinalDetect = bSight && bVisibleByLight;
+	
+	if (!bPrevDetect && bFinalDetect)
+	{
+		BB->SetValueAsBool(TEXT("bPlayerDetect"), true);
+
+		AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(AICon->GetPawn());
+		if (Enemy)
+		{
+			AOneEyedMonster* OneEyed = Cast<AOneEyedMonster>(Enemy);
+			if (OneEyed)
+			{
+				OneEyed->UpdateTorchLightImmediate(true);
+			}
+		}
+	}
 }

@@ -3,6 +3,7 @@
 #include "OneEyedMonster.h"
 #include "OneEyedMonsterController.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 
 AOneEyedMonster::AOneEyedMonster()
@@ -35,6 +36,10 @@ AOneEyedMonster::AOneEyedMonster()
 	WeaponCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
 	WeaponCollision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 	WeaponCollision->SetGenerateOverlapEvents(true);
+	
+	bUseControllerRotationYaw = false;
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+	GetCharacterMovement()->RotationRate = FRotator(0.f, 720.f, 0.f);
 }
 
 
@@ -95,4 +100,21 @@ void AOneEyedMonster::ToggleTorchLight()
 		TorchBeamVisual->SetVisibility(!bVisible);
 	}
 	ScheduleNextBlink();
+}
+
+void AOneEyedMonster::UpdateTorchLightImmediate(bool bAlert)
+{
+	if (!TorchLight || !TorchBeamVisual) return;
+
+	TorchLight->SetVisibility(true);
+	TorchBeamVisual->SetVisibility(true);
+
+	const FLinearColor Color = bAlert ? AlertLightColor : NormalLightColor;
+	TorchLight->SetLightColor(Color);
+
+	UMaterialInstanceDynamic* DynMat = TorchBeamVisual->CreateAndSetMaterialInstanceDynamic(0);
+	if (DynMat)
+	{
+		DynMat->SetVectorParameterValue("Color", Color);
+	}
 }

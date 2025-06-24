@@ -25,14 +25,14 @@ void UBlessing_JangBoGo::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 		return;
 	}
 
-	GetWorld()->GetTimerManager().SetTimer(
-		SpawnTimerHandle,
-		this,
-		&UBlessing_JangBoGo::SpawnCannonBall,
-		SpawnInterval,
-		true,
-		0.f
-	);
+	MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
+		this, NAME_None, ActivationMontage);
+	MontageTask->ReadyForActivation();
+
+	WaitEventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
+		this, StartSpawnTag, nullptr, false, true);
+	WaitEventTask->EventReceived.AddDynamic(this, &UBlessing_JangBoGo::OnTagReceived);
+	WaitEventTask->ReadyForActivation();
 
 	GetWorld()->GetTimerManager().SetTimer(
 		StopTimerHandle,
@@ -41,7 +41,16 @@ void UBlessing_JangBoGo::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 		Duration.GetValueAtLevel(GetAbilityLevel())
 	);	
 }
-
+void UBlessing_JangBoGo::OnTagReceived(FGameplayEventData Payload)
+{
+	GetWorld()->GetTimerManager().SetTimer(
+		SpawnTimerHandle,
+		this,
+		&UBlessing_JangBoGo::SpawnCannonBall,
+		SpawnInterval,
+		true,
+		0.f);
+}
 void UBlessing_JangBoGo::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {

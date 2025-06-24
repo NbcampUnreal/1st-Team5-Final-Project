@@ -11,6 +11,9 @@ AGeneralSkyCharacter::AGeneralSkyCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	bReplicates = true;
+
+	AIControllerClass = AEnemyController::StaticClass();
+	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 }
 
 void AGeneralSkyCharacter::BeginPlay()

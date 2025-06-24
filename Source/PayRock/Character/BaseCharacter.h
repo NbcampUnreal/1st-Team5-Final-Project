@@ -49,14 +49,14 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Combat|Type")
 	ECharacterType CharacterType = ECharacterType::PlayerCharacter;
 
-	//ÇÇ°Ý»ç¿îµå
+	//ï¿½Ç°Ý»ï¿½ï¿½ï¿½
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Combat|Sound")
 	USoundBase* HitReactSound;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Combat|Sound")
 	USoundBase* HitVoiceSound;
 
-	// Ä³¸¯ÅÍ Å¸ÀÔ ÆÇº°¿ë À¯Æ¿
+	// Ä³ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ ï¿½Çºï¿½ï¿½ï¿½ ï¿½ï¿½Æ¿
 	UFUNCTION(BlueprintCallable, Category = "Combat|Type")
 	bool IsPlayerCharacter() const;
 
@@ -70,7 +70,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	virtual void Die(FVector HitDirection = FVector::ZeroVector);
 	UFUNCTION(NetMulticast, Reliable)
-	void MulticastRagdoll(const FVector& HitDirection);
+	virtual void MulticastRagdoll(const FVector& HitDirection);
 	UFUNCTION(BlueprintCallable)
 	void ForceDeath();
 	UFUNCTION(BlueprintImplementableEvent)

@@ -96,6 +96,17 @@ void UOverlayWidgetController::BindCallbacksToDependencies()
 	}
 }
 
+void UOverlayWidgetController::HandleRemoval()
+{
+	for (auto& Pair : CooldownUpdateTimers.Array())
+	{
+		if (GetWorld() && !GetWorld()->bIsTearingDown)
+		{
+			GetWorld()->GetTimerManager().ClearTimer(Pair.Value);	
+		}
+	}
+}
+
 void UOverlayWidgetController::HealthChanged(const FOnAttributeChangeData& Data) const
 {
 	OnHealthChanged.Broadcast(Data.NewValue);

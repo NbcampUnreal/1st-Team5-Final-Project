@@ -7,6 +7,7 @@
 #include "Perception/AISenseConfig_Hearing.h"
 #include "Perception/AISenseConfig_Damage.h"
 #include "AIController.h"
+#include "MukCheonWangController.h"
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "BehaviorTree/BlackboardComponent.h"
@@ -19,10 +20,13 @@
 
 AMukCheonWangCharacter::AMukCheonWangCharacter()
 {
+    
     PrimaryActorTick.bCanEverTick = true;
     
     CharacterType = ECharacterType::Boss;
-
+    AIControllerClass = AMukCheonWangController::StaticClass();
+    AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+    
     AIPerception = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerception"));
 
     SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("SightConfig"));
@@ -68,7 +72,32 @@ void AMukCheonWangCharacter::BeginPlay()
     {
         AIPerception->OnTargetPerceptionUpdated.AddDynamic(this, &AMukCheonWangCharacter::OnTargetPerceptionUpdated);
     }
+    
+   /* if (Face)
+    {
+        TArray<USceneComponent*> Children;
+        Face->GetChildrenComponents(true, Children);
 
+        for (USceneComponent* Child : Children)
+        {
+            OrbitParts.Add(Child);
+            InitialTransforms.Add(Child, Child->GetRelativeTransform());
+
+            OrbitAxisMap.Add(
+             Child,
+             FVector(
+                 FMath::FRandRange(-1.0f, 1.0f),
+                 FMath::FRandRange(-1.0f, 1.0f),
+                 FMath::FRandRange(-1.0f, 1.0f)
+             ).GetSafeNormal()
+            );
+            OrbitSpeedMap.Add(Child, FMath::FRandRange(30.f, 100.f)); 
+        }
+    }*/
+    
+    StartFloatingParts();
+
+    
     GetWorldTimerManager().SetTimer(TimerHandle, this, &AMukCheonWangCharacter::UpdateRandomTarget, 3.0f, true, 3.0f);
 }
 
@@ -76,6 +105,9 @@ void AMukCheonWangCharacter::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 
+
+    RotateFaceCube(DeltaTime);
+    
     const float HPPercent = GetHealthPercent();
 
     EBossPhase NewPhase = EBossPhase::Phase1;
@@ -85,6 +117,8 @@ void AMukCheonWangCharacter::Tick(float DeltaTime)
         NewPhase = EBossPhase::Phase2;
     
 
+
+    
     if (NewPhase != CurrentPhase)
     {
         CurrentPhase = NewPhase;
@@ -108,6 +142,7 @@ void AMukCheonWangCharacter::Tick(float DeltaTime)
             }
         }
     }
+
 }
 
 void AMukCheonWangCharacter::ToggleVisibleChairMesh(bool isActive)
@@ -318,6 +353,68 @@ float AMukCheonWangCharacter::GetHealthPercent() const
     const float MaxHealth = ASC->GetNumericAttribute(UPRAttributeSet::GetMaxHealthAttribute());
 
     return (MaxHealth > 0.f) ? (CurrentHealth / MaxHealth) : 0.f;
+}
+
+void AMukCheonWangCharacter::StartFloatingParts()
+{
+    bIsFloating = true;
+    bRestoreToInitial = false;
+}
+
+void AMukCheonWangCharacter::RestorePartsToInitial()
+{
+    bIsFloating = false;
+    bRestoreToInitial = true;
+}
+
+void AMukCheonWangCharacter::RotateFaceCube(float DeltaTime)
+{
+    if (bIsFloating)
+    {
+        for (USceneComponent* Part : OrbitParts)
+        {
+            if (!Part) continue;
+
+            FVector Axis = OrbitAxisMap[Part];
+            float Speed = OrbitSpeedMap[Part];
+
+            FQuat DeltaRotation = FQuat(Axis, FMath::DegreesToRadians(Speed * DeltaTime));
+            FQuat NewRotation = DeltaRotation * Part->GetRelativeRotation().Quaternion();
+
+            Part->SetRelativeRotation(NewRotation);
+        }
+    }
+    else if (bRestoreToInitial)
+    {
+        bool bAllRestored = true;
+        for (USceneComponent* Part : OrbitParts)
+        {
+            if (!Part) continue;
+
+            const FTransform& TargetTransform = InitialTransforms[Part];
+
+            // 선형 보간
+            FTransform Current = Part->GetRelativeTransform();
+            FTransform NewTransform;
+            NewTransform.SetLocation(FMath::VInterpTo(Current.GetLocation(), TargetTransform.GetLocation(), DeltaTime, 5.f));
+            NewTransform.SetRotation(FQuat::Slerp(Current.GetRotation(), TargetTransform.GetRotation(), DeltaTime * 5.f));
+            NewTransform.SetScale3D(FVector::OneVector);
+
+            Part->SetRelativeTransform(NewTransform);
+
+            // 도달 체크
+            if (!NewTransform.Equals(TargetTransform, 0.1f))
+            {
+                bAllRestored = false;
+            }
+        }
+
+        // 다 돌아오면 플래그 꺼주기
+        if (bAllRestored)
+        {
+            bRestoreToInitial = false;
+        }
+    }
 }
 
 void AMukCheonWangCharacter::Multicast_PlayAuraEffect_Implementation(UNiagaraSystem* InAuraEffect, TSubclassOf<AActor> InFontlClass, float InAuraRate)

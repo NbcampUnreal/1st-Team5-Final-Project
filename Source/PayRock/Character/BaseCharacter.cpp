@@ -103,12 +103,14 @@ void ABaseCharacter::MulticastRagdoll_Implementation(const FVector& HitDirection
 	}
 	CharacterMesh->SetCollisionProfileName(FName("Ragdoll"));
 	CharacterMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	CharacterMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
+	CharacterMesh->SetCollisionResponseToChannel(ECC_GameTraceChannel6, ECR_Block);
 	CharacterMesh->SetSimulatePhysics(true);
 	CharacterMesh->WakeAllRigidBodies();
 	CharacterMesh->bReplicatePhysicsToAutonomousProxy = true;
 
 	FVector Impulse = HitDirection * 10000.f;
-	if (HitDirection.Equals(FVector::ZeroVector))
+	if (HitDirection.IsNearlyZero())
 	{
 		Impulse = -GetActorForwardVector() * 10000.f;
 	}

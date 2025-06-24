@@ -47,7 +47,7 @@ void AEnemyController::BeginPlay()
 		SetPerceptionActive(false);
 	}
 
-	GetWorldTimerManager().SetTimer(DistanceCheckHandle, this, &AEnemyController::CheckPlayerDistance, 5.f, true);
+	GetWorldTimerManager().SetTimer(DistanceCheckHandle, this, &AEnemyController::CheckPlayerDistance, 1.5f, true);
 }
 
 
@@ -58,27 +58,45 @@ void AEnemyController::CheckPlayerDistance()
 	float Distance = 0.f;
 	APRCharacter* NearestPlayer = FindNearestPlayer(Distance);
 
+	AEnemyCharacter* EnemyChar = Cast<AEnemyCharacter>(GetPawn());
+
 	if (!NearestPlayer)
 	{
 		if (bIsAIActive)
 		{
 			DeactivateAI();
 			SetPerceptionActive(false);
+			
+			if (EnemyChar)
+			{
+				EnemyChar->DisableAnimInstance();
+			}
 		}
 		return;
 	}
 
-	if (Distance <= 5000.f && !bIsAIActive)
+	if (Distance <= 2200.f && !bIsAIActive)
 	{
 		SetPerceptionActive(true); 
 		ActivateAI();
+		
+		if (EnemyChar)
+		{
+			EnemyChar->RestoreAnimInstance();
+		}
 	}
-	else if (Distance > 6000.f && bIsAIActive)
+	else if (Distance > 2500.f && bIsAIActive)
 	{
 		DeactivateAI();
 		SetPerceptionActive(false);
+		
+		if (EnemyChar)
+		{
+			EnemyChar->DisableAnimInstance();
+		}
 	}
 }
+
 
 
 APRCharacter* AEnemyController::FindNearestPlayer(float& OutDistance)

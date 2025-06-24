@@ -1,5 +1,4 @@
 #include "EnemyCharacter.h"
-
 #include "AIController.h"
 #include "BrainComponent.h"
 #include "GenericTeamAgentInterface.h"
@@ -54,6 +53,11 @@ void AEnemyCharacter::BeginPlay()
 	{
 		StimuliSourceComponent->RegisterForSense(TSubclassOf<UAISense_Hearing>());
 		StimuliSourceComponent->RegisterWithPerceptionSystem();
+	}
+
+	if (GetMesh() && GetMesh()->GetAnimInstance())
+	{
+		SavedAnimClass = GetMesh()->GetAnimInstance() ? GetMesh()->GetAnimInstance()->GetClass() : nullptr;
 	}
 }
 
@@ -244,5 +248,22 @@ void AEnemyCharacter::Multicast_PlayDetectMontage_Implementation(UAnimMontage* M
 	if (AnimInstance)
 	{
 		AnimInstance->Montage_Play(Montage);
+	}
+}
+
+void AEnemyCharacter::DisableAnimInstance()
+{
+	if (GetMesh() && GetMesh()->GetAnimInstance())
+	{
+		SavedAnimClass = GetMesh()->GetAnimInstance()->GetClass();
+		GetMesh()->SetAnimInstanceClass(nullptr);
+	}
+}
+
+void AEnemyCharacter::RestoreAnimInstance()
+{
+	if (GetMesh() && SavedAnimClass)
+	{
+		GetMesh()->SetAnimInstanceClass(SavedAnimClass);
 	}
 }

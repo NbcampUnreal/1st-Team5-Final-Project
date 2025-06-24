@@ -421,11 +421,7 @@ void APRGameState::OnRep_MonsterCountUpdated()
 	{
 		if (APRPlayerController* MyPC = Cast<APRPlayerController>(PC))
 		{
-			//저 겟클린 퍼센트위젯을 불러와주야함.
-			// if (UCleanPercent* CleanUI = MyPC->GetCleanPercentWidget())
-			// {
-			// 	CleanUI->SetCleanData();
-			// }
+			MyPC->UpdateCleanData();
 		}
 	}
 }
