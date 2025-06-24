@@ -83,6 +83,14 @@ void UBaseAreaEffectAbility::EndAbility(const FGameplayAbilitySpecHandle Handle,
 	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
 	bool bReplicateEndAbility, bool bWasCancelled)
 {
+	if (bLockInputDuringMontage && CachedController)
+	{
+		if (AActor* Avatar = GetAvatarActorFromActorInfo())
+		{
+			Avatar->EnableInput(CachedController);
+		}
+		CachedController = nullptr;
+	}
 	if (IsValid(EffectToApplyToSelfOnEnd) && !ActiveEndEffectHandle.IsValid() && bEndAbilityOnDurationEnd)
 	{
 		if (UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo())
