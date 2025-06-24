@@ -66,10 +66,13 @@ public:
 	
 	/* Death */
 	virtual void Die(FVector HitDirection = FVector::ZeroVector) override;
+	virtual void MulticastRagdoll(const FVector& HitDirection) override;
 	UFUNCTION(Client, Reliable)
 	void Client_StartGrayscaleFade();
-	void SetBlackAndWhite();
+	UFUNCTION()
 	void ResetRagdoll();
+	UFUNCTION()
+	void SetBlackAndWhite();
 	
 	UPROPERTY(Replicated)
 	bool bIsDead = false;
@@ -77,6 +80,7 @@ public:
 	float GrayscaleFadeRate = 0.05f;
 	float GrayscaleFadeDuration = 1.f;
 	FTimerHandle GrayscaleFadeTimer;
+	FTimerHandle ResetRagdollTimer;
 	
 
 	/* 공격/피격 */

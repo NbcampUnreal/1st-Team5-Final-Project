@@ -1035,6 +1035,7 @@ void APRCharacter::Die(FVector HitDirection)
 {
     Super::Die(HitDirection);
 
+    if (bIsDead) return;
     bIsDead = true;
     StimuliSourceComponent->UnregisterFromPerceptionSystem();
 
@@ -1062,6 +1063,65 @@ void APRCharacter::Die(FVector HitDirection)
 
                 PC->DeathLocation = GetActorLocation();
             }
+        }
+    }
+}
+
+void APRCharacter::MulticastRagdoll(const FVector& HitDirection)
+{
+    Super::MulticastRagdoll(HitDirection);
+
+    if (IsValid(Weapon))
+    {
+        Weapon->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+        Weapon->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+        Weapon->SetCollisionResponseToAllChannels(ECR_Ignore);
+        Weapon->SetCollisionResponseToChannel(ECC_GameTraceChannel6, ECR_Block);
+        Weapon->SetSimulatePhysics(true);
+        FVector Impulse = GetActorRightVector() * 10000.f;
+        Weapon->AddImpulseAtLocation(Impulse, GetActorLocation());
+    }
+
+    if (IsValid(WeaponCollision))
+    {
+        WeaponCollision->DestroyComponent();
+    }
+    if (IsValid(LeftHandCollisionComp))
+    {
+        LeftHandCollisionComp->DestroyComponent();
+    }
+    if (IsValid(RightHandCollisionComp))
+    {
+        RightHandCollisionComp->DestroyComponent();
+    }
+    
+    if (GetWorld() && !GetWorld()->bIsTearingDown)
+    {
+        
+        GetWorldTimerManager().SetTimer(
+            ResetRagdollTimer, this, &APRCharacter::ResetRagdoll, 1.5f, false);
+            
+    }
+}
+
+void APRCharacter::ResetRagdoll()
+{
+    if (!GetWorld() || GetWorld()->bIsTearingDown) return;
+    
+    if (IsValid(this))
+    {
+        if (IsValid(GetMesh()))
+        {
+            /*GetMesh()->SetSimulatePhysics(false);
+            GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);*/
+            GetMesh()->SetCollisionResponseToAllChannels(ECR_Ignore);
+            GetMesh()->SetCollisionResponseToChannel(ECC_GameTraceChannel6, ECR_Block); // Ground    
+        }
+        if (IsValid(Weapon))
+        {
+            Weapon->SetSimulatePhysics(false);
+            Weapon->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+            Weapon->DestroyComponent();
         }
     }
 }
@@ -1098,19 +1158,7 @@ void APRCharacter::SetBlackAndWhite()
     }
 }
 
-void APRCharacter::ResetRagdoll()
-{
-    FTimerHandle TimerHandle;
-    GetWorldTimerManager().SetTimer(TimerHandle, [this]()
-    {
-        if (IsValid(this) && IsValid(GetMesh()))
-        {
-            GetMesh()->SetSimulatePhysics(false);
-            GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-            GetMesh()->SetCollisionResponseToAllChannels(ECR_Ignore);
-        }
-    }, 1.f, false);
-}
+
 
 void APRCharacter::OnExtraction()
 {
