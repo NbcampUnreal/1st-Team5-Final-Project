@@ -7,8 +7,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/Pawn.h"
-#include "Net/UnrealNetwork.h"
-#include "PayRock/Enemy/EnemyCharacter.h"
+#include "PayRock/Enemy/EnemyGenerator.h"
 
 APRGameMode::APRGameMode()
 {
@@ -46,7 +45,7 @@ void APRGameMode::Logout(AController* Exiting)
 void APRGameMode::TotalEnemyCount()
 {
 	TArray<AActor*> FoundMonsters;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AEnemyCharacter::StaticClass(), FoundMonsters);
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AEnemyGenerator::StaticClass(), FoundMonsters);
 
 	// GameState에 전달
 	if (APRGameState* PRGS = GetGameState<APRGameState>())
