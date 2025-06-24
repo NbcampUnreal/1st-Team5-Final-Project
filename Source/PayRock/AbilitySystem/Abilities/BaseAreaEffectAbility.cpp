@@ -182,7 +182,8 @@ void UBaseAreaEffectAbility::ApplyEffectToActorsWithinRadius()
 	FVector Origin = GetAvatarActorFromActorInfo()->GetActorLocation();
 	float RadiusFloat = Radius.GetValueAtLevel(GetAbilityLevel());
 
-	FCollisionShape Sphere = FCollisionShape::MakeSphere(RadiusFloat);
+	FVector Size(RadiusFloat * 2, RadiusFloat * 2, RadiusFloat * 2);
+	FCollisionShape Box = FCollisionShape::MakeBox(Size);
 
 	TArray<FOverlapResult> Overlaps;
 	FCollisionQueryParams QueryParams;
@@ -200,7 +201,7 @@ void UBaseAreaEffectAbility::ApplyEffectToActorsWithinRadius()
 		Origin,
 		FQuat::Identity,
 		CollisionParams,
-		Sphere,
+		Box,
 		QueryParams
 	);
 	
