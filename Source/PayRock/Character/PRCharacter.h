@@ -261,6 +261,14 @@ public:
 	void Multicast_DoubleJumpMontage(bool bIsJump);
 	bool CanDoubleJump();
 
+	FTimerHandle JumpCooldownHandle;
+	bool bCanJumpCooldown = true;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Jump")
+	float JumpCooldownDuration = 0.5f;
+
+	void ResetJumpCooldown();
+
 	UPROPERTY(EditDefaultsOnly, Category = "Anim|DoubleJump")
 	UAnimMontage* DoubleJumpMontage;
 	UPROPERTY(EditDefaultsOnly, Category = "Anim|DoubleJump")
