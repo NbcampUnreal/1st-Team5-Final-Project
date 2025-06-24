@@ -55,6 +55,11 @@ void AEnemyCharacter::BeginPlay()
 		StimuliSourceComponent->RegisterForSense(TSubclassOf<UAISense_Hearing>());
 		StimuliSourceComponent->RegisterWithPerceptionSystem();
 	}
+
+	if (GetMesh() && GetMesh()->GetAnimInstance())
+	{
+		SavedAnimClass = GetMesh()->GetAnimClass();
+	}
 }
 
 void AEnemyCharacter::InitAbilityActorInfo()
@@ -244,5 +249,21 @@ void AEnemyCharacter::Multicast_PlayDetectMontage_Implementation(UAnimMontage* M
 	if (AnimInstance)
 	{
 		AnimInstance->Montage_Play(Montage);
+	}
+}
+
+void AEnemyCharacter::DisableAnimInstance()
+{
+	if (GetMesh())
+	{
+		GetMesh()->SetAnimInstanceClass(nullptr);
+	}
+}
+
+void AEnemyCharacter::RestoreAnimInstance()
+{
+	if (GetMesh() && *SavedAnimClass)
+	{
+		GetMesh()->SetAnimInstanceClass(SavedAnimClass);
 	}
 }
