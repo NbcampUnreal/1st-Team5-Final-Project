@@ -18,6 +18,8 @@ public:
 	AOneEyedMonster();
 	UFUNCTION(BlueprintCallable)
 	void ToggleTorchLight();
+	void UpdateTorchLightImmediate(bool bAlert);
+
 protected:
 	virtual void BeginPlay() override;
 	void ScheduleNextBlink();
