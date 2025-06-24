@@ -47,6 +47,7 @@ APRCharacter::APRCharacter()
     bUseControllerRotationPitch = false;
     bUseControllerRotationYaw = true;
     bUseControllerRotationRoll = false;
+    GetCharacterMovement()->bOrientRotationToMovement = false;
 
     SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
     SpringArmComp->SetupAttachment(RootComponent);
@@ -412,6 +413,8 @@ void APRCharacter::StopAim(const FInputActionValue& Value)
 
 void APRCharacter::StartJump(const FInputActionValue& Value)
 {
+    if (!bCanJumpCooldown) return;
+
     if (GetCharacterMovement()->IsCrouching()) return;
     if (!AbilitySystemComponent || !GE_JumpManaCost || !PRAttributeSet) return;
 
@@ -420,25 +423,37 @@ void APRCharacter::StartJump(const FInputActionValue& Value)
         if (CanDoubleJump())
         {
             Server_DoubleJump();
+
+            bCanJumpCooldown = false;
+            GetWorldTimerManager().SetTimer(
+                JumpCooldownHandle, this, &APRCharacter::ResetJumpCooldown,
+                JumpCooldownDuration, false
+            );
         }
         return;
     }
 
     if (PRAttributeSet->GetMana() < 10.f) return;
-    {
-        Jump();
-        ServerStartJump();
 
-        if (HasAuthority())
-        {
-            SetJustJumped(true);
-        }
-        else
-        {
-            ServerStartJump();
-        }
+    Jump();
+    ServerStartJump();
+
+    if (HasAuthority())
+    {
+        SetJustJumped(true);
     }
+    else
+    {
+        ServerStartJump();
+    }
+
+    bCanJumpCooldown = false;
+    GetWorldTimerManager().SetTimer(
+        JumpCooldownHandle, this, &APRCharacter::ResetJumpCooldown,
+        JumpCooldownDuration, false
+    );
 }
+
 
 void APRCharacter::ServerStartJump_Implementation()
 {
@@ -519,6 +534,11 @@ bool APRCharacter::CanDoubleJump()
         GetAbilitySystemComponent()->HasMatchingGameplayTag(FPRGameplayTags::Get().Status_Buff_DoubleJump);
 }
 /*** Double Jump ***/
+
+void APRCharacter::ResetJumpCooldown()
+{
+    bCanJumpCooldown = true;
+}
 
 /*** Spin ***/
 void APRCharacter::StartSpin()
@@ -953,33 +973,6 @@ void APRCharacter::Tick(float DeltaSeconds)
 
         return;
     }
-    
-    // 점프 중일 땐 회전 막기 (에임 포함)
-    if (bIsInAir)
-    {
-        if (bIsAiming)
-        {
-            // 에임 상태지만 점프 중이면 회전 금지
-            bUseControllerRotationYaw = false;
-        }
-        GetCharacterMovement()->RotationRate = FRotator::ZeroRotator;
-    }
-    else
-    {
-        // 지상일 땐 에임 상태에 따라 회전 모드 설정
-        if (bIsAiming)
-        {
-            bUseControllerRotationYaw = true;
-            GetCharacterMovement()->bOrientRotationToMovement = false;
-        }
-        else
-        {
-            bUseControllerRotationYaw = false;
-            GetCharacterMovement()->bOrientRotationToMovement = true;
-        }
-
-        GetCharacterMovement()->RotationRate = FRotator(0.f, 400.f, 0.f);
-    }
 
     // 방향 계산
     const FVector Velocity = GetVelocity();
@@ -1018,30 +1011,12 @@ void APRCharacter::Tick(float DeltaSeconds)
                 // SpringArm이 Pawn 회전 안 따르게 설정 (한 번만 해도 됨)
                 if (SpringArm->bUsePawnControlRotation)
                 {
-                    SpringArm->bUsePawnControlRotation = false;
+                    SpringArm->bUsePawnControlRotation = true;
                 }
 
                 SpringArm->SetWorldRotation(ReplicatedControlRotation);
             }
         }
-    }
-    // 디버그용 마나 확인
-    if (IsLocallyControlled() && PRAttributeSet)
-    {
-        float Mana = PRAttributeSet->GetMana();
-        if (IsSprinting() && Mana < 5.f)
-        {
-            if (HasAuthority())
-            {
-                StopSprint(FInputActionValue());
-            }
-            else
-            {
-                ServerStopSprint();
-            }
-        }
-
-        // GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Cyan, FString::Printf(TEXT("Current Mana: %.1f"), Mana));
     }
 }
 
