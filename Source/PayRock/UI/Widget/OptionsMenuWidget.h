@@ -8,7 +8,7 @@
 #include "OptionsMenuWidget.generated.h"
 
 /**
- *  ¿É¼Ç ¸Þ´º ¸ÞÀÎ À§Á¬ (ÅÇ ÀüÈ¯ Æ÷ÇÔ)
+ *  ï¿½É¼ï¿½ ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ ï¿½ï¿½È¯ ï¿½ï¿½ï¿½ï¿½)
  */
 
 class UButton;
@@ -16,7 +16,7 @@ class UMainMenuUserWidget;
 class UWidgetSwitcher;
 class UVideoSettingsWidget;
 class UAudioSettingsWidget;
-// µîµî
+// ï¿½ï¿½ï¿½
 
 
 UCLASS()
@@ -25,25 +25,25 @@ class PAYROCK_API UOptionsMenuWidget : public UBaseUserWidget
 	GENERATED_BODY()
 	
 protected:
-    // ÅÇ ÀüÈ¯¿ë ¹öÆ°µé
+    // ï¿½ï¿½ ï¿½ï¿½È¯ï¿½ï¿½ ï¿½ï¿½Æ°ï¿½ï¿½
     UPROPERTY(meta = (BindWidget))
     UButton* VideoButton;
 
     UPROPERTY(meta = (BindWidget))
     UButton* AudioButton;
 
-    UPROPERTY(meta = (BindWidget))
+    UPROPERTY(meta = (BindWidgetOptional))
     UButton* InputButton;
 
-    UPROPERTY(meta = (BindWidget))
+    UPROPERTY(meta = (BindWidgetOptional))
     UButton* GameplayButton;
 
-    // ÅÇ ÄÜÅÙÃ÷ ÀüÈ¯¿ë À§Á¬ ½ºÀ§Ã³
+    // ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã³
     UPROPERTY(meta = (BindWidget))
     UWidgetSwitcher* TabSwitcher;
 
 public:
-    // ¸ÞÀÎ¸Þ´º ±â¾ïÇÏ±â À§ÇØ¼­(back)
+    // ï¿½ï¿½ï¿½Î¸Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½Ø¼ï¿½(back)
     UPROPERTY()
     UMainMenuUserWidget* MainMenuRef;
 
@@ -55,7 +55,7 @@ public:
 
 
 protected:
-    // Å¬¸¯ ÇÚµé·¯µé
+    // Å¬ï¿½ï¿½ ï¿½Úµé·¯ï¿½ï¿½
     UFUNCTION()
     void OnVideoButtonClicked();
 
@@ -68,14 +68,14 @@ protected:
     UFUNCTION()
     void OnGameplayButtonClicked();
 
-    // ÀÎµ¦½º¿¡ µû¶ó¼­ ¿É¼Ç ÅÇ ¹Ù²ñ 
+    // ï¿½Îµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½É¼ï¿½ ï¿½ï¿½ ï¿½Ù²ï¿½ 
     void SwitchTab(int32 TabIndex);
 
 
 public:
 	virtual void NativeOnInitialized() override;
 
-    // Ä¿½ºÅÒ ÀÌ´Ö
+    // Ä¿ï¿½ï¿½ï¿½ï¿½ ï¿½Ì´ï¿½
     void InitOptionsMenu(UMainMenuUserWidget* InMainMenuRef);
     
 protected:
@@ -85,12 +85,12 @@ protected:
 };
 
 
-/** ================= 1. UPROPERTY (¸®ÇÃ·º¼Ç ½Ã½ºÅÛ º¯¼ö) ================= **/
+/** ================= 1. UPROPERTY (ï¿½ï¿½ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½) ================= **/
 
-/** ================= 2. UFUNCTION (¸®ÇÃ·º¼Ç ½Ã½ºÅÛ ÇÔ¼ö) ================= **/
+/** ================= 2. UFUNCTION (ï¿½ï¿½ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½) ================= **/
 
-/** ================= 3. »ý¼ºÀÚ ¹× ÇÊ¼ö ¿À¹ö¶óÀÌµå ÇÔ¼ö ================= **/
+/** ================= 3. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ê¼ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ìµï¿½ ï¿½Ô¼ï¿½ ================= **/
 
-/** ================= 4. ÀÏ¹Ý ¸Þ¼­µå (¸®ÇÃ·º¼ÇÀÌ ÇÊ¿ä ¾ø´Â ÇÔ¼ö) ================= **/
+/** ================= 4. ï¿½Ï¹ï¿½ ï¿½Þ¼ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½Ã·ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½) ================= **/
 
-/** ================= 5. ÀÏ¹Ý ¸â¹ö º¯¼ö (¸®ÇÃ·º¼ÇÀÌ ÇÊ¿ä ¾ø´Â º¯¼ö) ================= **/
+/** ================= 5. ï¿½Ï¹ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½Ã·ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½) ================= **/

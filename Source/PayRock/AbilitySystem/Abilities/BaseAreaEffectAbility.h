@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "BaseGameplayAbility.h"
+#include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "BaseAreaEffectAbility.generated.h"
 
 class AApplyEffectZone;
@@ -24,6 +26,10 @@ protected:
 	void ApplyEffectToActorsWithinRadius();
 	UFUNCTION(BlueprintCallable)
 	virtual void RemoveEffectArea();
+	UFUNCTION(BlueprintCallable)
+	void OnEventReceived(FGameplayEventData Payload);
+	UFUNCTION()
+	void OnMontageEnded();
 	
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Ability")
@@ -34,7 +40,7 @@ protected:
 	TSubclassOf<UGameplayEffect> EffectToApplyToSelfOnEnd;
 	UPROPERTY(EditDefaultsOnly, Category = "Ability")
 	bool bEndAbilityOnDurationEnd;
-	UPROPERTY(EditDefaultsOnly, Category = "Ability")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Ability")
 	bool bActivateImmediately = true;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ability|Duration")
@@ -64,4 +70,28 @@ protected:
 	FTimerHandle TimerHandle;
 	FActiveGameplayEffectHandle ActiveSelfEffectHandle;
 	FActiveGameplayEffectHandle ActiveEndEffectHandle;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ability|Montage")
+	UAnimMontage* ActivationMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ability|Montage")
+	float MontageRate = 1.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ability|Montage")
+	FName MontageStartSection;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ability|Event")
+	FGameplayTag TriggerGameplayTag;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Ability|Input")
+	bool bLockInputDuringMontage = true;
+
+	UPROPERTY()
+	APlayerController* CachedController;
+
+	UPROPERTY()
+	UAbilityTask_PlayMontageAndWait* MontageTask;
+
+	UPROPERTY()
+	UAbilityTask_WaitGameplayEvent* WaitEventTask;
 };

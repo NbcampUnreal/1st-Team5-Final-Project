@@ -48,6 +48,7 @@ public:
 	bool IsAbilitySystemValid() const;
 	virtual void BroadcastInitialValues();
 	virtual void BindCallbacksToDependencies();
+	virtual void HandleRemoval();
 
 protected:
 	UPROPERTY(BlueprintReadOnly, Category = "WidgetController")

@@ -15,6 +15,10 @@ class PAYROCK_API AApplyEffectZone : public AActor
 public:
 	AApplyEffectZone();
 
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_PlaySoundAtLocation(USoundBase* Sound);
+	void PlaySoundIfValid();
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void Destroyed() override;
@@ -28,6 +32,9 @@ protected:
 public:
 	UPROPERTY(BlueprintReadWrite, meta = (ExposeOnSpawn = true))
 	FGameplayEffectSpecHandle EffectSpecHandle;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio")
+	USoundBase* ActivationSound;
 	
 protected:
 	UPROPERTY(VisibleAnywhere, Category = "Components")

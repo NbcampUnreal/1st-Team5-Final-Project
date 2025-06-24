@@ -37,33 +37,16 @@ void UOptionsMenuWidget::OnGameplayButtonClicked()
 
 void UOptionsMenuWidget::SwitchTab(int32 TabIndex)
 {
-    // ÅÇ ½ºÀ§Ã³°¡ À¯È¿ÇÑÁö(³ÎÆ÷ÀÎÅÍ) && TabIndex°¡ À¯È¿ÇÑÁö(ex) 4°³ÀÇ À§Á¬ÀÌ¸é 0,1,2,3 °¡ À¯È¿ÇÏ´Ù.
-    if (TabSwitcher && TabSwitcher->GetNumWidgets(/*¾ð¸®¾óÁ¦°øÇÔ¼ö*/) > TabIndex)
+    if (TabSwitcher && TabSwitcher->GetNumWidgets() > TabIndex)
     {
-        // ¿É¼Ç ÅÇ ¹Ù²Ù±â 
-        TabSwitcher->/*UEÁ¦°ø*/SetActiveWidgetIndex(TabIndex);
+        TabSwitcher->SetActiveWidgetIndex(TabIndex);
     }
 }
 
 void UOptionsMenuWidget::NativeOnInitialized()
 {
     Super::NativeOnInitialized();
-
-
-    //// Back ´­·¶À»¶§ µ¹¾Æ°¥ ¼ö ÀÖµµ·Ï µé°í ÀÖ±â 
-    //if (VideoSettingsWidget && MainMenuRef)
-    //{
-    //    VideoSettingsWidget->MainMenuRef = MainMenuRef;
-    //}
-
-    //if (AudioSettingsWidget && MainMenuRef)
-    //{
-    //    VideoSettingsWidget->MainMenuRef = MainMenuRef;
-    //}
-
-
-
-    // ; ÇÔ¼öµé ¿¬°á
+    
     if (VideoButton)
     {
         VideoButton->OnClicked.AddDynamic(this, &UOptionsMenuWidget::OnVideoButtonClicked);
@@ -84,35 +67,19 @@ void UOptionsMenuWidget::NativeOnInitialized()
         GameplayButton->OnClicked.AddDynamic(this, &UOptionsMenuWidget::OnGameplayButtonClicked);
     }
 
-    // ±âº» ÅÇ ¼³Á¤ (ºñµð¿À ÅÇ)
     SwitchTab(0);
-
-
-    //// Back ´­·¶À»¶§ µ¹¾Æ°¥ ¼ö ÀÖµµ·Ï µé°í ÀÖ°Ô ÁÖ¼Ò ³Ñ°ÜÁÖ±â 
-    //if (VideoSettingsWidget && MainMenuRef)
-    //{
-    //    VideoSettingsWidget->MainMenuRef = MainMenuRef;
-    //}
-
-    //if (AudioSettingsWidget && MainMenuRef)
-    //{
-    //    VideoSettingsWidget->MainMenuRef = MainMenuRef;
-    //}
-
 }
 
 void UOptionsMenuWidget::InitOptionsMenu(UMainMenuUserWidget* InMainMenuRef)
 {
     MainMenuRef = InMainMenuRef;
 
-    // ÇÏÀ§ ºñµð¿À ÅÇ¿¡¼­ µé°í ÀÖ°Ô
     if (VideoSettingsWidget && MainMenuRef)
     {
         VideoSettingsWidget->MainMenuRef = MainMenuRef;
-        VideoSettingsWidget->OptionsMenuRef = this; // ºñµð¿À¿¡¼­ ¿É¼Ç ²ô°Ô?
+        VideoSettingsWidget->OptionsMenuRef = this;
     }
 
-    // ÇÏÀ§ ¿Àµð¿À ÅÇ¿¡¼­ ¿É¼Ç µé°í ÀÖ°Ô 
     if (AudioSettingsWidget && MainMenuRef)
     {
         AudioSettingsWidget->MainMenuRef = MainMenuRef;
@@ -120,9 +87,9 @@ void UOptionsMenuWidget::InitOptionsMenu(UMainMenuUserWidget* InMainMenuRef)
 
     }
     // ; todo; 
-    // ÇÏÀ§  Å°¼³ Á¤¿¡¼­ µéµµ·Ï ¼³Á¤
+    // ï¿½ï¿½ï¿½ï¿½  Å°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½éµµï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
-    // ÇÏÀ§ °ÔÀÓ ÇÃ·¹ÀÌ
+    // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½
 
 }
 
@@ -131,7 +98,6 @@ FReply UOptionsMenuWidget::NativeOnKeyDown(const FGeometry& InGeometry, const FK
 {
     if (InKeyEvent.GetKey() == EKeys::Escape)
     {
-        // ¸ÞÀÎ ¸Þ´º¿¡¼­ ESC ¡æ º¹±Í
         if (MainMenuRef)
         {
             MainMenuRef->SetVisibility(ESlateVisibility::Visible);
@@ -150,7 +116,6 @@ FReply UOptionsMenuWidget::NativeOnKeyDown(const FGeometry& InGeometry, const FK
             return FReply::Handled();
         }
 
-        // ÀÎ°ÔÀÓ¿¡¼­´Â PRPlayerController°¡ ToggleSettingsMenu() Ã³¸®
         APlayerController* PC = GetWorld()->GetFirstPlayerController();
         if (PC)
         {
@@ -160,8 +125,6 @@ FReply UOptionsMenuWidget::NativeOnKeyDown(const FGeometry& InGeometry, const FK
                 return FReply::Handled();
             }
         }
-
-        // ¾î´À ÂÊµµ ¾Æ´Ï¸é ¹«½Ã
     }
 
     return Super::NativeOnKeyDown(InGeometry, InKeyEvent);
@@ -169,8 +132,5 @@ FReply UOptionsMenuWidget::NativeOnKeyDown(const FGeometry& InGeometry, const FK
 
 void UOptionsMenuWidget::NativeConstruct()
 {
-    // ESC Å° ÀÔ·ÂÀ» ¹Þ±â À§ÇØ Æ÷Ä¿½º °¡´ÉÇÏ°Ô ¼³Á¤
     SetIsFocusable(true);
-
-
 }

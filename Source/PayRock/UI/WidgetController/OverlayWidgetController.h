@@ -29,6 +29,7 @@ class PAYROCK_API UOverlayWidgetController : public UBaseWidgetController
 public:
 	virtual void BroadcastInitialValues() override;
 	virtual void BindCallbacksToDependencies() override;
+	virtual void HandleRemoval() override;
 
 	UPROPERTY()
 	FOnHealthChangedSignature OnHealthChanged;
