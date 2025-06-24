@@ -43,7 +43,7 @@ void UGA_VFX_LightningStrike::SpawnLightningForTarget()
 
 	const FVector PredictedLocation = Target->GetActorLocation() + Target->GetVelocity() * PredictDelay;
 	CurrentLightningCenter = FVector(PredictedLocation.X, PredictedLocation.Y, Target->GetActorLocation().Z);
-	NumLightningPerTarget = FMath::RandRange(2, 4);
+	NumLightningPerTarget = FMath::RandRange(5, 10);
 	CurrentLightningCount = 0;
 
 	SpawnNextLightning();
