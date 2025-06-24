@@ -37,6 +37,12 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Timing")
 	float DelayBeforeStrike = 1.5f;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Timing")
+	float Delay_Min = 0.5f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Timing")
+	float Delay_Max = 1.5f;
+
 private:
 	FTimerHandle TimerHandle_Activate;
 };

@@ -34,7 +34,7 @@ void UGA_VFX_Fireball::OnAuraEffectComplete()
 		return;
 	}
 
-	TotalFireballsToSpawn = DetectedTargets.Num() * 3;
+	TotalFireballsToSpawn = DetectedTargets.Num() * 5;
 	CurrentFireballIndex = 0;
 
 	SpawnNextFireball();
