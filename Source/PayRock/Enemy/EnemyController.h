@@ -1,16 +1,15 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
+#include "AIController.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISenseConfig_Sight.h"
 #include "Perception/AISenseConfig_Damage.h"
-#include "Perception/AISenseConfig_Hearing.h"
-#include "Runtime/AIModule/Classes/AIController.h"
 #include "EnemyController.generated.h"
 
 class UBehaviorTree;
 class UBlackboardComponent;
-class UBehaviorTreeComponent;
+class APRCharacter;
 
 UCLASS()
 class PAYROCK_API AEnemyController : public AAIController
@@ -23,35 +22,24 @@ public:
 	virtual void BeginPlay() override;
 	virtual void OnPossess(APawn* InPawn) override;
 	virtual void OnUnPossess() override;
-	virtual void Tick(float DeltaTime) override;
-	void ClearBlackboardKeys();
-
-	UFUNCTION()
-	virtual void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
-
 	const TArray<AActor*>& GetSensedActors() const;
+	void SetPerceptionActive(bool bEnable);
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "AI")
 	TObjectPtr<UBehaviorTree> DefaultBehaviorTree;
-
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
 	TObjectPtr<UBlackboardComponent> BlackboardComponent;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
-	TObjectPtr<UBehaviorTreeComponent> BehaviorTreeComponent;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
-	UAIPerceptionComponent* AIPerceptionComponent;
-
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI|Perception")
-	UAISenseConfig_Sight* SightConfig;
-
+	TObjectPtr<UAIPerceptionComponent> AIPerceptionComponent;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI|Perception")
-	UAISenseConfig_Damage* DamageConfig;
-
+	TObjectPtr<UAISenseConfig_Sight> SightConfig;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI|Perception")
-	UAISenseConfig_Hearing* HearingConfig;
+	TObjectPtr<UAISenseConfig_Damage> DamageConfig;
 
 	UPROPERTY(EditAnywhere, Category = "AI|Sight")
 	float SightRadius = 1500.f;
@@ -60,19 +48,34 @@ protected:
 	float LoseSightRadius = 1800.f;
 
 	UPROPERTY(EditAnywhere, Category = "AI|Sight")
-	float PeripheralVisionAngle = 90.f;
-
-	UPROPERTY(EditAnywhere, Category = "AI|Hearing")
-	float LoudnessThreshold = 0.8f;
+	float PeripheralVisionAngle = 180.f;
 
 	UPROPERTY(EditAnywhere, Category = "AI|Hearing")
 	float MinLoudnessToReact = 0.3f;
 
-	FTimerHandle ForgetPlayerTimerHandle;
-
+	UPROPERTY(EditAnywhere, Category = "AI|Hearing")
+	float LoudnessThreshold = 0.8f;
+	
+	UFUNCTION()
+	virtual void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
+	
+	APRCharacter* FindNearestPlayer(float& OutDistance);
+	
+	void ActivateAI();
+	void DeactivateAI();
+	
+	void CheckPlayerDistance();
+	
+	void ClearBlackboardKeys();
+	
 	void ClearDetectedPlayer();
-
-private:
+	
 	UPROPERTY()
 	TArray<AActor*> SensedActors;
+	
+	UPROPERTY()
+	bool bIsAIActive = false;
+
+	FTimerHandle DistanceCheckHandle;
+	FTimerHandle ForgetPlayerTimerHandle;
 };

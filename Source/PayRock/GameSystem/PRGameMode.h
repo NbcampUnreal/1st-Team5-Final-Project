@@ -35,7 +35,7 @@ public: // For Class Member Function
 	void EndThisMatch();
 
 	// Necro Character
-	void SpawnAndPossessNecroCharacter(APlayerController* RequestingController);
+	void SpawnAndPossessNecroCharacter(APlayerController* RequestingController, FVector Location);
 	
 protected: // For Class Member Function
 
@@ -46,5 +46,10 @@ protected: // For Class Member Function
 	virtual void OnPostLogin(AController* NewPlayer) override;
 	
 	virtual void Logout(AController* Exiting) override;
+
+
+private:
+	void TotalEnemyCount();
+
 
 };

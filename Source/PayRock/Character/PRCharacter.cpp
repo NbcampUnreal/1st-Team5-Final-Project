@@ -10,6 +10,7 @@
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "EnhancedInputComponent.h"
+#include "NavigationInvokerComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Blessing/BlessingComponent.h"
 #include "Buff/BuffComponent.h"
@@ -25,12 +26,10 @@
 #include "Perception/AISense_Damage.h"
 #include "Perception/AISense_Sight.h"
 #include "Blueprint/UserWidget.h"
-#include "Components/WidgetComponent.h"
-#include "Animation/WidgetAnimation.h"
-#include "Kismet/KismetSystemLibrary.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "UMG.h"
+#include "PayRock/GameSystem/SaveDataSubsystem.h"
 
 APRCharacter::APRCharacter()
 {
@@ -65,9 +64,18 @@ APRCharacter::APRCharacter()
 
     RightHandCollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("RightHandCollision"));
     LeftHandCollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("LefttHandCollision"));
+
+    WeaponCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("WeaponCollision"));
+    WeaponCollision->SetupAttachment(Weapon);
+    WeaponCollision->SetIsReplicated(true);
+    WeaponCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    
+
+    /* NOTE: Weapon2 is currently unused */
     Weapon2 = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Weapon2"));
     Weapon2->SetupAttachment(GetMesh(), Weapon2SocketName);
     Weapon2->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    
     BlessingComponent = CreateDefaultSubobject<UBlessingComponent>(TEXT("BlessingComponent"));
     BuffComponent = CreateDefaultSubobject<UBuffComponent>(TEXT("BuffComponent"));
 
@@ -82,14 +90,16 @@ APRCharacter::APRCharacter()
     GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
 
     MouseSensitivity = 1.0f;
-
+    
+    bReplicates = true;
+    bAlwaysRelevant = true;
+    
     GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
     GetCharacterMovement()->SetCrouchedHalfHeight(60.f);
 
     SetupStimuliSource();
-
-    bReplicates = true;
-    SetReplicateMovement(true);
+    APRCharacter::SetReplicateMovement(true);
+    
 }
 
 void APRCharacter::BeginPlay()
@@ -141,6 +151,8 @@ void APRCharacter::BeginPlay()
     LeftHandCollisionComp->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Overlap);
     LeftHandCollisionComp->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
     LeftHandCollisionComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+    UpdateClothesColor();
 }
 
 void APRCharacter::PlayHitOverlay()
@@ -304,108 +316,51 @@ void APRCharacter::OnRep_MaxWalkSpeed()
 void APRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
     Super::SetupPlayerInputComponent(PlayerInputComponent);
+    
+    UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(PlayerInputComponent);
+    if (!EnhancedInput) return;
+    APRPlayerController* PlayerController = Cast<APRPlayerController>(GetController());
+    if (!PlayerController) return;
 
-    if (UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(PlayerInputComponent))
+    if (PlayerController->MoveAction)
     {
-        if (APRPlayerController* PlayerController = Cast<APRPlayerController>(GetController()))
-        {
-            if (PlayerController->MoveAction)
-            {
-                EnhancedInput->BindAction(
-                    PlayerController->MoveAction,
-                    ETriggerEvent::Triggered,
-                    this,
-                    &APRCharacter::Move
-                );
-            }
-
-            if (PlayerController->JumpAction)
-            {
-                EnhancedInput->BindAction(
-                    PlayerController->JumpAction,
-                    ETriggerEvent::Started,
-                    this,
-                    &APRCharacter::StartJump
-                );
-
-                EnhancedInput->BindAction(
-                    PlayerController->JumpAction,
-                    ETriggerEvent::Completed,
-                    this,
-                    &APRCharacter::StopJump
-                );
-            }
-
-            if (PlayerController->LookAction)
-            {
-                EnhancedInput->BindAction(
-                    PlayerController->LookAction,
-                    ETriggerEvent::Triggered,
-                    this,
-                    &APRCharacter::Look
-                );
-            }
-
-            if (PlayerController->SprintAction)
-            {
-                EnhancedInput->BindAction(
-                    PlayerController->SprintAction,
-                    ETriggerEvent::Triggered,
-                    this,
-                    &APRCharacter::StartSprint
-                );
-                EnhancedInput->BindAction(
-                    PlayerController->SprintAction,
-                    ETriggerEvent::Completed,
-                    this,
-                    &APRCharacter::StopSprint
-                );
-            }
-
-            if (PlayerController->CrouchAction)
-            {
-                EnhancedInput->BindAction(
-                    PlayerController->CrouchAction,
-                    ETriggerEvent::Triggered,
-                    this,
-                    &APRCharacter::StartCrouch
-                );
-                EnhancedInput->BindAction(
-                    PlayerController->CrouchAction,
-                    ETriggerEvent::Completed,
-                    this,
-                    &APRCharacter::StopCrouch
-                );
-            }
-
-            if (PlayerController->AimAction)
-            {
-                EnhancedInput->BindAction(
-                    PlayerController->AimAction,
-                    ETriggerEvent::Ongoing,
-                    this,
-                    &APRCharacter::StartAim
-                );
-                EnhancedInput->BindAction(
-                    PlayerController->AimAction,
-                    ETriggerEvent::Completed,
-                    this,
-                    &APRCharacter::StopAim
-                );
-            }
-
-            if (PlayerController->InteractAction)
-            {
-                EnhancedInput->BindAction(
-                    PlayerController->InteractAction,
-                    ETriggerEvent::Started,
-                    this,
-                    &APRCharacter::Interact
-                );
-            }
-        }
+        EnhancedInput->BindAction(PlayerController->MoveAction, ETriggerEvent::Triggered, this, &APRCharacter::Move);
     }
 
+    if (PlayerController->JumpAction)
+    {
+        EnhancedInput->BindAction(PlayerController->JumpAction, ETriggerEvent::Started, this, &APRCharacter::StartJump);
+        EnhancedInput->BindAction(PlayerController->JumpAction, ETriggerEvent::Completed, this, &APRCharacter::StopJump);
+    }
+
+    if (PlayerController->LookAction)
+    {
+        EnhancedInput->BindAction(PlayerController->LookAction, ETriggerEvent::Triggered, this, &APRCharacter::Look);
+    }
+
+    if (PlayerController->SprintAction)
+    {
+        EnhancedInput->BindAction(PlayerController->SprintAction, ETriggerEvent::Triggered, this, &APRCharacter::StartSprint);
+        EnhancedInput->BindAction(PlayerController->SprintAction, ETriggerEvent::Completed, this, &APRCharacter::StopSprint);
+    }
+
+    if (PlayerController->CrouchAction)
+    {
+        EnhancedInput->BindAction(PlayerController->CrouchAction, ETriggerEvent::Triggered, this, &APRCharacter::StartCrouch);
+        EnhancedInput->BindAction(PlayerController->CrouchAction, ETriggerEvent::Completed, this, &APRCharacter::StopCrouch);
+    }
+
+    if (PlayerController->AimAction)
+    {
+        EnhancedInput->BindAction(PlayerController->AimAction, ETriggerEvent::Ongoing, this, &APRCharacter::StartAim);
+        EnhancedInput->BindAction(PlayerController->AimAction, ETriggerEvent::Completed, this, &APRCharacter::StopAim);
+    }
+
+    if (PlayerController->InteractAction)
+    {
+        EnhancedInput->BindAction(PlayerController->InteractAction, ETriggerEvent::Started, this, &APRCharacter::Interact);
+    }
+    
     if (UPRInputComponent* PRInputComponent = Cast<UPRInputComponent>(PlayerInputComponent))
     {
         PRInputComponent->BindAbilityActions(InputConfig, this,
@@ -459,21 +414,21 @@ void APRCharacter::StartJump(const FInputActionValue& Value)
 {
     if (GetCharacterMovement()->IsCrouching()) return;
     if (!AbilitySystemComponent || !GE_JumpManaCost || !PRAttributeSet) return;
-    if (PRAttributeSet->GetMana() < 10.f) return; // 마나 부족 시 점프 금지
 
-    Jump(); // 클라이언트에서 즉시 점프 반응
-
-    // 로컬에서 실행하지 않고 서버에 요청
-    ServerStartJump();
-    
-    if (CanDoubleJump())
+    if (GetCharacterMovement()->IsFalling())
     {
-        Server_DoubleJump();
+        if (CanDoubleJump())
+        {
+            Server_DoubleJump();
+        }
+        return;
     }
-    else
+
+    if (PRAttributeSet->GetMana() < 10.f) return;
     {
         Jump();
-        
+        ServerStartJump();
+
         if (HasAuthority())
         {
             SetJustJumped(true);
@@ -569,14 +524,65 @@ bool APRCharacter::CanDoubleJump()
 void APRCharacter::StartSpin()
 {
     bShouldSpin = true;
+
+    GetWorldTimerManager().SetTimer(
+        SpinSoundTimerHandle,
+        this,
+        &APRCharacter::PlaySpinSound,
+        SpinSoundInterval,
+        true
+    );
 }
 
 void APRCharacter::StopSpin()
 {
     bShouldSpin = false;
+    GetWorldTimerManager().ClearTimer(SpinSoundTimerHandle);
+
+    if (HasAuthority())
+    {
+        Multicast_StopAllSpinSounds();
+    }
 }
 /*** Spin ***/
+void APRCharacter::PlaySpinSound()
+{
+    if (HasAuthority())
+    {
+        Multicast_PlaySpinSound();
+    }
+}
+void APRCharacter::Multicast_PlaySpinSound_Implementation()
+{
+    if (!SpinSound) return;
 
+    UAudioComponent* ActiveSound = UGameplayStatics::SpawnSoundAtLocation(
+        this,
+        SpinSound,
+        GetActorLocation(),
+        FRotator::ZeroRotator,
+        1.f,
+        1.f,
+        0.f,
+        FootstepAttenuation
+    );
+
+    if (IsValid(ActiveSound))
+    {
+        ActiveSpinSounds.Add(ActiveSound);
+    }
+}
+void APRCharacter::Multicast_StopAllSpinSounds_Implementation()
+{
+    for (UAudioComponent* Comp : ActiveSpinSounds)
+    {
+        if (IsValid(Comp))
+        {
+            Comp->Stop();
+        }
+    }
+    ActiveSpinSounds.Empty();
+}
 void APRCharacter::Look(const FInputActionValue& value)
 {
     FVector2D LookInput = value.Get<FVector2D>();
@@ -684,12 +690,9 @@ USoundBase* APRCharacter::GetFootstepSoundBySurface(EPhysicalSurface SurfaceType
     if (FootstepSounds.Num() > 0)
     {
         USoundBase* SoundToPlay = FootstepSounds[FootstepSoundIndex];
-
         FootstepSoundIndex = (FootstepSoundIndex + 1) % FootstepSounds.Num(); // 순환
-
         return SoundToPlay;
     }
-
     return DefaultFootstepSound;
 }
 
@@ -870,6 +873,9 @@ void APRCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 
     /* Combo Status */
     DOREPLIFETIME(APRCharacter, bResetCombo);
+
+    /* Color */
+    DOREPLIFETIME(APRCharacter, ClothesColor);
 }
 
 void APRCharacter::OnRep_MoveDirection()
@@ -941,7 +947,10 @@ void APRCharacter::Tick(float DeltaSeconds)
     /* SPIN - early return */
     if (bShouldSpin)
     {
-        AddActorLocalRotation(FRotator(0.f, SpinSpeed * DeltaSeconds, 0.f));
+        float YawDelta = SpinSpeed * DeltaSeconds;
+
+        AddActorLocalRotation(FRotator(0.f, YawDelta, 0.f));
+
         return;
     }
     
@@ -1036,12 +1045,25 @@ void APRCharacter::Tick(float DeltaSeconds)
     }
 }
 
+void APRCharacter::UpdateClothesColor()
+{
+    if (IsLocallyControlled())
+    {
+        if (USaveDataSubsystem* Subsystem = GetGameInstance()->GetSubsystem<USaveDataSubsystem>())
+        {
+            Server_SetClothesColor(Subsystem->GetClothesColor());
+        }
+    }
+}
+
 void APRCharacter::Die(FVector HitDirection)
 {
     Super::Die(HitDirection);
 
     bIsDead = true;
     StimuliSourceComponent->UnregisterFromPerceptionSystem();
+
+    Client_StartGrayscaleFade();
     
     if (HasAuthority())
     {
@@ -1062,9 +1084,57 @@ void APRCharacter::Die(FVector HitDirection)
 
                 // 클라이언트에게도 전파
                 PC->Client_OnSpectateTargetDied(this);
+
+                PC->DeathLocation = GetActorLocation();
             }
         }
     }
+}
+
+void APRCharacter::Client_StartGrayscaleFade_Implementation()
+{
+    if (IsLocallyControlled() && CameraComp)
+    {
+        GrayscaleCurrentBlend = 0.0f;
+        GetWorldTimerManager().SetTimer(GrayscaleFadeTimer, this, &APRCharacter::SetBlackAndWhite, GrayscaleFadeRate,true);
+    }
+}
+
+void APRCharacter::SetBlackAndWhite()
+{
+    if (!CameraComp || !IsLocallyControlled())
+    {
+        GetWorldTimerManager().ClearTimer(GrayscaleFadeTimer);
+        return;
+    }
+
+    GrayscaleCurrentBlend += GrayscaleFadeRate / GrayscaleFadeDuration;
+    GrayscaleCurrentBlend = FMath::Clamp(GrayscaleCurrentBlend, 0.0f, 1.0f);
+    float SaturationValue = 1.0f - GrayscaleCurrentBlend;
+
+    FPostProcessSettings& PPS = CameraComp->PostProcessSettings;
+    PPS.bOverride_ColorSaturation = true;
+    PPS.ColorSaturation = FVector4(SaturationValue, SaturationValue, SaturationValue, 1.0f);
+    CameraComp->PostProcessBlendWeight = 1.0f;
+
+    if (GrayscaleCurrentBlend >= 1.0f)
+    {
+        GetWorldTimerManager().ClearTimer(GrayscaleFadeTimer);
+    }
+}
+
+void APRCharacter::ResetRagdoll()
+{
+    FTimerHandle TimerHandle;
+    GetWorldTimerManager().SetTimer(TimerHandle, [this]()
+    {
+        if (IsValid(this) && IsValid(GetMesh()))
+        {
+            GetMesh()->SetSimulatePhysics(false);
+            GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+            GetMesh()->SetCollisionResponseToAllChannels(ECR_Ignore);
+        }
+    }, 1.f, false);
 }
 
 void APRCharacter::OnExtraction()
@@ -1091,9 +1161,6 @@ void APRCharacter::OnExtraction()
 
 void APRCharacter::MulticastExtraction_Implementation()
 {
-    // NOT WORKING - play extraction montage?
-    Crouch();
-    
     // Spawn Niagara
     FVector SpawnLoc = GetActorLocation();
     SpawnLoc.Z -= GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
@@ -1181,8 +1248,6 @@ void APRCharacter::SetJustJumped(bool bNewValue)
 void APRCharacter::SetWeaponType(EWeaponType NewType)
 {
     CurrentWeaponType = NewType;
-    // 애니메이션 블루프린트에도 알릴 수 있도록 필요하면 이벤트 호출
-    // Client_ForceUpdateWeaponType(NewType);
 }
 
 void APRCharacter::ResetJustJumped()
@@ -1250,4 +1315,23 @@ void APRCharacter::ShakeCamera()
                 SpringArmComp->SetRelativeLocation(OriginalLocation);
             }
         }, 0.05f, false);
+}
+
+void APRCharacter::Server_SetClothesColor_Implementation(FLinearColor Color)
+{
+    if (!HasAuthority()) return;
+    ClothesColor = Color;
+    Multicast_ApplyClothesColor(Color);
+}
+
+void APRCharacter::Multicast_ApplyClothesColor_Implementation(FLinearColor Color)
+{
+    ClothesColor = Color;
+    if (GetMesh())
+    {
+        if (UMaterialInstanceDynamic* Material = GetMesh()->CreateDynamicMaterialInstance(6))
+        {
+            Material->SetVectorParameterValue(FName("[4] To Texture Color"), Color);
+        }
+    }
 }

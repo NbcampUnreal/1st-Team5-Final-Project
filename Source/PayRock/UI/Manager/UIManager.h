@@ -4,9 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "WidgetClassData.h"
+#include "PayRock/UI/Widget/Skill/SkillData.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "UIManager.generated.h"
 
+class USkillDataAsset;
 class UTranslateDataAsset;
 
 UCLASS(BlueprintType)
@@ -44,6 +46,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "UI|Translation")
 	FString TranslateEnglishToKorean(const FString& InString);
 
+	UFUNCTION(BlueprintCallable, Category = "UI|Skill")
+	FSkillData GetSkillData(FName ItemID);
+
 private:
 	UUserWidget* InitializeWidget(EWidgetCategory Category);
 	void InitializeWidgetController(UUserWidget* Widget, EWidgetCategory Category);
@@ -57,4 +62,7 @@ private:
 
 	UPROPERTY()
 	UTranslateDataAsset* TranslateDataAsset;
+
+	UPROPERTY()
+	USkillDataAsset* SkillDataAsset;
 };

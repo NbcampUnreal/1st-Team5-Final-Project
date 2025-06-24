@@ -7,6 +7,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/Pawn.h"
+#include "Net/UnrealNetwork.h"
+#include "PayRock/Enemy/EnemyCharacter.h"
 
 APRGameMode::APRGameMode()
 {
@@ -15,6 +17,7 @@ APRGameMode::APRGameMode()
 void APRGameMode::BeginPlay()
 {
 	Super::BeginPlay();
+	TotalEnemyCount();
 }
 
 void APRGameMode::OnPostLogin(AController* NewPlayer)
@@ -37,6 +40,18 @@ void APRGameMode::Logout(AController* Exiting)
 	if (GS && GS->GetClass()->ImplementsInterface(UPRIGameState::StaticClass()))
 	{
 		IPRIGameState::Execute_Notify_PlayerConnection(GS);
+	}
+}
+
+void APRGameMode::TotalEnemyCount()
+{
+	TArray<AActor*> FoundMonsters;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AEnemyCharacter::StaticClass(), FoundMonsters);
+
+	// GameState에 전달
+	if (APRGameState* PRGS = GetGameState<APRGameState>())
+	{
+		PRGS->TotalEnemyCount = FoundMonsters.Num();
 	}
 }
 
@@ -87,7 +102,7 @@ AActor* APRGameMode::ChooseMatchStartSpot()
 	return Chosen;
 }
 
-void APRGameMode::SpawnAndPossessNecroCharacter(APlayerController* RequestingController)
+void APRGameMode::SpawnAndPossessNecroCharacter(APlayerController* RequestingController, FVector Location)
 {
 	if (!IsValid(RequestingController))
 	{
@@ -95,9 +110,9 @@ void APRGameMode::SpawnAndPossessNecroCharacter(APlayerController* RequestingCon
 		return;
 	}
 
-	FVector SpawnLocation = FVector::ZeroVector;
+	FVector SpawnLocation = Location;
 	FRotator SpawnRotation = FRotator::ZeroRotator;
-	if (MatchStartClass)
+	/*if (MatchStartClass)
 	{
 		TArray<AActor*> FoundSpots;
 		UGameplayStatics::GetAllActorsOfClass(this, MatchStartClass, FoundSpots);
@@ -112,7 +127,7 @@ void APRGameMode::SpawnAndPossessNecroCharacter(APlayerController* RequestingCon
 		{
 			UE_LOG(LogTemp, Warning, TEXT("APRGameMode::SpawnAndPossessNecroCharacter(): FoundSpots is empty. Spawning at (0, 0, 0)"))
 		}
-	}
+	}*/
 	SpawnLocation.Z += 300;
 
 	FActorSpawnParameters SpawnParams;

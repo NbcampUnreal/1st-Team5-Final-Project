@@ -1,18 +1,22 @@
+// Optimized AEnemyController.cpp
+
 #include "EnemyController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISenseConfig_Sight.h"
 #include "Perception/AISenseConfig_Damage.h"
-#include "Perception/AISenseConfig_Hearing.h"
 #include "EnemyCharacter.h"
 #include "PayRock/Character/PRCharacter.h"
 #include "TimerManager.h"
+#include "EngineUtils.h"
+#include "Kismet/GameplayStatics.h"
+
 AEnemyController::AEnemyController()
 {
 	BlackboardComponent = CreateDefaultSubobject<UBlackboardComponent>(TEXT("BlackboardComponent"));
 	AIPerceptionComponent = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerceptionComponent"));
-	
+
 	SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("SightConfig"));
 	SightConfig->SightRadius = SightRadius;
 	SightConfig->LoseSightRadius = LoseSightRadius;
@@ -21,54 +25,161 @@ AEnemyController::AEnemyController()
 	SightConfig->DetectionByAffiliation.bDetectFriendlies = true;
 	SightConfig->DetectionByAffiliation.bDetectNeutrals = true;
 	AIPerceptionComponent->ConfigureSense(*SightConfig);
-	
+
 	DamageConfig = CreateDefaultSubobject<UAISenseConfig_Damage>(TEXT("DamageConfig"));
 	AIPerceptionComponent->ConfigureSense(*DamageConfig);
-	
-	HearingConfig = CreateDefaultSubobject<UAISenseConfig_Hearing>(TEXT("HearingConfig"));
-	HearingConfig->HearingRange = 1500.f;
-	HearingConfig->DetectionByAffiliation.bDetectEnemies = true;
-	HearingConfig->DetectionByAffiliation.bDetectFriendlies = true;
-	HearingConfig->DetectionByAffiliation.bDetectNeutrals = true;
-	AIPerceptionComponent->ConfigureSense(*HearingConfig);
-	
+
 	AIPerceptionComponent->SetDominantSense(SightConfig->GetSenseImplementation());
-
 	SetPerceptionComponent(*AIPerceptionComponent);
-}
 
+	bIsAIActive = false;
+}
 
 void AEnemyController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 	if (AIPerceptionComponent)
 	{
 		AIPerceptionComponent->OnTargetPerceptionUpdated.AddDynamic(this, &AEnemyController::OnTargetPerceptionUpdated);
+		SetPerceptionActive(false);
+	}
+
+	GetWorldTimerManager().SetTimer(DistanceCheckHandle, this, &AEnemyController::CheckPlayerDistance, 5.f, true);
+}
+
+
+void AEnemyController::CheckPlayerDistance()
+{
+	if (!HasAuthority()) return;
+
+	float Distance = 0.f;
+	APRCharacter* NearestPlayer = FindNearestPlayer(Distance);
+
+	AEnemyCharacter* EnemyChar = Cast<AEnemyCharacter>(GetPawn());
+
+	if (!NearestPlayer)
+	{
+		if (bIsAIActive)
+		{
+			DeactivateAI();
+			SetPerceptionActive(false);
+			
+			if (EnemyChar)
+			{
+				EnemyChar->DisableAnimInstance();
+			}
+		}
+		return;
+	}
+
+	if (Distance <= 1800.f && !bIsAIActive)
+	{
+		SetPerceptionActive(true); 
+		ActivateAI();
+		
+		if (EnemyChar)
+		{
+			EnemyChar->RestoreAnimInstance();
+		}
+	}
+	else if (Distance > 2200.f && bIsAIActive)
+	{
+		DeactivateAI();
+		SetPerceptionActive(false);
+		
+		if (EnemyChar)
+		{
+			EnemyChar->DisableAnimInstance();
+		}
 	}
 }
 
 
 
-void AEnemyController::Tick(float DeltaTime)
+APRCharacter* AEnemyController::FindNearestPlayer(float& OutDistance)
 {
-	Super::Tick(DeltaTime);
-	
-	for (int32 i = SensedActors.Num() - 1; i >= 0; --i)
-	{
-		APRCharacter* Player = Cast<APRCharacter>(SensedActors[i]);
-		if (!Player || Player->GetbIsDead() || Player->GetbIsExtracted() || Player->GetbIsInvisible())
-		{
-			if (BlackboardComponent && BlackboardComponent->GetValueAsObject(TEXT("TargetActor")) == Player)
-			{
-				BlackboardComponent->ClearValue(TEXT("TargetActor"));
-				BlackboardComponent->SetValueAsBool(TEXT("bPlayerDetect"), false);
-			}
+	OutDistance = FLT_MAX;
+	APRCharacter* NearestPlayer = nullptr;
 
-			SensedActors.RemoveAt(i);
+	AActor* MyPawn = GetPawn();
+	if (!MyPawn) return nullptr;
+
+	for (TActorIterator<APRCharacter> It(GetWorld()); It; ++It)
+	{
+		APRCharacter* Player = *It;
+		if (!Player || Player->GetbIsDead() || Player->GetbIsExtracted() || Player->GetbIsInvisible())
+			continue;
+
+		const float Dist = FVector::Dist(Player->GetActorLocation(), MyPawn->GetActorLocation());
+		if (Dist < OutDistance)
+		{
+			OutDistance = Dist;
+			NearestPlayer = Player;
 		}
+	}
+
+	return NearestPlayer;
+}
+
+
+void AEnemyController::ActivateAI()
+{
+	if (bIsAIActive || !DefaultBehaviorTree) return;
+	
+	if (!BrainComponent || !BrainComponent->IsRunning())
+	{
+		const bool bSuccess = RunBehaviorTree(DefaultBehaviorTree);
+		if (!bSuccess)
+		{
+			return;
+		}
+	}
+
+	bIsAIActive = true;
+}
+
+
+
+void AEnemyController::DeactivateAI()
+{
+	if (BrainComponent && BrainComponent->IsRunning())
+	{
+		BrainComponent->StopLogic(TEXT("Deactivated by distance"));
+	}
+	ClearBlackboardKeys();
+	bIsAIActive = false;
+}
+
+void AEnemyController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
+{
+	if (!Actor || !Actor->IsA(APRCharacter::StaticClass())) return;
+
+	APRCharacter* Player = Cast<APRCharacter>(Actor);
+	if (!Player || Player->GetbIsDead() || Player->GetbIsExtracted() || Player->GetbIsInvisible())
+	{
+		ClearDetectedPlayer();
+		return;
+	}
+
+	if (Stimulus.WasSuccessfullySensed())
+	{
+		if (!bIsAIActive)
+		{
+			ActivateAI();
+		}
+
+		if (BlackboardComponent && !BlackboardComponent->GetValueAsObject(TEXT("TargetActor")))
+		{
+			BlackboardComponent->SetValueAsObject(TEXT("TargetActor"), Actor);
+			BlackboardComponent->SetValueAsBool(TEXT("bPlayerDetect"), true);
+		}
+	}
+	else
+	{
+		ClearDetectedPlayer();
 	}
 }
 
@@ -77,25 +188,31 @@ void AEnemyController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
 
-	AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(InPawn);
-	if (!Enemy || !DefaultBehaviorTree) return;
+	if (!InPawn || !DefaultBehaviorTree)
+	{
+		return;
+	}
 
+	AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(InPawn);
+	if (!Enemy)
+	{
+		return;
+	}
+	
 	Enemy->InitAbilityActorInfo();
 	Enemy->InitializeDefaultAttributes();
 	Enemy->AddCharacterAbilities();
-
+	
 	UBlackboardComponent* BBComponent = nullptr;
-	if (UseBlackboard(DefaultBehaviorTree->BlackboardAsset, BBComponent))
+	if (!UseBlackboard(DefaultBehaviorTree->BlackboardAsset, BBComponent) || !BBComponent)
 	{
-		BlackboardComponent = BBComponent;
-		RunBehaviorTree(DefaultBehaviorTree);
-
-		if (BlackboardComponent)
-		{
-			BlackboardComponent->SetValueAsVector(FName("StartPosition"), Enemy->GetActorLocation());
-		}
+		return;
 	}
+
+	BlackboardComponent = BBComponent;
+	BlackboardComponent->SetValueAsVector(FName("StartPosition"), Enemy->GetActorLocation());
 }
+
 
 void AEnemyController::OnUnPossess()
 {
@@ -108,12 +225,8 @@ void AEnemyController::ClearBlackboardKeys()
 	if (!BlackboardComponent) return;
 
 	static const TArray<FName> KeysToClear = {
-		TEXT("TargetActor"),
-		TEXT("bPlayerDetect"),
-		TEXT("bIsBusy"),
-		TEXT("bInAttackRange"),
-		TEXT("bDetect"),
-		TEXT("bIsAttacking")
+		TEXT("TargetActor"), TEXT("bPlayerDetect"), TEXT("bIsBusy"),
+		TEXT("bInAttackRange"), TEXT("bDetect"), TEXT("bIsAttacking")
 	};
 
 	for (const FName& Key : KeysToClear)
@@ -121,66 +234,6 @@ void AEnemyController::ClearBlackboardKeys()
 		BlackboardComponent->ClearValue(Key);
 	}
 }
-
-void AEnemyController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
-{
-	if (!Actor || !Actor->IsA(APRCharacter::StaticClass())) return;
-
-	if (!Stimulus.WasSuccessfullySensed())
-	{
-		SensedActors.Remove(Actor);
-		return;
-	}
-	
-	if (APRCharacter* Player = Cast<APRCharacter>(Actor))
-	{
-		if (Player->GetbIsDead() || Player->GetbIsExtracted() || Player->GetbIsInvisible())
-		{
-			SensedActors.Remove(Actor);
-
-			if (BlackboardComponent)
-			{
-				BlackboardComponent->ClearValue(TEXT("TargetActor"));
-				BlackboardComponent->SetValueAsBool(TEXT("bPlayerDetect"), false);
-			}
-			return;
-		}
-	}
-	
-	if (!SensedActors.Contains(Actor))
-	{
-		SensedActors.Add(Actor);
-
-		if (BlackboardComponent && !BlackboardComponent->GetValueAsObject(TEXT("TargetActor")))
-		{
-			BlackboardComponent->SetValueAsObject(TEXT("TargetActor"), Actor);
-			BlackboardComponent->SetValueAsBool(TEXT("bPlayerDetect"), true);
-		}
-	}
-
-	if (Stimulus.Type == UAISense::GetSenseID<UAISense_Hearing>())
-	{
-		if (GetPawn())
-		{
-			const FVector Direction = (Stimulus.StimulusLocation - GetPawn()->GetActorLocation()).GetSafeNormal();
-			const FRotator LookAtRotation(0.f, Direction.Rotation().Yaw, 0.f);
-			GetPawn()->SetActorRotation(LookAtRotation);
-		}
-	}
-	
-	else if (Stimulus.Type == UAISense::GetSenseID<UAISense_Damage>())
-	{
-		if (GetPawn())
-		{
-			const FVector Direction = (Actor->GetActorLocation() - GetPawn()->GetActorLocation()).GetSafeNormal();
-			const FRotator LookAtRotation(0.f, Direction.Rotation().Yaw, 0.f);
-			GetPawn()->SetActorRotation(LookAtRotation);
-		}
-	}
-}
-
-
-
 
 void AEnemyController::ClearDetectedPlayer()
 {
@@ -194,4 +247,14 @@ void AEnemyController::ClearDetectedPlayer()
 const TArray<AActor*>& AEnemyController::GetSensedActors() const
 {
 	return SensedActors;
+}
+
+void AEnemyController::SetPerceptionActive(bool bEnable)
+{
+	if (!AIPerceptionComponent) return;
+
+	AIPerceptionComponent->SetComponentTickEnabled(bEnable);
+	AIPerceptionComponent->SetActive(bEnable);
+	AIPerceptionComponent->bAutoActivate = bEnable;
+	AIPerceptionComponent->Activate(bEnable);
 }

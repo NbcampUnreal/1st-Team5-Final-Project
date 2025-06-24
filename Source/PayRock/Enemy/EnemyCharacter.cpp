@@ -11,6 +11,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "PayRock/AbilitySystem/PRAbilitySystemComponent.h"
 #include "PayRock/AbilitySystem/PRAttributeSet.h"
+#include "PayRock/GameSystem/PRGameState.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "Perception/AISense_Hearing.h"
 
@@ -30,7 +31,11 @@ AEnemyCharacter::AEnemyCharacter()
 	
 	PawnNoiseEmitterComp = CreateDefaultSubobject<UPawnNoiseEmitterComponent>(TEXT("PawnNoiseEmitter"));
 
-	NavInvoker = CreateDefaultSubobject<UNavigationInvokerComponent>(TEXT("NavInvoker"));
+	bReplicates = true;
+	bAlwaysRelevant = true;
+
+	GetMesh()->SetIsReplicated(true);
+	GetMesh()->SetOnlyOwnerSee(false);
 }
 
 void AEnemyCharacter::ToggleWeaponCollision(bool bEnable)
@@ -49,6 +54,11 @@ void AEnemyCharacter::BeginPlay()
 	{
 		StimuliSourceComponent->RegisterForSense(TSubclassOf<UAISense_Hearing>());
 		StimuliSourceComponent->RegisterWithPerceptionSystem();
+	}
+
+	if (GetMesh() && GetMesh()->GetAnimInstance())
+	{
+		SavedAnimClass = GetMesh()->GetAnimClass();
 	}
 }
 
@@ -129,6 +139,13 @@ void AEnemyCharacter::Die(FVector HitDirection)
 		AICon->UnPossess();
 	}
 
+	if (HasAuthority())
+	{
+		if (APRGameState* GS = GetWorld()->GetGameState<APRGameState>())
+		{
+			GS->DieMonsterCount++;
+		}
+	}
 	if (ContainerClass)
 	{
 		FVector Start = GetActorLocation() + FVector(0.f, 0.f, 100.f);
@@ -232,5 +249,21 @@ void AEnemyCharacter::Multicast_PlayDetectMontage_Implementation(UAnimMontage* M
 	if (AnimInstance)
 	{
 		AnimInstance->Montage_Play(Montage);
+	}
+}
+
+void AEnemyCharacter::DisableAnimInstance()
+{
+	if (GetMesh())
+	{
+		GetMesh()->SetAnimInstanceClass(nullptr);
+	}
+}
+
+void AEnemyCharacter::RestoreAnimInstance()
+{
+	if (GetMesh() && *SavedAnimClass)
+	{
+		GetMesh()->SetAnimInstanceClass(SavedAnimClass);
 	}
 }

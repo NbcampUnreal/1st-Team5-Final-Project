@@ -24,7 +24,7 @@ ANecroCharacter::ANecroCharacter()
 	GetCharacterMovement()->bSnapToPlaneAtStart = true;
 	GetCharacterMovement()->bUseControllerDesiredRotation = false;
 	GetCharacterMovement()->bIgnoreClientMovementErrorChecksAndCorrection = false;
-	GetCharacterMovement()->MaxWalkSpeed = 300.f;
+	GetCharacterMovement()->MaxWalkSpeed = 550.f;
 
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = true;
@@ -51,8 +51,7 @@ void ANecroCharacter::BeginPlay()
 	
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECR_Ignore);
-	/* TODO: Delete this! We want to go through the walls */ GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Block);
-	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_GameTraceChannel6, ECR_Block);
 	/* TODO: ECR_Block to the Salt / Garlic item so the character can be hit */
 	
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -222,8 +221,7 @@ void ANecroCharacter::InitAbilityActorInfo()
 		if (!UIManager) return;
 		UIManager->RemoveAllWidgets();
 		UIManager->RemoveAllWidgetControllers();
-		// TODO: Show Necro HUD
-		UIManager->ShowWidget(EWidgetCategory::InGameHUD);
+		UIManager->ShowWidget(EWidgetCategory::NecroHUD);
 	}
 }
 

@@ -4,17 +4,12 @@
 #include "InGameWidget.h"
 #include "PayRock/GameSystem/PRGameState.h"
 #include "Components/TextBlock.h"
-#include "HealthBar.h"
-#include "ManaBar.h"
+#include "Components/Border.h"
 
 void UInGameWidget::OnWidgetControllerSet()
 {
 	Super::OnWidgetControllerSet();
-	
-	// UI �ʱ� ǥ��
-	UpdateTimeInfo();
 
-	// 1�ʸ��� ���� (Ÿ�̸� ����)
 	GetWorld()->GetTimerManager().SetTimer(
 		UpdateTimerHandle,
 		this,
@@ -23,31 +18,42 @@ void UInGameWidget::OnWidgetControllerSet()
 		true
 	);
 
-	// ���� ���� ��Ʈ�ѷ� !!!!! �߿� (GAS ���� �޾ƿ����� ���)
-	HealthBar->SetWidgetController(WidgetController);
-	ManaBar->SetWidgetController(WidgetController);
-	BlessingIcon->SetWidgetController(WidgetController);
+	if (HealthBar) { HealthBar->SetWidgetController(WidgetController); }
+	if (ManaBar) { ManaBar->SetWidgetController(WidgetController); }
+	if (BlessingSkill) { BlessingSkill->SetWidgetController(WidgetController); }
+	if (AccessorySkill) { AccessorySkill->SetWidgetController(WidgetController); }
+	if (WeaponSkill) { WeaponSkill->SetWidgetController(WidgetController); }
+	if (NecroExpel) { NecroExpel->SetWidgetController(WidgetController); }
+	if (NecroSlow) { NecroSlow->SetWidgetController(WidgetController); }
+	if (NecroBlind) { NecroBlind->SetWidgetController(WidgetController); }
+
+	if (UOverlayWidgetController* OverlayWC = Cast<UOverlayWidgetController>(WidgetController))
+	{
+		OverlayWC->OnNotificationRequest.AddUniqueDynamic(this, &UInGameWidget::DisplayNotification);
+	}
+}
+
+void UInGameWidget::DisplayNotification(ENotificationType Type)
+{
+	NotificationBackground->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+	NotificationText->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+	if (FText* Text = NotificationMessages.Find(Type))
+	{
+		NotificationText->SetText(*Text);
+	}
+	PlayAnimation(NotificationAnim);
 }
 
 void UInGameWidget::UpdateTimeInfo()
 {
 	if (APRGameState* GS = GetWorld()->GetGameState<APRGameState>())
 	{
-		 const int32 RemainingTime = GS->GetRemainingTime();
-		 const int32 ExtractionTime = GS->GetRemainingExtractionTime();
+		const int32 RemainingTime = GS->GetRemainingTime();
 
-		 // 매치 남은 시간 표시
 		if (Text_RemainingTime)
 		{
 			const FString TimeStr = FString::Printf(TEXT("%d"), RemainingTime);
 			Text_RemainingTime->SetText(FText::FromString(TimeStr));
-		}
-
-		// 탈출까지 남은 시간 표시
-		if (Text_ExtractionTime)
-		{
-			const FString ExtractionStr = FString::Printf(TEXT("%d"), ExtractionTime);
-			Text_ExtractionTime->SetText(FText::FromString(ExtractionStr));
 		}
 	}
 }

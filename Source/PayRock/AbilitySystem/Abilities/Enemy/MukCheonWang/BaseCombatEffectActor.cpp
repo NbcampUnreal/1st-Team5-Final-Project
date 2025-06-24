@@ -27,7 +27,7 @@ void ABaseCombatEffectActor::BeginPlay()
 
 	if (CollisionComponent)
 	{
-		CollisionComponent->OnComponentBeginOverlap.AddDynamic(this, &ABaseCombatEffectActor::OnEffectOverlap);
+		CollisionComponent->OnComponentBeginOverlap.AddUniqueDynamic(this, &ABaseCombatEffectActor::OnEffectOverlap);
 	}
 }
 

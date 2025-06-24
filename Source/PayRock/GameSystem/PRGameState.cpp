@@ -8,9 +8,11 @@
 #include "Net/UnrealNetwork.h"
 #include "GameFramework/PlayerState.h"
 #include "GameFramework/GameModeBase.h"
+#include "GameFramework/HUD.h"
 #include "Kismet/GameplayStatics.h"
 #include "PayRock/Character/BaseCharacter.h"
 #include "PayRock/Player/PRPlayerController.h"
+#include "PayRock/UI/Widget/CleanPercent.h"
 
 int32 APRGameState::GetMinimumRequirePlayers()
 {
@@ -47,7 +49,7 @@ APRGameState::APRGameState()
 	MinimumRequirePlayers = 2;  // 매치 시작시 필요한 플레이어 수
 	CurrentAmountOfPlayers = 0; // 현재 플레이어 수 초기화
 	MatchStart_CountDown = -1;  // 매치 시작 카운트다운
-	MatchDurationSeconds = 600; // 매치 시작 후 매치 지속시간
+	MatchDurationSeconds = 900; // 매치 시작 후 매치 지속시간
 	ExtractionActivationTime = 200; // 탈출구 열리는 시간
 	RemainingMatchTime = MatchDurationSeconds;
 	bReplicates = true;
@@ -64,7 +66,11 @@ void APRGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 
 	// 추가;
 	DOREPLIFETIME(APRGameState, MatchFlowState); 
-	DOREPLIFETIME(APRGameState, RemainingExtractionTime);  // 서버-> 클라로 자동 복사 매크로  
+	DOREPLIFETIME(APRGameState, RemainingExtractionTime);  // 서버-> 클라로 자동 복사 매크로
+
+	//정화시스템
+	DOREPLIFETIME(APRGameState, TotalEnemyCount);
+	DOREPLIFETIME(APRGameState, DieMonsterCount);
 
 }
 
@@ -406,6 +412,21 @@ void APRGameState::SetMatchFlowState(EMatchFlowState NewState)
 	{
 		MatchFlowState = NewState;
 		OnRep_MatchFlowState(); // 서버에서도 처리되도록 직접 호출
+	}
+}
+
+void APRGameState::OnRep_MonsterCountUpdated()
+{
+	if (APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0))
+	{
+		if (APRPlayerController* MyPC = Cast<APRPlayerController>(PC))
+		{
+			//저 겟클린 퍼센트위젯을 불러와주야함.
+			// if (UCleanPercent* CleanUI = MyPC->GetCleanPercentWidget())
+			// {
+			// 	CleanUI->SetCleanData();
+			// }
+		}
 	}
 }
 

@@ -86,25 +86,13 @@ void UGA_ChargeStamp::ApplyStampDamage(ACharacter* Avatar)
 
 	FVector SpawnLocation = bHit ? HitResult.ImpactPoint + FVector(0, 0, 50.f) : Avatar->GetActorLocation();
 
-	if (AuraEffect)
+	if (GetOwningActorFromActorInfo()->HasAuthority())
 	{
-		UNiagaraFunctionLibrary::SpawnSystemAtLocation(
-			GetWorld(),
-			AuraEffect,
-			SpawnLocation,
-			FRotator::ZeroRotator,
-			FVector(2, 2, 2)
-		);
+		if (AGeneralSkyCharacter* Monster = Cast<AGeneralSkyCharacter>(Avatar))
+		{
+			Monster->Multicast_PlayStampEffect(SpawnLocation);
+		}
 	}
-	UKismetSystemLibrary::DrawDebugLine(
-		GetWorld(),
-		Start,
-		End,
-		FLinearColor::Red,
-		5.0f,
-		5.0f
-		);
-	
 	TArray<AActor*> HitActors;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APRCharacter::StaticClass(), HitActors);
 

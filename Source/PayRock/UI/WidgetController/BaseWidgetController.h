@@ -9,6 +9,13 @@
 class UAttributeSet;
 class UAbilitySystemComponent;
 
+UENUM(BlueprintType)
+enum class ENotificationType : uint8
+{
+	ExtractionEnabled,
+	MAX
+};
+
 USTRUCT(BlueprintType)
 struct FWidgetControllerParams
 {
@@ -41,6 +48,7 @@ public:
 	bool IsAbilitySystemValid() const;
 	virtual void BroadcastInitialValues();
 	virtual void BindCallbacksToDependencies();
+	virtual void HandleRemoval();
 
 protected:
 	UPROPERTY(BlueprintReadOnly, Category = "WidgetController")

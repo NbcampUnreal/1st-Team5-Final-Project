@@ -4,19 +4,21 @@
 
 #include "CoreMinimal.h"
 #include "BaseCharacter.h"
+#include "NavigationInvokerComponent.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "PayRock/Item/PRItemEnum.h"
 #include "Blueprint/UserWidget.h"
 #include "PayRock/AbilitySystem/PRAttributeSet.h"
 #include "PRCharacter.generated.h"
 
+class UBoxComponent;
 class UNiagaraSystem;
 class USphereComponent;
 class UPRInputConfig;
-class USpringArmComponent; // 스프링 암 관련 클래스 헤더
-class UCameraComponent; // 카메라 관련 클래스 전방 선언
-struct FInputActionValue; // Enhanced Input에서 액션 값을 받을 때 사용하는 구조체
-class UPRAttributeSet; // 전방 선언
+class USpringArmComponent;
+class UCameraComponent;
+struct FInputActionValue;
+class UPRAttributeSet;
 
 UCLASS()
 class PAYROCK_API APRCharacter : public ABaseCharacter
@@ -28,37 +30,76 @@ public:
 
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void OnRep_PlayerState() override;
-
 	virtual void Tick(float DeltaSeconds) override;
-
+	
 	bool GetbIsDead() const { return bIsDead; }
 	bool GetbIsExtracted() const { return bIsExtracted; }
 	bool GetbIsInvisible() const { return bIsInvisible; }
+
+	/* Components */
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	USkeletalMeshComponent* GetWeapon2() const { return Weapon2; }
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
+	UAIPerceptionStimuliSourceComponent* StimuliSourceComponent;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CollisionComponent")
+	USphereComponent* LeftHandCollisionComp;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CollisionComponent")
+	USphereComponent* RightHandCollisionComp;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CollisionComponent")
+	UBoxComponent* WeaponCollision;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+	USkeletalMeshComponent* Weapon2;
+	UPROPERTY(EditAnywhere, Category = "Weapon")
+	FName Weapon2SocketName = FName("Weapon2Socket");
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Blessing")
+	class UBlessingComponent* BlessingComponent;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Blessing")
+	class UBuffComponent* BuffComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
+	USpringArmComponent* SpringArmComp;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
+	UCameraComponent* CameraComp;
 	
 	/* Death */
 	virtual void Die(FVector HitDirection = FVector::ZeroVector) override;
+	UFUNCTION(Client, Reliable)
+	void Client_StartGrayscaleFade();
+	void SetBlackAndWhite();
+	void ResetRagdoll();
+	
 	UPROPERTY(Replicated)
 	bool bIsDead = false;
+	float GrayscaleCurrentBlend;
+	float GrayscaleFadeRate = 0.05f;
+	float GrayscaleFadeDuration = 1.f;
+	FTimerHandle GrayscaleFadeTimer;
+	
 
+	/* 공격/피격 */
+	UFUNCTION(Server, Reliable)
+	void ServerPlayAttackSound(USoundBase* Sound, FVector Location);
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastPlayAttackSound(USoundBase* Sound, FVector Location);
+	
+	UFUNCTION(Client, Reliable)
+	void Client_PlayHitMarker();
 	void ShakeCamera();
+	void PlayHitOverlay();
+	void PlayHitMarker();
 
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UUserWidget> HitOverlayWidgetClass;
-
+	UPROPERTY()
 	UUserWidget* HitOverlayWidget = nullptr;
-
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UUserWidget> HitMarkerWidgetClass;
-
+	UPROPERTY()
 	UUserWidget* HitMarkerWidget = nullptr;
-
-	void PlayHitOverlay();
-
-	UFUNCTION(Client, Reliable)
-	void Client_PlayHitMarker();
-
-	void PlayHitMarker();
-
+	
 	FTimerHandle CameraShakeTimerHandle;
 
 	/* Extraction */
@@ -68,16 +109,17 @@ public:
 	void MulticastExtraction();
 	UFUNCTION()
 	void HideCharacter();
+	
 	UPROPERTY(EditDefaultsOnly, Category = "Extraction")
 	UNiagaraSystem* ExtractionNiagara;
-	/*UPROPERTY(EditDefaultsOnly, Category = "Extraction")
-	UAnimMontage* ExtractionMontage;*/
 	UPROPERTY(EditDefaultsOnly, Category = "Extraction")
 	float HideDelay = 2.5f;
 	UPROPERTY(Replicated)
 	bool bIsExtracted = false;
 
 	/* Status */
+	UFUNCTION()
+	void UpdateClothesColor();
 	UPROPERTY(Replicated)
 	bool bIsInvisible = false;
 
@@ -92,51 +134,36 @@ public:
 	float ComboTime;
 	FTimerHandle ComboTimerHandle;
 
-	// SpringArm Component
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
-	USpringArmComponent* SpringArmComp;
-
-	// Camera Component
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
-	UCameraComponent* CameraComp;
-
-	// Aiming 카메라 전용 설정
-	float DefaultArmLength;
-	float AimingArmLength;
+	/* Camera */
+	/* Aim */
+	UFUNCTION(Server, Reliable)
+	void ServerSetAiming(bool bNewAiming);
+	UFUNCTION()
+	void OnRep_IsAiming();
 
 	//관전용 카메라 컨트롤 Replication
 	UPROPERTY(Replicated)
 	FRotator ReplicatedControlRotation;
-	
+	float DefaultArmLength;
 	FVector DefaultSocketOffset = FVector::ZeroVector;
+	float AimingArmLength;
 	FVector AimingSocketOffset = FVector(0.f, 20.f, 30.f);
-
 	float CameraInterpSpeed;
+
+	/*** Movement ***/
+	/* 속도 Speed */
+	UFUNCTION()
+	void OnRep_MaxWalkSpeed();
+	void SetSpeedMode(bool bSprintState);
+	void SetCrouchSpeed();
+	void ResetToWalkSpeed();
 
 	UPROPERTY(ReplicatedUsing = OnRep_MaxWalkSpeed)
 	float ReplicatedMaxWalkSpeed;
-
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 	float CurrentTargetSpeed;
-
 	UPROPERTY(EditDefaultsOnly, Category = "Movement|Interp")
 	float CurrentInterpRate;
-
-	//AI 감지 관련 함수
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
-	UAIPerceptionStimuliSourceComponent* StimuliSourceComponent;
-	
-	// Fist Collision Component
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CollisionComponent")
-	USphereComponent* LeftHandCollisionComp;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CollisionComponent")
-	USphereComponent* RightHandCollisionComp;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
-	USkeletalMeshComponent* Weapon2;
-	UPROPERTY(EditAnywhere, Category = "Weapon")
-	FName Weapon2SocketName = FName("Weapon2Socket");
-
-	// Move Speed Property
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	float NormalSpeed;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
@@ -153,69 +180,74 @@ public:
 	float SpeedInterpRateSprint = 6.f;
 	UPROPERTY(EditDefaultsOnly, Category = "Movement|Interp")
 	float SpeedInterpRateWalk = 3.f;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Blessing")
-	class UBlessingComponent* BlessingComponent;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Blessing")
-	class UBuffComponent* BuffComponent;
-
-	// Mouse Sensitivity
 	UPROPERTY(EditAnywhere, Category = "Input")
 	float MouseSensitivity;
 
-	//애니메이션 상태 리플리케이션용 변수들
-	//캐릭터 방향 계산
+	/* 방향 Direction */
 	UFUNCTION(BlueprintCallable, Category = "Movement")
 	float CalculateDirectionCustom(const FVector& Velocity, const FRotator& BaseRotation);
-
-	// 블렌드 스페이스에 사용될 이동 방향
 	UPROPERTY(ReplicatedUsing = OnRep_MoveDirection, VisibleAnywhere, BlueprintReadOnly, Category = "Anim|Movement")
 	float MoveDirection = 0.f;
 
-	// 걷기/뛰기
-	UPROPERTY(ReplicatedUsing = OnRep_Sprinting, VisibleAnywhere, BlueprintReadOnly, Category = "Anim|Movement")
-	bool bIsSprinting = false;
-
-	UFUNCTION(BlueprintCallable)
-	bool IsSprinting() const { return bIsSprinting; }
-
-	// 앉기
-	UPROPERTY(ReplicatedUsing = OnRep_Crouching, VisibleAnywhere, BlueprintReadOnly, Category = "Anim|Movement")
-	bool bIsCrouching = false;
-
-	// 공중 여부 (점프/낙하)
-	UPROPERTY(ReplicatedUsing = OnRep_InAir, VisibleAnywhere, BlueprintReadOnly, Category = "Anim|Movement")
-	bool bIsInAir = false;
-
-	// 방어 중인지
-	UPROPERTY(ReplicatedUsing = OnRep_Guarding, VisibleAnywhere, BlueprintReadOnly, Category = "Anim|Combat")
-	bool bIsGuarding = false;
-
-	UPROPERTY(ReplicatedUsing = OnRep_JustJumped, VisibleAnywhere, BlueprintReadOnly, Category = "Anim|Movement")
-	bool bJustJumped = false;
-
-	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Anim|Movement")
-	bool bIsDoubleJumping = false;
-
-	UPROPERTY(ReplicatedUsing = OnRep_IsAiming, VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
-	bool bIsAiming = false;
-
+	/* 점프 Jump */
+	UFUNCTION(Server, Reliable)
+	void ServerStartJump();
 	UFUNCTION(BlueprintCallable, Category = "Anim|Movement")
 	float GetLastJumpDirection() const { return LastJumpDirection; }
-
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Anim|Movement")
+	float LastJumpDirection = 0.f;
+	UPROPERTY(ReplicatedUsing = OnRep_InAir, VisibleAnywhere, BlueprintReadOnly, Category = "Anim|Movement")
+	bool bIsInAir = false;
+	UPROPERTY(ReplicatedUsing = OnRep_JustJumped, VisibleAnywhere, BlueprintReadOnly, Category = "Anim|Movement")
+	bool bJustJumped = false;
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Anim|Movement")
+	bool bIsDoubleJumping = false;
 	bool bResetJustJumpedNextFrame = false;
 	float JustJumpedElapsedTime = 0.f;
 
-	UFUNCTION()
-	void OnRep_MaxWalkSpeed();
-
-	void SetSpeedMode(bool bSprintState);
-	void SetCrouchSpeed();
-	void ResetToWalkSpeed();
-
+	/* 착지 Land */
 	UFUNCTION(Server, Reliable)
-	void ServerStartJump();
+	void ServerRequestLandingSound(FVector Location, USoundBase* Sound);
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastPlayLandingSound(FVector Location, USoundBase* Sound);
+	USoundBase* GetLandingSoundBySurface(EPhysicalSurface SurfaceType);
+	void Landed(const FHitResult& Hit);
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Sound")
+	USoundBase* DefaultLandSound;
 
+	FTimerHandle SpinSoundTimerHandle;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Spin")
+	float SpinSoundInterval = 0.25f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Sound")
+	USoundBase* SpinSound;
+
+	void PlaySpinSound();
+
+
+
+	/* 달리기 Sprint */
+	UFUNCTION(Server, Reliable)
+	void ServerStartSprint();
+	UFUNCTION(Server, Reliable)
+	void ServerStopSprint();
+	UFUNCTION(BlueprintCallable)
+	bool IsSprinting() const { return bIsSprinting; }
+	UPROPERTY(ReplicatedUsing = OnRep_Sprinting, VisibleAnywhere, BlueprintReadOnly, Category = "Anim|Movement")
+	bool bIsSprinting = false;
+	
+	UPROPERTY(ReplicatedUsing = OnRep_Crouching, VisibleAnywhere, BlueprintReadOnly, Category = "Anim|Movement")
+	bool bIsCrouching = false;
+	
+	UPROPERTY(ReplicatedUsing = OnRep_Guarding, VisibleAnywhere, BlueprintReadOnly, Category = "Anim|Combat")
+	bool bIsGuarding = false;
+	
+	UPROPERTY(ReplicatedUsing = OnRep_IsAiming, VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
+	bool bIsAiming = false;
+	
 	/* Double Jump */
 	UFUNCTION(Server, Reliable)
 	void Server_DoubleJump();
@@ -237,104 +269,64 @@ public:
 	void StartSpin();
 	UFUNCTION(BlueprintCallable)
 	void StopSpin();
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_PlaySpinSound();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_StopAllSpinSounds();
 	UPROPERTY(Replicated)
 	bool bShouldSpin;
 	float SpinSpeed = 1440.f;
-
-	UFUNCTION(Server, Reliable)
-	void ServerStartSprint();
-
-	UFUNCTION(Server, Reliable)
-	void ServerStopSprint();
-
-	UFUNCTION(Server, Reliable)
-	void ServerSetAiming(bool bNewAiming);
-
-	// 마지막 점프 시점의 이동 방향
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Anim|Movement")
-	float LastJumpDirection = 0.f;
-
-	UFUNCTION()
-	void OnRep_IsAiming();
-
-	// 기존
-	UPROPERTY(Replicated, BlueprintReadWrite, Category = "Weapon")
-	EWeaponType CurrentWeaponType;
-
+	UPROPERTY()
+	TArray<UAudioComponent*> ActiveSpinSounds;
+	
+	/* Weapon */
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	void SetWeaponType(EWeaponType NewType);
-
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	EWeaponType GetCurrentWeaponType() const { return CurrentWeaponType; }
-
-	UFUNCTION(BlueprintCallable, Category = "Weapon")
-	USkeletalMeshComponent* GetWeapon2() const { return Weapon2; }
-
-	// 발소리 관련
+	UPROPERTY(Replicated, BlueprintReadWrite, Category = "Weapon")
+	EWeaponType CurrentWeaponType;
+	
+	/* 발소리 관련 Footstep */
 	UFUNCTION(Server, Reliable)
 	void ServerRequestFootstep(FVector Location, USoundBase* Sound);
-
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastPlayFootstep(FVector Location, USoundBase* Sound);
-
 	UFUNCTION(BlueprintCallable)
 	USoundBase* GetFootstepSoundBySurface(EPhysicalSurface SurfaceType);
-
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Footstep")
+	USoundBase* DefaultFootstepSound;
 	UPROPERTY(EditAnywhere, Category = "Sound")
 	TArray<USoundBase*> FootstepSounds;
-
-	int32 FootstepSoundIndex = 0; // 순차 재생용 인덱스
-
 	UPROPERTY(EditAnywhere, Category = "Sound")
 	USoundAttenuation* FootstepAttenuation;
 
+	int32 FootstepSoundIndex = 0;// 순차 재생용 인덱스
 
-	// 발소리 사운드 큐
-	UPROPERTY(EditDefaultsOnly, Category = "Footstep")
-	USoundBase* DefaultFootstepSound;
-
-	// 착지
-	UFUNCTION(Server, Reliable)
-	void ServerRequestLandingSound(FVector Location, USoundBase* Sound);
-
-	UFUNCTION(NetMulticast, Reliable)
-	void MulticastPlayLandingSound(FVector Location, USoundBase* Sound);
-
-	UPROPERTY(EditDefaultsOnly, Category = "Sound")
-	USoundBase* DefaultLandSound;
-
-	USoundBase* GetLandingSoundBySurface(EPhysicalSurface SurfaceType);
-
-	void Landed(const FHitResult& Hit);
-
-	UFUNCTION(Server, Reliable)
-	void ServerPlayAttackSound(USoundBase* Sound, FVector Location);
-
-	UFUNCTION(NetMulticast, Reliable)
-	void MulticastPlayAttackSound(USoundBase* Sound, FVector Location);
 
 protected:
 	virtual void BeginPlay() override;
 	virtual void AddCharacterAbilities() override;
-
+	virtual void BindToTagChange() override;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Ability|Cost")
+	TSubclassOf<UGameplayEffect> GE_SprintManaCost;
+	UPROPERTY(EditDefaultsOnly, Category = "Ability|Cost")
+	TSubclassOf<UGameplayEffect> GE_JumpManaCost;
 	UPROPERTY()
 	UPRAttributeSet* PRAttributeSet;
 
 	FActiveGameplayEffectHandle ActiveSprintGEHandle;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Ability|Cost")
-	TSubclassOf<UGameplayEffect> GE_SprintManaCost;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Ability|Cost")
-	TSubclassOf<UGameplayEffect> GE_JumpManaCost;
-
-	virtual void BindToTagChange() override;
-	
 private:
 	virtual void InitAbilityActorInfo() override;
 	void SetupStimuliSource();
 
 protected:
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
 	// Equipped Ability Spec Handles
 	UPROPERTY(BlueprintReadWrite)
 	TArray<FGameplayAbilitySpecHandle> WeaponAbilityHandles;
@@ -345,11 +337,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Interaction")
 	float InteractionDistance = 100.f;
-
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-	// IA_Move와 IA_Jump 등을 처리할 함수 원형
-	// Enhanced Input에서 액션 값은 FInputActionValue로 전달
+	
 	UFUNCTION()
 	void Move(const FInputActionValue& value);
 	UFUNCTION()
@@ -377,38 +365,38 @@ protected:
 
 	UFUNCTION()
 	void OnRep_MoveDirection();
-
 	UFUNCTION()
 	void OnRep_Sprinting();
-
 	UFUNCTION()
 	void OnRep_Crouching();
-
 	UFUNCTION()
 	void OnRep_InAir();
-
 	UFUNCTION()
 	void OnRep_Guarding();
-
 	UFUNCTION()
 	void OnRep_JustJumped();
 
 	void SetJustJumped(bool bNewValue); // 인라인 가능
-
 	void ResetJustJumped();
 
 	// 점프 상태를 일정 시간 후 초기화하기 위한 타이머 핸들
 	FTimerHandle JumpResetHandle;
 
-
 private:
-	/*
-	 *	Ability Callback for Input Tag
-	 */
+	/* Ability Callback for Input Tag */
 	void AbilityInputTagPressed(FGameplayTag InputTag);
 	void AbilityInputTagReleased(FGameplayTag InputTag);
 	void AbilityInputTagHeld(FGameplayTag InputTag);
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<UPRInputConfig> InputConfig;
+	
+	 /*	Clothes Color */
+	UFUNCTION(Server, Reliable)
+	void Server_SetClothesColor(FLinearColor Color);
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_ApplyClothesColor(FLinearColor Color);
+	
+	UPROPERTY(Replicated)
+	FLinearColor ClothesColor;
 };

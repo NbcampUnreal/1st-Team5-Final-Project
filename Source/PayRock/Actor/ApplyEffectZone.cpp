@@ -5,6 +5,7 @@
 #include "AbilitySystemComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SphereComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "PayRock/Character/PRCharacter.h"
 
 AApplyEffectZone::AApplyEffectZone()
@@ -13,6 +14,7 @@ AApplyEffectZone::AApplyEffectZone()
 	PrimaryActorTick.bStartWithTickEnabled = false;
 
 	bReplicates = true;
+	bAlwaysRelevant = true;
 	SetReplicateMovement(true);
 
 	RootComp = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
@@ -35,7 +37,11 @@ AApplyEffectZone::AApplyEffectZone()
 void AApplyEffectZone::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	UE_LOG(LogTemp, Warning, TEXT("[%s] BeginPlay | Authority = %d | NetRole = %d"),
+		*GetName(), HasAuthority(), (int32)GetLocalRole());
+
+	PlaySoundIfValid();
+
 	APawn* InstigatorPawn = GetInstigator();
 	if (!IsValid(InstigatorPawn)) return;
 
@@ -71,6 +77,8 @@ void AApplyEffectZone::BeginPlay()
 
 void AApplyEffectZone::Destroyed()
 {
+	UE_LOG(LogTemp, Warning, TEXT("[%s] Destroyed | Authority = %d"), *GetName(), HasAuthority());
+
 	if (HasAuthority())
 	{
 		TArray<AActor*> Targets;
@@ -81,7 +89,15 @@ void AApplyEffectZone::Destroyed()
 			RemoveEffectFromActor(TargetActor);
 		}
 	}
-	
+	if (IsValid(StaticMesh))
+	{
+		StaticMesh->SetVisibility(false, true);
+		StaticMesh->DestroyComponent();
+	}
+
+	SetActorHiddenInGame(true);
+	SetActorEnableCollision(false);
+
 	Super::Destroyed();
 }
 
@@ -135,5 +151,21 @@ void AApplyEffectZone::RemoveEffectFromActor(AActor* TargetActor)
 			TargetASC->RemoveActiveGameplayEffect(*HandlePtr);	
 		}
 		ActiveEffectMap.Remove(TargetActor);
+	}
+}
+
+void AApplyEffectZone::Multicast_PlaySoundAtLocation_Implementation(USoundBase* Sound)
+{
+	if (Sound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, Sound, GetActorLocation());
+	}
+}
+
+void AApplyEffectZone::PlaySoundIfValid()
+{
+	if (HasAuthority())
+	{
+		Multicast_PlaySoundAtLocation(ActivationSound);
 	}
 }

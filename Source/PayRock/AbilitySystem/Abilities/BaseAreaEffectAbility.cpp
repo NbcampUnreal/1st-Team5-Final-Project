@@ -6,6 +6,7 @@
 #include "Abilities/Tasks/AbilityTask_SpawnActor.h"
 #include "Engine/OverlapResult.h"
 #include "PayRock/Actor/ApplyEffectZone.h"
+#include "PayRock/Enemy/EnemyCharacter.h"
 
 
 void UBaseAreaEffectAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
@@ -15,23 +16,58 @@ void UBaseAreaEffectAbility::ActivateAbility(const FGameplayAbilitySpecHandle Ha
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
 	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
-	{			
-		constexpr bool bReplicateEndAbility = true;
-		constexpr bool bWasCancelled = true;
-		EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
-	
-	if (!bActivateImmediately) return;
+
+	if (IsValid(ActivationMontage)&&bLockInputDuringMontage)
+	{
+		AActor* Avatar = GetAvatarActorFromActorInfo();
+		if (APlayerController* PC = Cast<APlayerController>(Avatar->GetInstigatorController()))
+		{
+			Avatar->DisableInput(PC);
+			CachedController = PC;
+		}
+	}
+
+	if (IsValid(ActivationMontage))
+	{
+		MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
+			this, NAME_None, ActivationMontage, MontageRate, MontageStartSection, false); 
+
+		MontageTask->OnCompleted.AddDynamic(this, &UBaseAreaEffectAbility::OnMontageEnded);
+		MontageTask->OnInterrupted.AddDynamic(this, &UBaseAreaEffectAbility::OnMontageEnded);
+		MontageTask->OnCancelled.AddDynamic(this, &UBaseAreaEffectAbility::OnMontageEnded);
+		MontageTask->ReadyForActivation();
+	}
+
+	WaitEventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
+		this, TriggerGameplayTag, nullptr, true, true);
+	WaitEventTask->EventReceived.AddDynamic(this, &UBaseAreaEffectAbility::OnEventReceived);
+	WaitEventTask->ReadyForActivation();	
+
+	UE_LOG(LogTemp, Warning, TEXT("ActivateAbility: ASC=%s | Avatar=%s"),
+		*GetAbilitySystemComponentFromActorInfo()->GetName(),
+		*GetAvatarActorFromActorInfo()->GetName());
+}
+
+void UBaseAreaEffectAbility::OnEventReceived(FGameplayEventData Payload)
+{
+	if (!bActivateImmediately)
+	{
+		UE_LOG(LogTemp, Warning, TEXT(">> bActivateImmediately is false. Skipping."));
+		return;
+	}
 
 	if (IsValid(AdditionalEffectToApplyToSelf))
 	{
 		FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(
 			AdditionalEffectToApplyToSelf, GetAbilityLevel());
-		ActiveSelfEffectHandle = ApplyGameplayEffectSpecToOwner(GetCurrentAbilitySpecHandle(),
-			GetCurrentActorInfo(), GetCurrentActivationInfo(), SpecHandle);
+		ActiveSelfEffectHandle = ApplyGameplayEffectSpecToOwner(
+			GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), GetCurrentActivationInfo(), SpecHandle);
 	}
-	
+
 	float DurationFloat = Duration.GetValueAtLevel(GetAbilityLevel());
 	if (DurationFloat > 0.f)
 	{
@@ -47,16 +83,31 @@ void UBaseAreaEffectAbility::EndAbility(const FGameplayAbilitySpecHandle Handle,
 	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
 	bool bReplicateEndAbility, bool bWasCancelled)
 {
-	if (IsValid(EffectToApplyToSelfOnEnd) && !ActiveEndEffectHandle.IsValid())
+	if (bLockInputDuringMontage && CachedController)
 	{
-		FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(
-			EffectToApplyToSelfOnEnd, GetAbilityLevel());
-		ActiveEndEffectHandle = ApplyGameplayEffectSpecToOwner(
-			GetCurrentAbilitySpecHandle(),
-			GetCurrentActorInfo(),
-			GetCurrentActivationInfo(),
-			SpecHandle);
+		if (AActor* Avatar = GetAvatarActorFromActorInfo())
+		{
+			Avatar->EnableInput(CachedController);
+		}
+		CachedController = nullptr;
 	}
+	if (IsValid(EffectToApplyToSelfOnEnd) && !ActiveEndEffectHandle.IsValid() && bEndAbilityOnDurationEnd)
+	{
+		if (UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo())
+		{
+			FGameplayEffectContextHandle ContextHandle = SourceASC->MakeEffectContext();
+			ContextHandle.AddOrigin(GetAvatarActorFromActorInfo()->GetActorLocation());
+			FGameplayEffectSpecHandle SpecHandle = SourceASC->MakeOutgoingSpec(
+				EffectToApplyToSelfOnEnd, GetAbilityLevel(), ContextHandle);
+			ActiveEndEffectHandle = ApplyGameplayEffectSpecToOwner(
+				GetCurrentAbilitySpecHandle(),
+				GetCurrentActorInfo(),
+				GetCurrentActivationInfo(),
+				SpecHandle);
+		}
+	}
+
+	UniqueActors.Empty();
 	
 	if (IsValid(SpawnedActor))
 	{
@@ -75,6 +126,9 @@ void UBaseAreaEffectAbility::EndAbility(const FGameplayAbilitySpecHandle Handle,
 void UBaseAreaEffectAbility::SpawnEffectArea()
 {
 	if (!IsValid(EffectToApplyToOverlapActors)) return;
+
+	AActor* Avatar = GetAvatarActorFromActorInfo();
+	if (!IsValid(Avatar) || !Avatar->HasAuthority()) return;
 	
 	AActor* SourceActor = GetAvatarActorFromActorInfo();
 	FGameplayAbilityTargetDataHandle TargetDataHandle =
@@ -85,8 +139,11 @@ void UBaseAreaEffectAbility::SpawnEffectArea()
 
 	if (SpawnActorTask)
 	{
+		SpawnActorTask->ReadyForActivation();
+
 		bool bDidBeginSpawn = SpawnActorTask->BeginSpawningActor(
 			this, TargetDataHandle, AreaActorClass, SpawnedActor);
+
 		if (bDidBeginSpawn && IsValid(SpawnedActor))
 		{
 			if (AApplyEffectZone* SpawnedArea = Cast<AApplyEffectZone>(SpawnedActor))
@@ -109,6 +166,8 @@ void UBaseAreaEffectAbility::SpawnEffectArea()
 
 		GetWorld()->GetTimerManager().SetTimer(
 			TimerHandle, this, &UBaseAreaEffectAbility::RemoveEffectArea, Duration.GetValueAtLevel(GetAbilityLevel()));
+		float DurationFloat = Duration.GetValueAtLevel(GetAbilityLevel());
+		UE_LOG(LogTemp, Warning, TEXT("Duration = %f"), DurationFloat);
 	}
 	else
 	{
@@ -132,12 +191,15 @@ void UBaseAreaEffectAbility::ApplyEffectToActorsWithinRadius()
 		QueryParams.AddIgnoredActor(GetAvatarActorFromActorInfo());	
 	}
 	QueryParams.bTraceIntoSubComponents = false;
+
+	FCollisionObjectQueryParams CollisionParams;
+	CollisionParams.AddObjectTypesToQuery(ECC_Pawn);
 	
 	bool bHit = GetWorld()->OverlapMultiByObjectType(
 		Overlaps,
 		Origin,
 		FQuat::Identity,
-		FCollisionObjectQueryParams(ECollisionChannel::ECC_Pawn),
+		CollisionParams,
 		Sphere,
 		QueryParams
 	);
@@ -146,14 +208,14 @@ void UBaseAreaEffectAbility::ApplyEffectToActorsWithinRadius()
 	{
 		UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo();
 		if (!SourceASC) return;
-
-		TSet<AActor*> UniqueActors;
 		
 		for (const FOverlapResult& Result : Overlaps)
 		{
 			if (AActor* Actor = Result.GetActor())
 			{
 				if (UniqueActors.Contains(Actor)) continue;
+				if (!bIncludeAICharacters && Actor->IsA<AEnemyCharacter>()) continue;
+
 				UniqueActors.Add(Actor);
 				
 				if (UAbilitySystemComponent* TargetASC =
@@ -163,10 +225,16 @@ void UBaseAreaEffectAbility::ApplyEffectToActorsWithinRadius()
 					ContextHandle.AddOrigin(Actor->GetActorLocation());
 					FGameplayEffectSpecHandle SpecHandle = SourceASC->MakeOutgoingSpec(
 						EffectToApplyToOverlapActors, GetAbilityLevel(), ContextHandle);
+					if (bIsSetByCaller)
+					{
+						UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(
+						SpecHandle, SetByCallerTag, SetByCallerMagnitude.GetValueAtLevel(GetAbilityLevel()));	
+					}
 					SourceASC->ApplyGameplayEffectSpecToTarget(
 						*SpecHandle.Data.Get(),
 						TargetASC
 					);
+					
 				/*ApplyGameplayEffectSpecToTarget(
 					GetCurrentAbilitySpecHandle(),
 					GetCurrentActorInfo(),
@@ -196,9 +264,15 @@ void UBaseAreaEffectAbility::ApplyEffectToActorsWithinRadius()
 
 void UBaseAreaEffectAbility::RemoveEffectArea()
 {
-	if (!IsValid(SpawnedActor)) return;
-	SpawnedActor->Destroy();
-	SpawnedActor = nullptr;
+	UE_LOG(LogTemp, Warning, TEXT(">>> RemoveEffectArea called"));
+
+	if (IsValid(SpawnedActor))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Destroying SpawnedActor: %s"), *SpawnedActor->GetName());
+
+		SpawnedActor->Destroy();
+		SpawnedActor = nullptr;
+	}
 
 	GetWorld()->GetTimerManager().ClearTimer(TimerHandle);
 
@@ -206,15 +280,17 @@ void UBaseAreaEffectAbility::RemoveEffectArea()
 	{
 		K2_EndAbility();
 	}
-	else if (IsValid(EffectToApplyToSelfOnEnd))
-	{
-		FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(
-			EffectToApplyToSelfOnEnd, GetAbilityLevel());
-		ActiveEndEffectHandle = ApplyGameplayEffectSpecToOwner(
-			GetCurrentAbilitySpecHandle(),
-			GetCurrentActorInfo(),
-			GetCurrentActivationInfo(),
-			SpecHandle);
-	}
 }
 
+void UBaseAreaEffectAbility::OnMontageEnded()
+{
+	if (bLockInputDuringMontage && CachedController)
+	{
+		AActor* Avatar = GetAvatarActorFromActorInfo();
+		if (IsValid(Avatar))
+		{
+			Avatar->EnableInput(CachedController);
+		}
+		CachedController = nullptr;
+	}
+}

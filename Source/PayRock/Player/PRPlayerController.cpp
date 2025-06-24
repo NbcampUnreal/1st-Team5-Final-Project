@@ -18,10 +18,8 @@
 #include "PayRock/UI/Manager/UIManager.h"
 
 APRPlayerController::APRPlayerController()
-	: DeathOptionsWidget(nullptr)
 {
 	bReplicates = true;
-	// DeathOptionsWidgetClass = nullptr;
 }
 
 void APRPlayerController::BeginPlay()
@@ -76,25 +74,24 @@ void APRPlayerController::BindingSpector()
 }
 void APRPlayerController::Client_ShowDeathOptions_Implementation()
 {
-	UE_LOG(LogTemp, Log, TEXT("Display Death UI"))
-	if (DeathOptionsWidgetClass && !DeathOptionsWidget)
+	if (UUIManager* UIManager = GetGameInstance()->GetSubsystem<UUIManager>())
 	{
-		DeathOptionsWidget = CreateWidget<UUserWidget>(this, DeathOptionsWidgetClass);
-		if (DeathOptionsWidget)
-		{
-			DeathOptionsWidget->AddToViewport();
-			SetShowMouseCursor(true);
-			SetInputMode(FInputModeUIOnly());
-		}
+		UIManager->RemoveAllWidgets();
+		UIManager->RemoveAllWidgetControllers();
+		UIManager->ShowWidget(EWidgetCategory::LeaveOptions);
+		SetShowMouseCursor(true);
+		SetInputMode(FInputModeUIOnly());
 	}
 }
 
 void APRPlayerController::RemoveDeathOptions()
 {
-	if (DeathOptionsWidget && IsLocalController())
+	if (IsLocalController())
 	{
-		DeathOptionsWidget->RemoveFromParent();
-		DeathOptionsWidget = nullptr;
+		if (UUIManager* UIManager = GetGameInstance()->GetSubsystem<UUIManager>())
+		{
+			UIManager->RemoveWidget(EWidgetCategory::LeaveOptions);
+		}
 	}
 }
 
@@ -163,7 +160,7 @@ void APRPlayerController::SetSpectateTarget(AActor* NewTarget)
 {
 	if (!NewTarget) return;
 
-	//UnPossess();
+	// UnPossess();
 
 	if (APRCharacter* TargetCharacter = Cast<APRCharacter>(NewTarget))
 	if (TargetCharacter)
@@ -386,20 +383,34 @@ void APRPlayerController::HandleMatchFlowStateChanged(EMatchFlowState NewState)
 	switch (NewState)
 	{
 	case EMatchFlowState::WaitingToStart:
-		UIManager->RemoveWidget(EWidgetCategory::Loading);
+		UIManager->RemoveAllWidgets();
+		UIManager->RemoveAllWidgetControllers();
 		UIManager->ShowWidget(EWidgetCategory::MatchHUD);
 		break;
 	case EMatchFlowState::MatchInProgress:
-		UIManager->RemoveWidget(EWidgetCategory::MatchHUD);
-		UIManager->ShowWidget(EWidgetCategory::InGameHUD);
-		break;
-	case EMatchFlowState::ExtractionEnabled:
-		// 추가 UI 업데이트 원하면 여기에
-		break;
-	case EMatchFlowState::MatchEnded:
 		UIManager->RemoveAllWidgets();
 		UIManager->RemoveAllWidgetControllers();
+		UIManager->ShowWidget(EWidgetCategory::InGameHUD);
+		UpdateClothesColor();
 		break;
+	case EMatchFlowState::ExtractionEnabled:
+		OnExtractionEnabled.Broadcast();
+		break;
+	case EMatchFlowState::MatchEnded:
+		DisableInput(this);
+		UIManager->RemoveAllWidgets();
+		UIManager->RemoveAllWidgetControllers();
+		if (!Cast<APRPlayerState>(PlayerState)->GetIsExtracted())
+			UIManager->ShowWidget(EWidgetCategory::MatchEnd);
+		break;
+	}
+}
+
+void APRPlayerController::UpdateClothesColor()
+{
+	if (APRCharacter* PRCharacter = Cast<APRCharacter>(GetCharacter()))
+	{
+		PRCharacter->UpdateClothesColor();
 	}
 }
 
@@ -413,7 +424,8 @@ void APRPlayerController::ServerRequestNecroCharacter_Implementation()
 
 	if (APRGameMode* GameMode = GetWorld()->GetAuthGameMode<APRGameMode>())
 	{
-		GameMode->SpawnAndPossessNecroCharacter(this);
+		FVector Location = IsValid(GetCharacter()) ? GetCharacter()->GetActorLocation() : FVector(0, 0, 0);
+		GameMode->SpawnAndPossessNecroCharacter(this, GetCharacter()->GetActorLocation());
 	}
 
 	ClientOnNecroPossessed();
