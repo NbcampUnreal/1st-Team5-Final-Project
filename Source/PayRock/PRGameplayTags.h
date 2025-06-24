@@ -72,6 +72,7 @@ public:
 	FGameplayTag Status_Buff_BackAttack;
 	FGameplayTag Status_Buff_DoubleJump;
 	FGameplayTag Status_Buff_LifeSteal;
+	FGameplayTag Status_Buff_AutoCounter;
 
 	FGameplayTag Status_Debuff_Poison;
 	FGameplayTag Status_Debuff_Blind;

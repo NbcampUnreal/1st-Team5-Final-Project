@@ -190,6 +190,9 @@ void FPRGameplayTags::InitializeNativeGameplayTags()
     GameplayTags.Status_Buff_LifeSteal = UGameplayTagsManager::Get().AddNativeGameplayTag(
         FName("Status.Buff.LifeSteal")
         );
+    GameplayTags.Status_Buff_AutoCounter = UGameplayTagsManager::Get().AddNativeGameplayTag(
+        FName("Status.Buff.AutoCounter")
+        );
 
     /*
      *  Debuff
