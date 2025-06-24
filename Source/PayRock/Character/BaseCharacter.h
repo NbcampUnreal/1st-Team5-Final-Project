@@ -25,6 +25,7 @@ enum class ECharacterType : uint8
 	SamuraiStatue,
 	Skeleton,
 	Doggebi,
+	GeneralSky,
 	Boss
 };
 

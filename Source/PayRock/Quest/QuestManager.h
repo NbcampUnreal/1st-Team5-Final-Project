@@ -38,6 +38,10 @@ public:
 	void NextQuest();
 	UFUNCTION(BlueprintCallable)
 	void UpdateProgress();
+	UFUNCTION(BlueprintCallable)
+	void SetCurrentCount(int value);
+	UFUNCTION(BlueprintCallable)
+	void ResetCurrentCount();
 
 	UFUNCTION(BlueprintCallable)
 	FQuestData GetCurrentQuest() const;
