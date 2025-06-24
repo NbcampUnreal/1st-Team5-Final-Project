@@ -73,27 +73,28 @@ void AMukCheonWangCharacter::BeginPlay()
         AIPerception->OnTargetPerceptionUpdated.AddDynamic(this, &AMukCheonWangCharacter::OnTargetPerceptionUpdated);
     }
     
-   /* if (Face)
+    if (FaceCubeSceneComponent)
     {
-        TArray<USceneComponent*> Children;
-        Face->GetChildrenComponents(true, Children);
+        TArray<USceneComponent*> ChildComponents;
+        FaceCubeSceneComponent->GetChildrenComponents(true, ChildComponents);
 
-        for (USceneComponent* Child : Children)
+        for (USceneComponent* Child : ChildComponents)
         {
             OrbitParts.Add(Child);
             InitialTransforms.Add(Child, Child->GetRelativeTransform());
 
             OrbitAxisMap.Add(
-             Child,
-             FVector(
-                 FMath::FRandRange(-1.0f, 1.0f),
-                 FMath::FRandRange(-1.0f, 1.0f),
-                 FMath::FRandRange(-1.0f, 1.0f)
-             ).GetSafeNormal()
+                Child,
+                FVector(
+                    FMath::FRandRange(-1.0f, 1.0f),
+                    FMath::FRandRange(-1.0f, 1.0f),
+                    FMath::FRandRange(-1.0f, 1.0f)
+                ).GetSafeNormal()
             );
+
             OrbitSpeedMap.Add(Child, FMath::FRandRange(30.f, 100.f)); 
         }
-    }*/
+    }
     
     StartFloatingParts();
 
