@@ -141,8 +141,8 @@ private:
 //얼굴관련
 
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Floating Parts")
-	USceneComponent* Face;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Floating Parts")
+	USceneComponent* FaceCubeSceneComponent;
 	
 	TArray<USceneComponent*> OrbitParts; 
 	TMap<USceneComponent*, FTransform> InitialTransforms;
