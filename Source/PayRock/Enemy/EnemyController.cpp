@@ -186,7 +186,18 @@ void AEnemyController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
 
-	if (!InPawn || !DefaultBehaviorTree) return;
+	if (!InPawn || !DefaultBehaviorTree)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[AEnemyController] InPawn 또는 BehaviorTree가 null입니다."));
+		return;
+	}
+
+	if (!DefaultBehaviorTree->BlackboardAsset)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[AEnemyController] BehaviorTree의 BlackboardAsset이 null입니다."));
+		return;
+	}
+
 	AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(InPawn);
 	if (!Enemy) return;
 
@@ -195,7 +206,11 @@ void AEnemyController::OnPossess(APawn* InPawn)
 	Enemy->AddCharacterAbilities();
 
 	UBlackboardComponent* BBComponent = nullptr;
-	if (!UseBlackboard(DefaultBehaviorTree->BlackboardAsset, BBComponent) || !BBComponent) return;
+	if (!UseBlackboard(DefaultBehaviorTree->BlackboardAsset, BBComponent) || !BBComponent)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[AEnemyController] UseBlackboard 실패"));
+		return;
+	}
 
 	BlackboardComponent = BBComponent;
 	BlackboardComponent->SetValueAsVector(FName("StartPosition"), Enemy->GetActorLocation());
