@@ -54,7 +54,9 @@ public:
 protected:
 
 	virtual void Die(FVector HitDirection = FVector::ZeroVector) override;
-	
+	void DisableCharacter(const FVector& HitDirection);
+	void TrySpawnLoot();
+
 
 	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "Combat")
 	TObjectPtr<USphereComponent> WeaponCollision;
