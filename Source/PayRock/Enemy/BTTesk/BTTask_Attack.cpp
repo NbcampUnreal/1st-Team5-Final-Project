@@ -21,6 +21,8 @@ EBTNodeResult::Type UBTTask_Attack::ExecuteTask(UBehaviorTreeComponent& OwnerCom
 	if (Enemy->IsDead()) return EBTNodeResult::Failed;
 
 	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
+	if (!BB || !BB->GetBlackboardAsset()) return EBTNodeResult::Failed;
+
 	if (!BB || BB->GetValueAsBool(FName("bIsDead")))
 	{
 		return EBTNodeResult::Failed;

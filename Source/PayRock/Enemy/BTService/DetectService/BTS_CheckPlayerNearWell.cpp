@@ -19,7 +19,8 @@ void UBTS_CheckPlayerNearWell::TickNode(UBehaviorTreeComponent& OwnerComp, uint8
 	Super::TickNode(OwnerComp, NodeMemory, DeltaSeconds);
 
 	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
-	if (!BB) return;
+	if (!BB || !BB->GetBlackboardAsset()) return;
+
 
 	AActor* PlayerActor = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
 	if (!PlayerActor ) return;

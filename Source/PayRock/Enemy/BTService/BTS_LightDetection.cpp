@@ -26,7 +26,8 @@ Super::TickNode(OwnerComp, NodeMemory, DeltaSeconds);
 	if (!AICon) return;
 
 	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
-	if (!BB) return;
+	if (!BB || !BB->GetBlackboardAsset()) return;
+
 
 	AActor* Target = Cast<AActor>(BB->GetValueAsObject(TEXT("TargetActor")));
 	if (!Target) return;

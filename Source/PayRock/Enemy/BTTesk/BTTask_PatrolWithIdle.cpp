@@ -29,7 +29,8 @@ EBTNodeResult::Type UBTTask_PatrolWithIdle::ExecuteTask(UBehaviorTreeComponent& 
 	if (!Pawn) return EBTNodeResult::Failed;
 
 	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
-	if (!BB) return EBTNodeResult::Failed;
+	if (!BB || !BB->GetBlackboardAsset()) return EBTNodeResult::Failed;
+
 
 	FVector StartPosition = BB->GetValueAsVector("StartPosition");
 	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(GetWorld());
