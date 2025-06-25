@@ -164,6 +164,7 @@ void AEnemyCharacter::Die(FVector HitDirection)
 				if (TargetName == ShortName)
 				{
 					PRGI->GetQuestManager()->UpdateProgress();
+					UE_LOG(LogTemp, Warning, TEXT("[EnemyCharacter] UpdateProgress 호출됨 - 현재 카운트: %d"), PRGI->GetQuestManager()->GetCurrentCount());
 				}
 			}
 		}
