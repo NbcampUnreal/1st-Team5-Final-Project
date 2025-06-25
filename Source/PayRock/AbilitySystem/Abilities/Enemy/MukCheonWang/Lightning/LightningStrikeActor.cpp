@@ -21,7 +21,7 @@ ALightningStrikeActor::ALightningStrikeActor()
 
     LightningVFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("LightningVFX"));
     LightningVFX->SetupAttachment(RootComponent);
-    LightningVFX->SetRelativeLocation(FVector(0.f, 0.f, -50.f));
+    LightningVFX->SetRelativeLocation(FVector(0.f, 0.f, -25.f));
     LightningVFX->SetAutoActivate(false);
 }
 
