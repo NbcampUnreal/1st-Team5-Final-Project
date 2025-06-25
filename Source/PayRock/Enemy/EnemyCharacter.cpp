@@ -289,17 +289,29 @@ void AEnemyCharacter::Multicast_PlayDetectMontage_Implementation(UAnimMontage* M
 
 void AEnemyCharacter::DisableAnimInstance()
 {
-	if (GetMesh() && GetMesh()->GetAnimInstance())
+	if (USkeletalMeshComponent* MeshComp = GetMesh())
 	{
-		SavedAnimClass = GetMesh()->GetAnimInstance()->GetClass();
-		GetMesh()->SetAnimInstanceClass(nullptr);
+		MeshComp->bPauseAnims = true;
+		MeshComp->bNoSkeletonUpdate = true;
+		
+		if (MeshComp->GetAnimInstance())
+		{
+			SavedAnimClass = MeshComp->GetAnimInstance()->GetClass();
+			MeshComp->SetAnimInstanceClass(nullptr);
+		}
 	}
 }
 
 void AEnemyCharacter::RestoreAnimInstance()
 {
-	if (GetMesh() && SavedAnimClass)
+	if (USkeletalMeshComponent* MeshComp = GetMesh())
 	{
-		GetMesh()->SetAnimInstanceClass(SavedAnimClass);
+		MeshComp->bPauseAnims = false;
+		MeshComp->bNoSkeletonUpdate = false;
+		
+		if (SavedAnimClass)
+		{
+			MeshComp->SetAnimInstanceClass(SavedAnimClass);
+		}
 	}
 }
