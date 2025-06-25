@@ -1,61 +1,86 @@
-// PayRockGames
-
-
 #include "Boss3DTextActor.h"
+#include "Components/WidgetComponent.h"
+#include "NiagaraComponent.h"
+#include "Blueprint/UserWidget.h"
+#include "Components/TextBlock.h"
 
-#include "Components/PrimitiveComponent.h"
-
-// Sets default values
 ABoss3DTextActor::ABoss3DTextActor()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
+	bReplicates = true;
+	AActor::SetReplicateMovement(true);
 
+	RootSceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootScene"));
+	SetRootComponent(RootSceneComponent);
+
+	WidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("WidgetComponent"));
+	WidgetComponent->SetupAttachment(RootComponent);
+	WidgetComponent->SetWidgetSpace(EWidgetSpace::World);
+	WidgetComponent->SetDrawSize(FVector2D(300.f, 100.f));
+	WidgetComponent->SetTwoSided(true);
+	WidgetComponent->SetVisibility(true);
+
+	NiagaraComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NiagaraComponent"));
+	NiagaraComponent->SetupAttachment(RootComponent);
+	NiagaraComponent->SetRelativeRotation(FRotator::ZeroRotator);
 }
 
-// Called when the game starts or when spawned
 void ABoss3DTextActor::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	UPrimitiveComponent* Prim = FindComponentByClass<UPrimitiveComponent>();
-	if (!Prim) return;
+	FRotator CurrentRotation = GetActorRotation();
+	CurrentRotation.Yaw += 180.f;
+	SetActorRotation(CurrentRotation);
 
-	int32 NumMaterials = Prim->GetNumMaterials();
-	for (int32 i = 0; i < NumMaterials; ++i)
+	InitialScale = GetActorScale3D();
+
+	if (WidgetComponent && WidgetComponent->GetWidget())
 	{
-		UMaterialInterface* BaseMat = Prim->GetMaterial(i);
-		if (!BaseMat) continue;
-
-		UMaterialInstanceDynamic* DynMat = UMaterialInstanceDynamic::Create(BaseMat, this);
-		if (DynMat)
-		{
-			DynMat->SetScalarParameterValue(TEXT("Opacity"), 1.0f);
-			DynamicMaterials.Add(DynMat);
-			Prim->SetMaterial(i, DynMat);
-		}
+		WidgetComponent->InitWidget();
 	}
+
+	if (NiagaraComponent)
+	{
+		NiagaraComponent->Activate(true);
+	}
+
+	MoveSpeed = 600.f / FadeDuration;
+
+	GetWorld()->GetTimerManager().SetTimer(
+		EffectTimerHandle,
+		this,
+		&ABoss3DTextActor::UpdateEffect,
+		UpdateInterval,
+		true
+	);
 }
 
-// Called every frame
-void ABoss3DTextActor::Tick(float DeltaTime)
+
+void ABoss3DTextActor::UpdateEffect()
 {
-	Super::Tick(DeltaTime);
+	ElapsedTime += UpdateInterval;
 
-	CurrentTime += DeltaTime;
-	float Alpha = FMath::Clamp(1.0f - (CurrentTime / FadeDuration), 0.0f, 1.0f);
+	const float T = ElapsedTime / FadeDuration;
+	const float Alpha = FMath::Clamp(FMath::Pow(1.0f - T, 2.0f), 0.0f, 1.0f);
 
-	for (UMaterialInstanceDynamic* Mat : DynamicMaterials)
+	if (UUserWidget* Widget = WidgetComponent->GetUserWidgetObject())
 	{
-		if (Mat)
+		if (UTextBlock* TextBlock = Cast<UTextBlock>(Widget->GetWidgetFromName(TEXT("TextBlock_Notice"))))
 		{
-			Mat->SetScalarParameterValue(TEXT("Opacity"), Alpha);
+			FLinearColor Color = TextBlock->ColorAndOpacity.GetSpecifiedColor();
+			Color.A = Alpha;
+			TextBlock->SetColorAndOpacity(Color);
 		}
 	}
 
-	if (CurrentTime >= FadeDuration)
+	AddActorWorldOffset(GetActorForwardVector() * MoveSpeed * UpdateInterval);
+
+	const float ScaleAlpha = FMath::Clamp(T, 0.0f, 1.0f);
+	SetActorScale3D(FMath::Lerp(InitialScale, TargetScale, ScaleAlpha));
+
+	if (ElapsedTime >= FadeDuration)
 	{
 		Destroy();
 	}
 }
-

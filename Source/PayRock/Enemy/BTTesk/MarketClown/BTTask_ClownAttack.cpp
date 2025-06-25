@@ -18,7 +18,9 @@ EBTNodeResult::Type UBTTask_ClownAttack::ExecuteTask(UBehaviorTreeComponent& Own
 	AMarketClownMonster* Clown = Cast<AMarketClownMonster>(AICon ? AICon->GetPawn() : nullptr);
 	if (!Clown || !AttackAbility) return EBTNodeResult::Failed;
 	if (Clown->IsDead()) return EBTNodeResult::Failed;
-	if (UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent())
+	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
+	if (!BB || !BB->GetBlackboardAsset()) return EBTNodeResult::Failed;
+
 	{
 		if (BB->GetValueAsBool(FName("bIsDead")))
 		{
@@ -39,7 +41,7 @@ EBTNodeResult::Type UBTTask_ClownAttack::ExecuteTask(UBehaviorTreeComponent& Own
 	case ETalMaskType::Baekjeong:
 		if (ASC->TryActivateAbilityByClass(AttackAbility))
 		{
-			if (UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent())
+			if (BB)
 			{
 				BB->SetValueAsBool("bIsBusy", true);
 				BB->SetValueAsBool("bInAttackRange", false);
@@ -51,7 +53,7 @@ EBTNodeResult::Type UBTTask_ClownAttack::ExecuteTask(UBehaviorTreeComponent& Own
 	case ETalMaskType::Bune:
 		if (ASC->TryActivateAbilityByClass(BuneSpecialAttackAbility))
 		{
-			if (UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent())
+			if (BB)
 			{
 				BB->SetValueAsBool("bIsBusy", true);
 				BB->SetValueAsBool("bInAttackRange", false);
@@ -63,7 +65,7 @@ EBTNodeResult::Type UBTTask_ClownAttack::ExecuteTask(UBehaviorTreeComponent& Own
 	case ETalMaskType::Imae:
 		if (ASC->TryActivateAbilityByClass(ImaeRushAndRoarAbility))
 		{
-			if (UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent())
+			if (BB)
 			{
 				BB->SetValueAsBool("bIsBusy", true);
 				BB->SetValueAsBool("bInAttackRange", false);

@@ -23,6 +23,8 @@ EBTNodeResult::Type UBTTask_Chase::ExecuteTask(UBehaviorTreeComponent& OwnerComp
 	if (!CachedAICon) return EBTNodeResult::Failed;
 
 	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
+	if (!BB || !BB->GetBlackboardAsset()) return EBTNodeResult::Failed;
+
 	if (!BB || BB->GetValueAsBool("bIsBusy") || BB->GetValueAsBool("bIsAttacking")) return EBTNodeResult::Failed;
 
 	AActor* Target = Cast<AActor>(BB->GetValueAsObject("TargetActor"));

@@ -24,7 +24,9 @@ EBTNodeResult::Type UBTTask_NormalAttack::ExecuteTask(UBehaviorTreeComponent& Ow
 
 	if (ASC->TryActivateAbilityByClass(AttackAbility))
 	{
-		if (UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent())
+		UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
+		if (!BB || !BB->GetBlackboardAsset()) return EBTNodeResult::Failed;
+
 		{
 			BB->SetValueAsBool("bInAttackRange", false);
 			BB->SetValueAsBool("bIsAttacking", true);

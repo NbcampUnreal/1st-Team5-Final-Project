@@ -25,7 +25,8 @@ EBTNodeResult::Type UBTTask_ClownChase::ExecuteTask(UBehaviorTreeComponent& Owne
 	if (!CachedAICon || !CachedAICon->IsValidLowLevelFast()) return EBTNodeResult::Failed;
 
 	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
-	if (!BB) return EBTNodeResult::Failed;
+	if (!BB || !BB->GetBlackboardAsset()) return EBTNodeResult::Failed;
+
 
 	APawn* Pawn = CachedAICon->GetPawn();
 	if (!Pawn || BB->GetValueAsBool("bIsBusy") || BB->GetValueAsBool("bIsAttacking"))

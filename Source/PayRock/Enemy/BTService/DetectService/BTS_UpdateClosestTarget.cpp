@@ -41,6 +41,8 @@ void UBTS_UpdateClosestTarget::TickNode(UBehaviorTreeComponent& OwnerComp, uint8
 	if (ClosestActor)
 	{
 		UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
+		if (!BB || !BB->GetBlackboardAsset()) return;
+
 		if (BB)
 		{
 			BB->SetValueAsObject(GetSelectedBlackboardKey(), ClosestActor);

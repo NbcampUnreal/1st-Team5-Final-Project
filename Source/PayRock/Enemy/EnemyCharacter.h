@@ -41,6 +41,8 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Split")
 	bool bIsClone = false;
+
+	TSubclassOf<AActor> GetSpawnedActor() { return SpawnerClass; }
 	
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_PlayGradualSound(USoundBase* InSound, float MaxDistance, float Volume, float Loudness);
@@ -59,6 +61,11 @@ public:
 	void Multicast_PlayAttackSound(USoundBase* Sound);
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Sound")
 	USoundAttenuation* AttackAttenuation;
+
+	UFUNCTION(Client, Reliable)
+void Client_NotifyQuestKill(APlayerController* KillerPC);
+
+
 	
 protected:
 	virtual void Die(FVector HitDirection = FVector::ZeroVector) override;
@@ -86,4 +93,8 @@ protected:
 
 	UPROPERTY()
 	TSubclassOf<UAnimInstance> SavedAnimClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawner")
+	TSubclassOf<AActor> SpawnerClass;
+
 };

@@ -16,7 +16,8 @@ EBTNodeResult::Type UBTTask_ReturnToStart::ExecuteTask(UBehaviorTreeComponent& O
 	if (!AICon) return EBTNodeResult::Failed;
 
 	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
-	if (!BB) return EBTNodeResult::Failed;
+	if (!BB || !BB->GetBlackboardAsset()) return EBTNodeResult::Failed;
+
 
 	FVector StartPos = BB->GetValueAsVector(TEXT("StartPosition"));
 	APawn* Controlled = AICon->GetPawn();

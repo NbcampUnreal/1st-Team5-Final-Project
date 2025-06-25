@@ -458,10 +458,16 @@ void AMukCheonWangCharacter::Multicast_PlayAuraEffect_Implementation(UNiagaraSys
         FActorSpawnParameters SpawnParams;
         SpawnParams.Owner = this;
 
+        FVector SpawnLocation = GetActorLocation();
+        SpawnLocation.Z += 90.f;
+
+        FRotator SpawnRotation = GetActorRotation();
+        SpawnRotation.Yaw += 180.f;
+
         AActor* AuraDecal = GetWorld()->SpawnActor<AActor>(
             InFontlClass,
-            GetActorLocation(),
-            FRotator::ZeroRotator,
+            SpawnLocation,
+            SpawnRotation,
             SpawnParams
         );
 
@@ -470,4 +476,5 @@ void AMukCheonWangCharacter::Multicast_PlayAuraEffect_Implementation(UNiagaraSys
             AuraDecal->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);
         }
     }
+
 }

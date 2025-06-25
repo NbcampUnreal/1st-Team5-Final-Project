@@ -28,7 +28,9 @@ EBTNodeResult::Type UBTTask_GA_Balsadae::ExecuteTask(UBehaviorTreeComponent& Own
 
 	if (ASC->TryActivateAbilityByClass(EveryAbility))
 	{
-		if (UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent())
+		UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
+		if (!BB || !BB->GetBlackboardAsset()) return EBTNodeResult::Failed;
+
 		{
 			//BB 값 바꾸는곳
 			//BB->SetValueAsBool("bIsNeedMaskChange", false);

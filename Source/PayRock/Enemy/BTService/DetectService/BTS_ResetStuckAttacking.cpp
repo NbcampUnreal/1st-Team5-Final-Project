@@ -19,7 +19,8 @@ void UBTS_ResetStuckAttacking::TickNode(UBehaviorTreeComponent& OwnerComp, uint8
 	Super::TickNode(OwnerComp, NodeMemory, DeltaSeconds);
 
 	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
-	if (!BB) return;
+	if (!BB || !BB->GetBlackboardAsset()) return;
+
 
 	const bool bIsAttacking = BB->GetValueAsBool(FName("bIsAttacking"));
 	AActor* OwnerActor = OwnerComp.GetAIOwner() ? OwnerComp.GetAIOwner()->GetPawn() : nullptr;

@@ -21,7 +21,8 @@ void UBTS_CheckAttackRange::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* N
 	APawn* AIPawn = AICon ? AICon->GetPawn() : nullptr;
 
 	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
-	if (!AIPawn || !BB) return;
+	if (!BB || !BB->GetBlackboardAsset()) return;
+
 
 	AActor* Target = Cast<AActor>(BB->GetValueAsObject("TargetActor"));
 	if (!Target) return;
