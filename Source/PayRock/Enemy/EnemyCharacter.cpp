@@ -111,6 +111,27 @@ void AEnemyCharacter::Multicast_PlayAttackSound_Implementation(USoundBase* Sound
 	}
 }
 
+void AEnemyCharacter::Client_NotifyQuestKill_Implementation(APlayerController* KillerPC)
+{
+	if (!KillerPC) return;
+
+	if (UPRAdvancedGameInstance* PRGI = Cast<UPRAdvancedGameInstance>(UGameplayStatics::GetGameInstance(KillerPC)))
+	{
+		const FString TargetName = PRGI->GetQuestManager()->GetCurrentQuest().TargetName;
+
+		const FName CharacterTypeName = StaticEnum<ECharacterType>()->GetNameByValue((int64)CharacterType);
+		FString CharacterTypeString = CharacterTypeName.ToString();
+		FString ShortName;
+		CharacterTypeString.Split(TEXT("::"), nullptr, &ShortName);
+
+		if (TargetName == ShortName)
+		{
+			PRGI->GetQuestManager()->UpdateProgress();
+			UE_LOG(LogTemp, Log, TEXT("[Client] 퀘스트 진행도 증가: %s"), *ShortName);
+		}
+	}
+}
+
 void AEnemyCharacter::Die(FVector HitDirection)
 {
 	Super::Die(HitDirection);
@@ -152,26 +173,14 @@ void AEnemyCharacter::Die(FVector HitDirection)
 	if (HasAuthority() && LastHitInstigator)
 	{
 		ACharacter* KillerPawn = LastHitInstigator->GetCharacter();
-		if (KillerPawn)
-		{
-			UPRAdvancedGameInstance* PRGI = Cast<UPRAdvancedGameInstance>(UGameplayStatics::GetGameInstance(KillerPawn));
-			if (PRGI)
-			{
-				FString TargetName = PRGI->GetQuestManager()->GetCurrentQuest().TargetName;
+		APlayerController* KillerPC = Cast<APlayerController>(LastHitInstigator);
 
-				FName CharacterTypeName = StaticEnum<ECharacterType>()->GetNameByValue((int64)CharacterType);
-				FString CharacterTypeString = CharacterTypeName.ToString();
-				FString ShortName;
-				CharacterTypeString.Split(TEXT("::"), nullptr, &ShortName);
-				if (TargetName == ShortName)
-				{
-					PRGI->GetQuestManager()->UpdateProgress();
-					UE_LOG(LogTemp, Warning, TEXT("[EnemyCharacter] UpdateProgress 호출됨 - 현재 카운트: %d"), PRGI->GetQuestManager()->GetCurrentCount());
-				}
-			}
+		if (KillerPawn && KillerPC)
+		{
+			Client_NotifyQuestKill(KillerPC);  
+			UE_LOG(LogTemp, Log, TEXT("[Client]Die함수_클라노티파이") );
 		}
 	}
-
 	
 	if (ContainerClass)
 	{
@@ -280,17 +289,29 @@ void AEnemyCharacter::Multicast_PlayDetectMontage_Implementation(UAnimMontage* M
 
 void AEnemyCharacter::DisableAnimInstance()
 {
-	if (GetMesh() && GetMesh()->GetAnimInstance())
+	if (USkeletalMeshComponent* MeshComp = GetMesh())
 	{
-		SavedAnimClass = GetMesh()->GetAnimInstance()->GetClass();
-		GetMesh()->SetAnimInstanceClass(nullptr);
+		MeshComp->bPauseAnims = true;
+		MeshComp->bNoSkeletonUpdate = true;
+		
+		if (MeshComp->GetAnimInstance())
+		{
+			SavedAnimClass = MeshComp->GetAnimInstance()->GetClass();
+			MeshComp->SetAnimInstanceClass(nullptr);
+		}
 	}
 }
 
 void AEnemyCharacter::RestoreAnimInstance()
 {
-	if (GetMesh() && SavedAnimClass)
+	if (USkeletalMeshComponent* MeshComp = GetMesh())
 	{
-		GetMesh()->SetAnimInstanceClass(SavedAnimClass);
+		MeshComp->bPauseAnims = false;
+		MeshComp->bNoSkeletonUpdate = false;
+		
+		if (SavedAnimClass)
+		{
+			MeshComp->SetAnimInstanceClass(SavedAnimClass);
+		}
 	}
 }
