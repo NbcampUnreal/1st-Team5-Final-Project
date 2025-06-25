@@ -91,4 +91,5 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawner")
 	TSubclassOf<AActor> SpawnerClass;
+
 };
