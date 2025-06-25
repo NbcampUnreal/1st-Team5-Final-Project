@@ -15,7 +15,8 @@ APRPlayerState::APRPlayerState()
 	bReplicates = true;
 	
 	SetNetUpdateFrequency(100.f);
-
+	SetMinNetUpdateFrequency(50.f);
+	
 	AbilitySystemComponent = CreateDefaultSubobject<UPRAbilitySystemComponent>("AbilitySystemComponent");
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
