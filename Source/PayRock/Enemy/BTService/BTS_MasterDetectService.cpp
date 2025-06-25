@@ -25,7 +25,7 @@ void UBTS_MasterDetectService::TickNode(UBehaviorTreeComponent& OwnerComp, uint8
 	if (!AICon) return;
 
 	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
-	if (!BB) return;
+	if (!BB || !BB->GetBlackboardAsset()) return;
 
 	APawn* AIPawn = AICon->GetPawn();
 	if (!AIPawn) return;

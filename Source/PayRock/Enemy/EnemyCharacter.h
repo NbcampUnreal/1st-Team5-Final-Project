@@ -61,6 +61,11 @@ public:
 	void Multicast_PlayAttackSound(USoundBase* Sound);
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Sound")
 	USoundAttenuation* AttackAttenuation;
+
+	UFUNCTION(Client, Reliable)
+void Client_NotifyQuestKill(APlayerController* KillerPC);
+
+
 	
 protected:
 	virtual void Die(FVector HitDirection = FVector::ZeroVector) override;

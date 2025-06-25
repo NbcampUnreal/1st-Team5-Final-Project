@@ -19,6 +19,8 @@ void UBTS_CheckAnyPlayerNearby::TickNode(UBehaviorTreeComponent& OwnerComp, uint
 	AAIController* AICon = OwnerComp.GetAIOwner();
 	AMukCheonWangCharacter* Boss = Cast<AMukCheonWangCharacter>(AICon ? AICon->GetPawn() : nullptr);
 	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
+	if (!BB || !BB->GetBlackboardAsset()) return;
+
 
 	if (!Boss || !BB) return;
 

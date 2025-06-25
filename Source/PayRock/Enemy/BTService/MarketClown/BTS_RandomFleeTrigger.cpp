@@ -17,7 +17,8 @@ void UBTS_RandomFleeTrigger::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* 
 	Super::TickNode(OwnerComp, NodeMemory, DeltaSeconds);
 
 	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
-	if (!BB) return;
+	if (!BB || !BB->GetBlackboardAsset()) return;
+
 
 	const float RandomValue = FMath::FRand();
 	if (RandomValue <= TriggerProbability)
