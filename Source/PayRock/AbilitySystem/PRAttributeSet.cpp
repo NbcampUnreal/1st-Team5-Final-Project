@@ -196,7 +196,6 @@ float UPRAttributeSet::GetCalculatedDamage(float LocalIncomingDamage, const FEff
 
 		// Attacker's Bonus Damage multiplier (percentage)
 		const float BonusDamageMultiplier = 1.f + AttackerAttributeSet->GetBonusDamage() / 100.f;
-		if (BonusDamageMultiplier > 1.f) GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Yellow, FString::Printf(TEXT("BonusDamageMultiplier: %f"), BonusDamageMultiplier));
 		LocalIncomingDamage *= BonusDamageMultiplier;
 	}
 	
