@@ -132,7 +132,7 @@ APRCharacter* AEnemyController::FindNearestPlayer(float& OutDistance)
 }
 
 
-void AEnemyController::ActivateAI()
+void AEnemyController::ActivateAI()	
 {
 	if (bIsAIActive || !DefaultBehaviorTree) return;
 	
@@ -197,6 +197,13 @@ void AEnemyController::OnPossess(APawn* InPawn)
 
 	if (!InPawn || !DefaultBehaviorTree)
 	{
+		UE_LOG(LogTemp, Error, TEXT("[AEnemyController] InPawn 또는 BehaviorTree가 null입니다."));
+		return;
+	}
+
+	if (!DefaultBehaviorTree->BlackboardAsset)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[AEnemyController] BehaviorTree의 BlackboardAsset이 null입니다."));
 		return;
 	}
 
@@ -213,6 +220,7 @@ void AEnemyController::OnPossess(APawn* InPawn)
 	UBlackboardComponent* BBComponent = nullptr;
 	if (!UseBlackboard(DefaultBehaviorTree->BlackboardAsset, BBComponent) || !BBComponent)
 	{
+		UE_LOG(LogTemp, Error, TEXT("[AEnemyController] UseBlackboard 실패"));
 		return;
 	}
 
