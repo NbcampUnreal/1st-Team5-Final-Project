@@ -10,6 +10,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "PayRock/AbilitySystem/PRAbilitySystemComponent.h"
 #include "PayRock/AbilitySystem/PRAttributeSet.h"
+#include "PayRock/GameSystem/PRAdvancedGameInstance.h"
 #include "PayRock/GameSystem/PRGameState.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "Perception/AISense_Hearing.h"
@@ -130,6 +131,8 @@ void AEnemyCharacter::Die(FVector HitDirection)
 
 		if (UBlackboardComponent* BB = AICon->GetBlackboardComponent())
 		{
+			if (!BB || !BB->GetBlackboardAsset()) return;
+			
 			BB->SetValueAsBool(FName("bIsDead"), true);
 			BB->ClearValue("TargetActor");
 			BB->SetValueAsBool("bPlayerDetect", false);
@@ -145,6 +148,31 @@ void AEnemyCharacter::Die(FVector HitDirection)
 			GS->AddDieMonsterCount();
 		}
 	}
+
+	if (HasAuthority() && LastHitInstigator)
+	{
+		ACharacter* KillerPawn = LastHitInstigator->GetCharacter();
+		if (KillerPawn)
+		{
+			UPRAdvancedGameInstance* PRGI = Cast<UPRAdvancedGameInstance>(UGameplayStatics::GetGameInstance(KillerPawn));
+			if (PRGI)
+			{
+				FString TargetName = PRGI->GetQuestManager()->GetCurrentQuest().TargetName;
+
+				FName CharacterTypeName = StaticEnum<ECharacterType>()->GetNameByValue((int64)CharacterType);
+				FString CharacterTypeString = CharacterTypeName.ToString();
+				FString ShortName;
+				CharacterTypeString.Split(TEXT("::"), nullptr, &ShortName);
+				if (TargetName == ShortName)
+				{
+					PRGI->GetQuestManager()->UpdateProgress();
+					UE_LOG(LogTemp, Warning, TEXT("[EnemyCharacter] UpdateProgress 호출됨 - 현재 카운트: %d"), PRGI->GetQuestManager()->GetCurrentCount());
+				}
+			}
+		}
+	}
+
+	
 	if (ContainerClass)
 	{
 		FVector Start = GetActorLocation() + FVector(0.f, 0.f, 100.f);
@@ -171,7 +199,6 @@ void AEnemyCharacter::Die(FVector HitDirection)
 	}
 
 	Destroy();
-	
 }
 
 UAnimMontage* AEnemyCharacter::GetRandomAttackMontage() const

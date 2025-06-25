@@ -17,6 +17,9 @@ UBTTask_Hawling::UBTTask_Hawling()
 
 EBTNodeResult::Type UBTTask_Hawling::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
+	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
+	if (!BB || !BB->GetBlackboardAsset()) return EBTNodeResult::Failed;
+
 	AAIController* AICon = OwnerComp.GetAIOwner();
 	
 	if (AICon)

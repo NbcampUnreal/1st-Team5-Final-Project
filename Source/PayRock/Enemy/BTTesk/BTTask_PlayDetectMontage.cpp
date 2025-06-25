@@ -29,7 +29,9 @@ EBTNodeResult::Type UBTTask_PlayDetectMontage::ExecuteTask(UBehaviorTreeComponen
 		return EBTNodeResult::Failed;
 	}
 
-	if (UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent())
+	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
+	if (!BB || !BB->GetBlackboardAsset()) return EBTNodeResult::Failed;
+
 	{
 		BB->SetValueAsBool(FName("bDetect"), true);
 	}

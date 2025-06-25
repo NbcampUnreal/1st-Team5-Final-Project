@@ -20,7 +20,8 @@ EBTNodeResult::Type UBTTask_KappaIdle::ExecuteTask(UBehaviorTreeComponent& Owner
 	bShouldReturn = false;
 
 	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
-	if (!BB) return EBTNodeResult::Failed;
+	if (!BB || !BB->GetBlackboardAsset()) return EBTNodeResult::Failed;
+
 
 	StartPosition = BB->GetValueAsVector(TEXT("StartPosition"));
 	return EBTNodeResult::InProgress;

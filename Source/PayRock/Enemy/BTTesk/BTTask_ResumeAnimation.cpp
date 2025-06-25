@@ -4,6 +4,7 @@
 #include "BTTask_ResumeAnimation.h"
 
 #include "AIController.h"
+#include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "PayRock/Enemy/SpecialEnemy/SamuraiStatue/SamuraiStatueCharacter.h"
 
@@ -17,6 +18,9 @@ EBTNodeResult::Type UBTTask_ResumeAnimation::ExecuteTask(UBehaviorTreeComponent&
 {
 	AAIController* AICon = OwnerComp.GetAIOwner();
 	ASamuraiStatueCharacter* Statue = Cast<ASamuraiStatueCharacter>(AICon ? AICon->GetPawn() : nullptr);
+
+	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
+	if (!BB || !BB->GetBlackboardAsset()) return EBTNodeResult::Failed;
 
 	if (!Statue) return EBTNodeResult::Failed;
 

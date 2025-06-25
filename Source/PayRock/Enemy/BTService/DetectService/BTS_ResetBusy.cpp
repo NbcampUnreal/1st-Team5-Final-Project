@@ -19,7 +19,8 @@ void UBTS_ResetBusy::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemo
 	if (!AICon) return;
 
 	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
-	if (!BB) return;
+	if (!BB || !BB->GetBlackboardAsset()) return;
+
 
 	APawn* AIPawn = AICon->GetPawn();
 	if (!AIPawn) return;

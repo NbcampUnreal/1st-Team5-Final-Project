@@ -8,6 +8,7 @@
 #include "PayRock/Character/BaseCharacter.h"
 #include "Abilities/Blessing/BaseBlessingAbility.h"
 #include "Kismet/GameplayStatics.h"
+#include "PayRock/Enemy/EnemyCharacter.h"
 #include "PayRock/GameSystem/PRAdvancedGameInstance.h"
 
 UPRAttributeSet::UPRAttributeSet()
@@ -143,27 +144,22 @@ float UPRAttributeSet::HandleIncomingDamage(const FEffectProperties& Props, cons
 		{
 			// Handle death
 			ABaseCharacter* Character = Cast<ABaseCharacter>(Props.TargetCharacter);
+
+			if (Character && Props.SourceController)
+			{
+				AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(Character);
+				if (Enemy)
+				{
+					Enemy->LastHitInstigator = Props.SourceController; 
+				}
+			}
+			
 			if (Character && Character->HasAuthority() && Props.SourceCharacter)
 			{
 				Character->Die((Props.TargetCharacter->GetActorLocation() - Props.SourceCharacter->GetActorLocation()).GetSafeNormal());
 			}
 
-			UPRAdvancedGameInstance* PRGI = Cast<UPRAdvancedGameInstance>(UGameplayStatics::GetGameInstance(Props.SourceCharacter));
-			if (PRGI)
-			{
-				FString TargetName = PRGI->GetQuestManager()->GetCurrentQuest().TargetName;
-
-				FName CharacterTypeName = StaticEnum<ECharacterType>()->GetNameByValue((int64)Character->CharacterType);
-				
-				FString CharacterTypeString = CharacterTypeName.ToString();
-				FString ShortName;
-				CharacterTypeString.Split(TEXT("::"), nullptr, &ShortName);
-				if (TargetName == ShortName)
-				{
-					PRGI->GetQuestManager()->UpdateProgress();
-					UE_LOG(LogTemp, Log, TEXT("[QuestManager] 타겟 이름 일치 퀘스트 진행도 상승: Target = %s"), *ShortName);
-				}
-			}
+			
 		}
 	}
 	return CalculatedDamage;
@@ -196,7 +192,6 @@ float UPRAttributeSet::GetCalculatedDamage(float LocalIncomingDamage, const FEff
 
 		// Attacker's Bonus Damage multiplier (percentage)
 		const float BonusDamageMultiplier = 1.f + AttackerAttributeSet->GetBonusDamage() / 100.f;
-		if (BonusDamageMultiplier > 1.f) GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Yellow, FString::Printf(TEXT("BonusDamageMultiplier: %f"), BonusDamageMultiplier));
 		LocalIncomingDamage *= BonusDamageMultiplier;
 	}
 	

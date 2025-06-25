@@ -10,6 +10,8 @@
 #include "PayRock/Character/PRCharacter.h"
 #include "TimerManager.h"
 #include "EngineUtils.h"
+#include "NavigationSystem.h"
+#include "AI/NavigationSystemBase.h"
 #include "Kismet/GameplayStatics.h"
 
 AEnemyController::AEnemyController()
@@ -57,46 +59,51 @@ void AEnemyController::CheckPlayerDistance()
 
 	float Distance = 0.f;
 	APRCharacter* NearestPlayer = FindNearestPlayer(Distance);
-
 	AEnemyCharacter* EnemyChar = Cast<AEnemyCharacter>(GetPawn());
-
-	if (!NearestPlayer)
-	{
-		if (bIsAIActive)
-		{
-			DeactivateAI();
-			SetPerceptionActive(false);
-			
-			if (EnemyChar)
-			{
-				EnemyChar->DisableAnimInstance();
-			}
-		}
-		return;
-	}
 
 	if (Distance <= 2200.f && !bIsAIActive)
 	{
-		SetPerceptionActive(true); 
+		SetPerceptionActive(true);
 		ActivateAI();
-		
+
 		if (EnemyChar)
 		{
 			EnemyChar->RestoreAnimInstance();
 		}
 	}
-	else if (Distance > 2500.f && bIsAIActive)
+	else if (Distance > 3000.f && bIsAIActive)
 	{
 		DeactivateAI();
 		SetPerceptionActive(false);
-		
+
 		if (EnemyChar)
 		{
 			EnemyChar->DisableAnimInstance();
+
+			if (EnemyChar->GetSpawnedActor())
+			{
+				FVector BaseLoc = EnemyChar->GetActorLocation();
+				FVector RandomOffset = FMath::VRand().GetSafeNormal() * 150.f;
+				FVector SpawnLoc = BaseLoc + RandomOffset;
+				
+				UNavigationSystemV1* NavSys = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
+				FNavLocation ProjectedLoc;
+
+				if (NavSys && NavSys->ProjectPointToNavigation(SpawnLoc, ProjectedLoc, FVector(300.f, 300.f, 300.f)))
+				{
+					FRotator SpawnRot = FRotator::ZeroRotator;
+					FActorSpawnParameters Params;
+					Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+					GetWorld()->SpawnActor<AActor>(
+						EnemyChar->GetSpawnedActor(), ProjectedLoc.Location, SpawnRot, Params);
+				}
+			}
+
+			EnemyChar->Destroy();
 		}
 	}
 }
-
 
 
 APRCharacter* AEnemyController::FindNearestPlayer(float& OutDistance)
