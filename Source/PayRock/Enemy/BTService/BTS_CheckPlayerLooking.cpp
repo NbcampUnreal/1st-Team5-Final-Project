@@ -25,7 +25,8 @@ void UBTS_CheckPlayerLooking::TickNode(UBehaviorTreeComponent& OwnerComp, uint8*
 	if (!SelfPawn) return;
 
 	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
-	if (!BB) return;
+	if (!BB || !BB->GetBlackboardAsset()) return;
+
 
 	TArray<AActor*> PlayerActors;
 	UGameplayStatics::GetAllActorsOfClass(SelfPawn->GetWorld(), APRCharacter::StaticClass(), PlayerActors);

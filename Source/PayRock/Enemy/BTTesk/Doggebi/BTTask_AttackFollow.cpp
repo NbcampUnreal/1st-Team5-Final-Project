@@ -26,7 +26,9 @@ EBTNodeResult::Type UBTTask_AttackFollow::ExecuteTask(UBehaviorTreeComponent& Ow
 	// 추적 중에도 발동
 	if (ASC->TryActivateAbilityByClass(AttackAbility))
 	{
-		if (UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent())
+		UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
+		if (!BB || !BB->GetBlackboardAsset()) return EBTNodeResult::Failed;
+
 		{
 			BB->SetValueAsBool("bIsAttacking", true);
 		}

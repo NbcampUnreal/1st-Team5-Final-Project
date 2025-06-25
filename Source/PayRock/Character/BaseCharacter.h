@@ -83,6 +83,9 @@ public:
 	void InitializeDefaultAttributes();
 	bool bAreAttributesInitialized = false;
 	bool bOnlyRelevantToOwner = true;
+
+	UPROPERTY()
+	AController* LastHitInstigator = nullptr;
 	
 protected:
 	virtual void BeginPlay() override;
@@ -121,9 +124,15 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
 	TSubclassOf<UGameplayEffect> RecalculateSecondaryEffect;
 
+
+	
 private:
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	TArray<UAnimMontage*> HitReactMontages;
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	TArray<UAnimMontage*> DeathMontages;
+
+	
+
+	
 };

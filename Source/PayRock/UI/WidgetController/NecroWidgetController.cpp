@@ -15,6 +15,14 @@ void UNecroWidgetController::HandleRemoval()
 			GetWorld()->GetTimerManager().ClearTimer(Pair.Value);	
 		}
 	}
+
+	for (auto& Pair : CooldownDelegates.Array())
+	{
+		if (GetWorld() && !GetWorld()->bIsTearingDown)
+		{
+			Pair.Value.Clear();
+		}
+	}
 }
 
 void UNecroWidgetController::BroadcastInitialValues()

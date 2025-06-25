@@ -15,7 +15,7 @@ void UBTS_CheckPlayerDeath_Stealth::TickNode(UBehaviorTreeComponent& OwnerComp, 
 	Super::TickNode(OwnerComp, NodeMemory, DeltaSeconds);
 
 	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
-	if (!BB) return;
+	if (!BB || !BB->GetBlackboardAsset()) return;
 
 	UObject* TargetObj = BB->GetValueAsObject(GetSelectedBlackboardKey());
 	if (!TargetObj) return;

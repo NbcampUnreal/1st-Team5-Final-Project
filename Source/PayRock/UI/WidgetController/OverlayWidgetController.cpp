@@ -105,6 +105,14 @@ void UOverlayWidgetController::HandleRemoval()
 			GetWorld()->GetTimerManager().ClearTimer(Pair.Value);	
 		}
 	}
+
+	for (auto& Pair : CooldownDelegates.Array())
+	{
+		if (GetWorld() && !GetWorld()->bIsTearingDown)
+		{
+			Pair.Value.Clear();
+		}
+	}
 }
 
 void UOverlayWidgetController::HealthChanged(const FOnAttributeChangeData& Data) const

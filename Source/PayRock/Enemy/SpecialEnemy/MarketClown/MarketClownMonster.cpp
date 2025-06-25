@@ -12,6 +12,7 @@
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "PayRock/AbilitySystem/PRAttributeSet.h"
+#include "PayRock/GameSystem/PRGameState.h"
 
 AMarketClownMonster::AMarketClownMonster()
 {
@@ -239,57 +240,102 @@ void AMarketClownMonster::Die(FVector HitDirection)
 	if (bIsDead) return;
 	bIsDead = true;
 	
+	DisableCharacter(HitDirection);
+	
 	if (SplitLevel < MaxSplitCount)
 	{
 		Multicast_PlayDeathVFX();
 		SplitOnDeath();
-		
-		GetCharacterMovement()->DisableMovement();
-		GetCharacterMovement()->StopMovementImmediately();
-		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
-		if (HasAuthority())
-		{
-			GetAbilitySystemComponent()->ClearAllAbilities();
-			
-			FGameplayEffectQuery Query = FGameplayEffectQuery::MakeQuery_MatchAllEffectTags(FGameplayTagContainer());
-			GetAbilitySystemComponent()->RemoveActiveEffects(Query);
-		}
+		return;
+	}
 	
-		MulticastRagdoll(HitDirection);
+	Multicast_PlayDeathVFX();
+	TrySpawnLoot();
+	Destroy();
+}
 
-		PrimaryActorTick.bCanEverTick = false;
+void AMarketClownMonster::DisableCharacter(const FVector& HitDirection)
+{
+	MulticastRagdoll(HitDirection);
 
-		if (UAbilitySystemComponent* ASC = GetAbilitySystemComponent())
+	if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
+	{
+		MoveComp->DisableMovement();
+		MoveComp->StopMovementImmediately();
+	}
+
+	if (UCapsuleComponent* Capsule = GetCapsuleComponent())
+	{
+		Capsule->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+
+	PrimaryActorTick.bCanEverTick = false;
+
+	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponent())
+	{
+		ASC->ClearAllAbilities();
+		ASC->CancelAllAbilities();
+
+		FGameplayEffectQuery Query = FGameplayEffectQuery::MakeQuery_MatchAllEffectTags(FGameplayTagContainer());
+		ASC->RemoveActiveEffects(Query);
+	}
+
+	if (AAIController* AICon = Cast<AAIController>(GetController()))
+	{
+		if (UBrainComponent* Brain = AICon->GetBrainComponent())
 		{
-			ASC->CancelAllAbilities();
+			Brain->StopLogic(TEXT("Die"));
 		}
 
-		if (AAIController* AICon = Cast<AAIController>(GetController()))
+		if (UBlackboardComponent* BB = AICon->GetBlackboardComponent())
 		{
-			if (UBrainComponent* Brain = AICon->GetBrainComponent())
+			if (BB && BB->GetBlackboardAsset())
 			{
-				Brain->StopLogic(TEXT("Die"));
-			}
-
-			if (UBlackboardComponent* BB = AICon->GetBlackboardComponent())
-			{
-				BB->SetValueAsBool(FName("bIsDead"), true);
+				BB->SetValueAsBool("bIsDead", true);
 				BB->ClearValue("TargetActor");
 				BB->SetValueAsBool("bPlayerDetect", false);
 				BB->SetValueAsBool("bIsAttacking", false);
 			}
-			AICon->UnPossess();
 		}
+
+		AICon->UnPossess();
+	}
+
+	if (HasAuthority())
+	{
+		if (APRGameState* GS = GetWorld()->GetGameState<APRGameState>())
+		{
+			GS->AddDieMonsterCount();
+		}
+	}
+}
+
+void AMarketClownMonster::TrySpawnLoot()
+{
+	const float DropChance = 0.3f;
+
+	if (!HasAuthority() || !ContainerClass || FMath::FRand() > DropChance)
+	{
 		return;
 	}
 
-	Multicast_PlayDeathVFX();
-	Super::Die(HitDirection);
-	Destroy();
+	FVector Start = GetActorLocation() + FVector(0.f, 0.f, 100.f);
+	FVector End = GetActorLocation() - FVector(0.f, 0.f, 500.f);
+
+	FHitResult Hit;
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+
+	if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params))
+	{
+		FVector GroundLocation = Hit.ImpactPoint;
+
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+		GetWorld()->SpawnActor<AActor>(ContainerClass, GroundLocation, FRotator::ZeroRotator, SpawnParams);
+	}
 }
-
-
 
 void AMarketClownMonster::Multicast_PlayDeathVFX_Implementation()
 {
