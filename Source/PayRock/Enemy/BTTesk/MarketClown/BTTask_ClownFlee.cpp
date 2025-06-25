@@ -29,7 +29,8 @@ EBTNodeResult::Type UBTTask_ClownFlee::ExecuteTask(UBehaviorTreeComponent& Owner
 	if (!AIPawn) return EBTNodeResult::Failed;
 
 	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
-	if (!BB) return EBTNodeResult::Failed;
+	if (!BB || !BB->GetBlackboardAsset()) return EBTNodeResult::Failed;
+
 
 	BB->SetValueAsBool("bIsBusy", false);
 	BB->SetValueAsBool("bIsAttacking", true);

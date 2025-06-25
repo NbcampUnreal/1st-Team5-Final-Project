@@ -19,6 +19,8 @@ void UBTS_BossMeleeAttackRange::TickNode(UBehaviorTreeComponent& OwnerComp, uint
 	AAIController* AICon = OwnerComp.GetAIOwner();
 	APawn* AIPawn = AICon ? AICon->GetPawn() : nullptr;
 	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
+	if (!BB || !BB->GetBlackboardAsset()) return;
+
 
 	if (!AIPawn || !BB) return;
 

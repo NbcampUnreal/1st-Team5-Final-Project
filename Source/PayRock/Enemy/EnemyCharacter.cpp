@@ -130,6 +130,8 @@ void AEnemyCharacter::Die(FVector HitDirection)
 
 		if (UBlackboardComponent* BB = AICon->GetBlackboardComponent())
 		{
+			if (!BB || !BB->GetBlackboardAsset()) return;
+			
 			BB->SetValueAsBool(FName("bIsDead"), true);
 			BB->ClearValue("TargetActor");
 			BB->SetValueAsBool("bPlayerDetect", false);
@@ -171,7 +173,6 @@ void AEnemyCharacter::Die(FVector HitDirection)
 	}
 
 	Destroy();
-	
 }
 
 UAnimMontage* AEnemyCharacter::GetRandomAttackMontage() const

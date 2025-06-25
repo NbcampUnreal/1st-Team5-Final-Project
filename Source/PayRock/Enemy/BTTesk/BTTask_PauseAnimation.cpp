@@ -28,7 +28,9 @@ EBTNodeResult::Type UBTTask_PauseAnimation::ExecuteTask(UBehaviorTreeComponent& 
 
 	
 	AICon->StopMovement();
-	if (UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent())
+	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
+	if (!BB || !BB->GetBlackboardAsset()) return EBTNodeResult::Failed;
+
 	{
 		BB->SetValueAsBool("bIsAttacking", false);
 	}

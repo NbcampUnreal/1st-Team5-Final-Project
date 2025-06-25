@@ -14,6 +14,8 @@ void UBTS_CheckIsAtStartPosition::TickNode(UBehaviorTreeComponent& OwnerComp, ui
 	Super::TickNode(OwnerComp, NodeMemory, DeltaSeconds);
 
 	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
+	if (!BB || !BB->GetBlackboardAsset()) return;
+
 	APawn* ControlledPawn = OwnerComp.GetAIOwner()->GetPawn();
 
 	if (!BB || !ControlledPawn) return;

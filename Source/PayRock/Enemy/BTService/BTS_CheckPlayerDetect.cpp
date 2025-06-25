@@ -19,7 +19,8 @@ void UBTS_CheckPlayerDetect::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* 
 	AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(AICon ? AICon->GetPawn() : nullptr);
 	
 	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
-	if (!BB) return;
+	if (!BB || !BB->GetBlackboardAsset()) return;
+
 	if (BB->GetValueAsBool("bPlayerDetect")) return;
 	
 	bool bSight = BB->GetValueAsBool("bPlayerDetectedBySight");
