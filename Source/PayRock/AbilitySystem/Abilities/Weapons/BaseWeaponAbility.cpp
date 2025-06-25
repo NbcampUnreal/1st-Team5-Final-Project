@@ -11,17 +11,7 @@ void UBaseWeaponAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 	if (APRCharacter* Character = Cast<APRCharacter>(GetAvatarActorFromActorInfo()))
 	{
 		UpdateCurrentAttackType(Character);
-		switch (CurrentAttackType)
-		{
-		case EAttackType::DashAttack:
-			SweepDistance *= DashDistanceMultiplier;
-			break;
-		case EAttackType::JumpAttack:
-			SweepDistance *= JumpDistanceMultiplier;
-			break;
-		default:
-			break;
-		}
+		
 	}
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 }
@@ -51,9 +41,21 @@ void UBaseWeaponAbility::PerformSweep()
 	if (!IsValid(Character)) return;
 
 	// Set sweep size and distance
-	const FVector Start = AvatarActor->GetActorLocation() + SweepForwardOffset;
 	const FVector Forward = AvatarActor->GetActorForwardVector();
-	const FVector End = Start + Forward * SweepDistance;
+	const FVector Start = AvatarActor->GetActorLocation() + Forward * SweepForwardOffset;
+	// Modify distance for Jump and Dash attacks
+	float SweepMultiplier = 1.f;
+	switch (CurrentAttackType)
+	{
+	case EAttackType::DashAttack:
+		SweepMultiplier = DashDistanceMultiplier;
+		break;
+	case EAttackType::JumpAttack:
+		SweepMultiplier = JumpDistanceMultiplier;
+		break;
+	default: ;
+	}
+	const FVector End = Start + Forward * SweepDistance * SweepMultiplier;
 	const FQuat Rotation = Forward.ToOrientationQuat(); 
 
 	float SweepHeight = 0.f;
