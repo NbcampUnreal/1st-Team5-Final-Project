@@ -166,6 +166,21 @@ void UQuestManager::UpdateProgress()
 	}
 }
 
+void UQuestManager::SetCurrentCount(int value)
+{
+	CurrentCount = value;
+	SaveQuestProgress();
+	if (QuestWidget)
+	{
+		QuestWidget->SetQuestData(CurrentQuest);
+	}
+}
+
+void UQuestManager::ResetCurrentCount()
+{
+	CurrentCount = 0;
+}
+
 bool UQuestManager::IsQuestCompleted() const
 {
 	return CurrentCount >= CurrentQuest.RequiredCount;
