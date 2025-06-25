@@ -12,6 +12,7 @@ UBTTask_Chase::UBTTask_Chase()
 	bNotifyTaskFinished = true;
 	bNotifyTick = true;
 	bCreateNodeInstance = true;
+	
 }
 
 EBTNodeResult::Type UBTTask_Chase::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)

@@ -138,7 +138,6 @@ void APRGameState::CheckAlivePlayers()
 		UE_LOG(LogTemp, Warning, TEXT("All Players DEAD. End the Match...."));
 		MatchEnd();
 	}
-	
 }
 
 void APRGameState::MatchEnd() 
@@ -159,11 +158,8 @@ void APRGameState::MatchEnd()
 		false
 	);
 	
-
-
 	//;
 	SetMatchFlowState(EMatchFlowState::MatchEnded); // 여기 추가
-
 }
 
 void APRGameState::TickMatchCountdown()
@@ -415,17 +411,22 @@ void APRGameState::SetMatchFlowState(EMatchFlowState NewState)
 	}
 }
 
+void APRGameState::AddDieMonsterCount()
+{
+	++DieMonsterCount;
+	if (HasAuthority())
+	{
+		OnRep_MonsterCountUpdated();
+	}
+}
+
 void APRGameState::OnRep_MonsterCountUpdated()
 {
 	if (APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0))
 	{
 		if (APRPlayerController* MyPC = Cast<APRPlayerController>(PC))
 		{
-			//저 겟클린 퍼센트위젯을 불러와주야함.
-			// if (UCleanPercent* CleanUI = MyPC->GetCleanPercentWidget())
-			// {
-			// 	CleanUI->SetCleanData();
-			// }
+			MyPC->UpdateCleanData();
 		}
 	}
 }

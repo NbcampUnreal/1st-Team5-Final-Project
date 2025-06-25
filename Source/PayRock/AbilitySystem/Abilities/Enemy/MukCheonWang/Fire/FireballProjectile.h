@@ -39,7 +39,13 @@ protected:
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
-	float FireRate = 0.5f;
+	float FireRate;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Movement")
+	float Delay_Min = 0.5;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Movement")
+	float Delay_Max = 1.5;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 	float FloatHeight = 40.f;

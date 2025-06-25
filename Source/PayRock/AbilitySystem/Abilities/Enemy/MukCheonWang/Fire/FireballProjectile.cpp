@@ -43,6 +43,8 @@ void AFireballProjectile::BeginPlay()
 {
 	Super::BeginPlay();
 
+	FireRate = FMath::FRandRange(Delay_Min, Delay_Max);
+	
 	GetWorld()->GetTimerManager().SetTimer(
 		LaunchDelayHandle,
 		this,
@@ -72,10 +74,27 @@ void AFireballProjectile::LaunchToTargetPlayer()
 	if (AMukCheonWangCharacter* Boss = Cast<AMukCheonWangCharacter>(GetOwner()))
 	{
 		const TArray<TWeakObjectPtr<AActor>>& Targets = Boss->GetDetectedActors();
-		if (Targets.IsEmpty()) return;
+		if (Targets.IsEmpty())
+		{
+			Destroy();
+			return;
+		}
 
-		AActor* Target = Targets[FMath::RandRange(0, Targets.Num() - 1)].Get();
-		if (!Target) return;
+		AActor* Target = nullptr;
+		for (int i = 0; i < 5; ++i)
+		{
+			AActor* TryTarget = Targets[FMath::RandRange(0, Targets.Num() - 1)].Get();
+			if (TryTarget)
+			{
+				Target = TryTarget;
+				break;
+			}
+		}
+		if (!Target)
+		{
+			Destroy();
+			return;
+		}
 
 		const FVector TargetLocation = Target->GetActorLocation();
 		LaunchVelocity = (TargetLocation - GetActorLocation()).GetSafeNormal() * ProjectileMovement->InitialSpeed;
@@ -84,6 +103,7 @@ void AFireballProjectile::LaunchToTargetPlayer()
 		ProjectileMovement->SetActive(true);
 	}
 }
+
 
 void AFireballProjectile::OnEffectOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
                                           UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,

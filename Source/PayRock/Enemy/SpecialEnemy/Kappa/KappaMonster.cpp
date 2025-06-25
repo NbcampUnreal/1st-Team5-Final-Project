@@ -2,12 +2,16 @@
 #include "KappaMonster.h"
 
 #include "AIController.h"
+#include "KappaMonsterController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 
 
 AKappaMonster::AKappaMonster()
 {
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
+
+	AIControllerClass = AKappaMonsterController::StaticClass();
+	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 	
 	CharacterType = ECharacterType::Kappa;
 	LeftHandCollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("LeftHandCollision"));
@@ -51,13 +55,4 @@ void AKappaMonster::BeginPlay()
 	RightHandCollisionComp->SetGenerateOverlapEvents(true);
 }
 
-
-void AKappaMonster::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-}
-
-void AKappaMonster::OnPlayerDetected(AActor* DetectedActor)
-{
-}
 

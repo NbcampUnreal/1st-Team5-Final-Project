@@ -126,6 +126,7 @@ private:
 
 	// Buffs
 	void HandleLifeSteal(const FEffectProperties& Props, float DealtDamage);
+	void HandleAutoCounter(const FEffectProperties& Props, float DealtDamage);
 
 public:
 	/*

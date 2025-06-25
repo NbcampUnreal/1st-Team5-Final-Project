@@ -172,28 +172,32 @@ public:
 
 protected:
 	void SetMatchFlowState(EMatchFlowState NewState);
-
-
-
 	
-	//몬스터 정화도 시스템
+	/*
+	 * 몬스터 정화도 시스템
+	 */
 public:
-	UPROPERTY(ReplicatedUsing = OnRep_MonsterCountUpdated)
-	int32 TotalEnemyCount = 0;
-
-	UPROPERTY(ReplicatedUsing = OnRep_MonsterCountUpdated)
-	int32 DieMonsterCount = 0;
-
 	// 퍼센트 계산 함수
 	UFUNCTION(BlueprintCallable, Category = "Clean")
 	float GetDeadPercent() const
 	{
-		return TotalEnemyCount == 0 ? 0.f : (float)DieMonsterCount / (float)TotalEnemyCount;
+		return TotalEnemyCount == 0 ? 0.f : static_cast<float>(DieMonsterCount) / static_cast<float>(TotalEnemyCount);
 	}
+	
+	UFUNCTION()
+	void AddDieMonsterCount();
+	void SetTotalEnemyCount(int32 Count) { TotalEnemyCount = Count; }
+	int32 GetTotalMonsterCount() const { return TotalEnemyCount; }
+	int32 GetDieMonsterCount() const { return DieMonsterCount; }
 
 protected:
 	UFUNCTION()
 	void OnRep_MonsterCountUpdated();
 
+	UPROPERTY(ReplicatedUsing = OnRep_MonsterCountUpdated)
+	int32 TotalEnemyCount = 0;
 
+	UPROPERTY(ReplicatedUsing = OnRep_MonsterCountUpdated)
+	int32 DieMonsterCount = 0;
+	
 };
