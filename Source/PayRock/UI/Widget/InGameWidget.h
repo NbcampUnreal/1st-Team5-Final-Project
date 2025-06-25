@@ -14,6 +14,7 @@ class PAYROCK_API UInGameWidget : public UBaseUserWidget
 
 public:
 	virtual void OnWidgetControllerSet() override;
+	void UpdateCleanPercent();
 	
 private:
 	UPROPERTY(meta = (BindWidgetOptional))
@@ -34,6 +35,9 @@ private:
 	UBaseUserWidget* NecroSlow;
 	UPROPERTY(meta = (BindWidgetOptional))
 	UBaseUserWidget* NecroBlind;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	class UCleanPercent* CleanPercent;
 	
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* Text_RemainingTime;

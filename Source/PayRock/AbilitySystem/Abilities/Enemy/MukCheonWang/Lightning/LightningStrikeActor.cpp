@@ -31,6 +31,8 @@ void ALightningStrikeActor::BeginPlay()
 
     if (HasAuthority())
     {
+        DelayBeforeStrike = FMath::FRandRange(Delay_Min, Delay_Max);
+
         GetWorld()->GetTimerManager().SetTimer(
             TimerHandle_Activate, this, &ALightningStrikeActor::ActivateStrike, DelayBeforeStrike, false);
     }

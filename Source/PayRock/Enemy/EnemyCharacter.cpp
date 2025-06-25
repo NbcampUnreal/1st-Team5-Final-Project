@@ -142,7 +142,7 @@ void AEnemyCharacter::Die(FVector HitDirection)
 	{
 		if (APRGameState* GS = GetWorld()->GetGameState<APRGameState>())
 		{
-			GS->DieMonsterCount++;
+			GS->AddDieMonsterCount();
 		}
 	}
 	if (ContainerClass)
