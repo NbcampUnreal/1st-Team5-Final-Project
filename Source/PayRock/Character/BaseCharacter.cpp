@@ -19,6 +19,9 @@ ABaseCharacter::ABaseCharacter()
 	Weapon = CreateDefaultSubobject<USkeletalMeshComponent>("Weapon");
 	Weapon->SetupAttachment(GetMesh(), WeaponSocketName);
 	Weapon->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	SetNetUpdateFrequency(30.f);      // Actor 레벨에서 초당 30틱
+    SetMinNetUpdateFrequency(10.f);   // 최소 10틱
 }
 
 void ABaseCharacter::BeginPlay()
