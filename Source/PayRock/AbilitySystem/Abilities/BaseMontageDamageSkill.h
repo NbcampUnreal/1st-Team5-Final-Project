@@ -40,5 +40,7 @@ protected:
 	FGameplayTag TriggerTag;
 	UPROPERTY()
 	TObjectPtr<APlayerController> CachedController = nullptr;
+	UPROPERTY(EditDefaultsOnly, Category = "Skill")
+	TSubclassOf<UGameplayEffect> InputBlockEffect;
 	
 };
