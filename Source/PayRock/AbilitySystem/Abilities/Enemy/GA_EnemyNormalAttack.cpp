@@ -6,6 +6,7 @@
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "PayRock/Enemy/SpecialEnemy/SamuraiStatue/SamuraiStatueCharacter.h"
 #include "GameFramework/Character.h"
 
 UGA_EnemyNormalAttack::UGA_EnemyNormalAttack()
@@ -25,7 +26,13 @@ void UGA_EnemyNormalAttack::ActivateAbility(const FGameplayAbilitySpecHandle Han
 	
 	samurai = Cast<ASamuraiStatueCharacter>(ActorInfo->AvatarActor.Get());
 	if (!Avatar) return;
-
+	
+	if (samurai)
+	{
+		samurai->CurrentSamuraiAttackGA = this;
+		samurai->bHit = false;
+	}
+	
 	if (AAIController* AICon = Cast<AAIController>(Avatar->GetController()))
 	{
 		if (UBlackboardComponent* BB = AICon->GetBlackboardComponent())
@@ -34,47 +41,16 @@ void UGA_EnemyNormalAttack::ActivateAbility(const FGameplayAbilitySpecHandle Han
 			AICon->StopMovement();
 		}
 	}
-	BindCallbackToWeaponCollision();
+	
 	
 }
 
-void UGA_EnemyNormalAttack::BindCallbackToWeaponCollision()
-{
-	if (samurai && !samurai->WeaponCollision->OnComponentBeginOverlap.IsBound())
-	{
-		samurai->WeaponCollision->OnComponentBeginOverlap.AddDynamic(this, &UGA_EnemyNormalAttack::OnWeaponOverlap);
-	}
-}
-
-void UGA_EnemyNormalAttack::OnWeaponOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	if (OtherActor == GetAvatarActorFromActorInfo() || bHit) return;
-	
-	if (GetAvatarActorFromActorInfo()->HasAuthority())
-	{
-		bHit = true;
-		CauseDamage(OtherActor, SweepResult);
-	}
-}
-
-void UGA_EnemyNormalAttack::ToggleColiision(bool isActive)
-{
-	if (samurai)
-	{
-		samurai->WeaponCollision->SetCollisionEnabled(
-			isActive ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
-	}
-}
 
 void UGA_EnemyNormalAttack::EndAttackBlackboardState()
 {
 	if (!samurai) return;
-	
 
-	if (samurai)
-	{
-		samurai->WeaponCollision->OnComponentBeginOverlap.RemoveDynamic(this, &UGA_EnemyNormalAttack::UGA_EnemyNormalAttack::OnWeaponOverlap);
-	}
+	samurai->ToggleColiision(false);
+	samurai->CurrentSamuraiAttackGA = nullptr;
 
 }
