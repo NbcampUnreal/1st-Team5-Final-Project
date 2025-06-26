@@ -15,11 +15,12 @@ class PAYROCK_API AEnemyCharacter : public ABaseCharacter
 
 public:
 	AEnemyCharacter();
-	
+
 	virtual void BeginPlay() override;
 	virtual void InitAbilityActorInfo() override;
 	virtual void AddCharacterAbilities() override;
-	
+
+	// === Combat ===
 	void ToggleWeaponCollision(bool bEnable);
 
 	UFUNCTION(BlueprintCallable, Category = "Combat")
@@ -28,6 +29,24 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Combat")
 	UAnimMontage* GetRandomDetectMontage() const;
 
+	UFUNCTION(BlueprintCallable, NetMulticast, Unreliable)
+	void Multicast_PlayAttackSound(USoundBase* Sound);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound")
+	USoundAttenuation* AttackAttenuation;
+
+	// === Detection ===
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_PlayDetectMontage(UAnimMontage* Montage);
+
+	void PlayDetectMontage(UAnimMontage* Montage);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_PlayGradualSound(USoundBase* InSound, float MaxDistance, float Volume, float Loudness);
+
+	void PlayGradualSound(USoundBase* InSound, float MaxDistance, float Volume, float Loudness);
+
+	// === State ===
 	UFUNCTION(BlueprintCallable, Category = "State")
 	bool IsDead() const;
 
@@ -36,46 +55,60 @@ public:
 
 	void SetBattleState(bool Value) { bIsBattle = Value; }
 
+	UFUNCTION()
+	void DisableAnimInstance();
+
+	UFUNCTION()
+	void RestoreAnimInstance();
+
+	// === Quest / Kill ===
+	UFUNCTION(Client, Reliable)
+	void Client_NotifyQuestKill(APlayerController* KillerPC);
+
+	// === Spawn Handling ===
+	TSubclassOf<AActor> GetSpawnedActor() { return SpawnerClass; }
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Split", meta = (AllowPrivateAccess = "true"))
 	int32 SplitLevel = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Split")
 	bool bIsClone = false;
 
-	TSubclassOf<AActor> GetSpawnedActor() { return SpawnerClass; }
-	
-	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_PlayGradualSound(USoundBase* InSound, float MaxDistance, float Volume, float Loudness);
-	void PlayGradualSound(USoundBase* InSound, float MaxDistance, float Volume, float Loudness);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawner")
+	TSubclassOf<AActor> SpawnerClass;
 
-	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_PlayDetectMontage(UAnimMontage* Montage);
-	void PlayDetectMontage(UAnimMontage* Montage);
-	UFUNCTION()
-	void DisableAnimInstance();
-	UFUNCTION()
-	void RestoreAnimInstance();
+	// === Sleep System ===
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Sleep")
+	float SleepStartTime = 0.f;
 
-	//Sound
-	UFUNCTION(BlueprintCallable,NetMulticast, Unreliable)
-	void Multicast_PlayAttackSound(USoundBase* Sound);
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Sound")
-	USoundAttenuation* AttackAttenuation;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Sleep")
+	bool bIsSleeping = false;
 
-	UFUNCTION(Client, Reliable)
-void Client_NotifyQuestKill(APlayerController* KillerPC);
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Sleep")
+	float MaxSleepDuration = 30.f;
 
-
-	
 protected:
 	virtual void Die(FVector HitDirection = FVector::ZeroVector) override;
 
+	// === State ===
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "State")
 	bool bIsBattle = false;
 
-	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "State")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "State")
 	bool bIsDead = false;
 
+	// === AI / Perception ===
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
+	TObjectPtr<UAIPerceptionStimuliSourceComponent> StimuliSourceComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
+	TObjectPtr<UPawnNoiseEmitterComponent> PawnNoiseEmitterComp;
+
+	// === Animation ===
+	UPROPERTY()
+	TSubclassOf<UAnimInstance> SavedAnimClass;
+
+	// === Assets ===
 	UPROPERTY(EditDefaultsOnly, Category = "Drop")
 	TSubclassOf<AActor> ContainerClass;
 
@@ -84,17 +117,4 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Combat")
 	TArray<TObjectPtr<UAnimMontage>> DetectMontages;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
-	TObjectPtr<UAIPerceptionStimuliSourceComponent> StimuliSourceComponent;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
-	TObjectPtr<UPawnNoiseEmitterComponent> PawnNoiseEmitterComp;
-
-	UPROPERTY()
-	TSubclassOf<UAnimInstance> SavedAnimClass;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawner")
-	TSubclassOf<AActor> SpawnerClass;
-
 };
