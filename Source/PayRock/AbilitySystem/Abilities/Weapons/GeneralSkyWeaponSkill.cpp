@@ -64,8 +64,6 @@ void UGeneralSkyWeaponSkill::OnLanded(const FHitResult& Hit)
 		Sphere,
 		QueryParams
 	);
-
-	DrawDebugSphere(GetWorld(), Origin, Radius, 8, FColor::Cyan, false, 1.f);
 	
 	if (bHit)
 	{

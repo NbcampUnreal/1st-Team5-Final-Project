@@ -24,6 +24,8 @@ protected:
 	virtual void OnMontageInterrupted();
 	UFUNCTION()
 	virtual void OnEventReceived(FGameplayEventData Payload);
+	UFUNCTION()
+	void GetSphereOverlapResults(float Radius, TArray<AActor*>& OutOverlaps);
 	
 	/* Montage */
 	UPROPERTY(EditDefaultsOnly, Category = "Skill")

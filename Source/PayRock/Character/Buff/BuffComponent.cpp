@@ -19,7 +19,7 @@ void UBuffComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	OwningPRCharacter = Cast<APRCharacter>(GetOwner());
+	OwningPRCharacter = Cast<ABaseCharacter>(GetOwner());
 }
 
 void UBuffComponent::OnComponentDestroyed(bool bDestroyingHierarchy)

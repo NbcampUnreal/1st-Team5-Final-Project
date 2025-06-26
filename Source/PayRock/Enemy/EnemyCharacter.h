@@ -18,7 +18,8 @@ public:
 
 	virtual void BeginPlay() override;
 	virtual void InitAbilityActorInfo() override;
-	virtual void AddCharacterAbilities() override;
+	virtual void AddCharacterAbilities() override;	
+	virtual void BindToTagChange() override;
 
 	// === Combat ===
 	void ToggleWeaponCollision(bool bEnable);
@@ -86,6 +87,10 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Sleep")
 	float MaxSleepDuration = 30.f;
+
+	// ===	Debuff Component ===
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DeBuff")
+	class UBuffComponent* BuffComponent;
 
 protected:
 	virtual void Die(FVector HitDirection = FVector::ZeroVector) override;

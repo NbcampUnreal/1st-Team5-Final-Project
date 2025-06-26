@@ -8,7 +8,7 @@
 #include "BuffComponent.generated.h"
 
 struct FGameplayTag;
-class APRCharacter;
+class ABaseCharacter;
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class PAYROCK_API UBuffComponent : public UActorComponent
@@ -46,7 +46,7 @@ private:
 	void CancelActiveAbilities();
 	
 	UPROPERTY()
-	APRCharacter* OwningPRCharacter;
+	ABaseCharacter* OwningPRCharacter;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Debuff|Knockback")
 	float KnockbackForce;
