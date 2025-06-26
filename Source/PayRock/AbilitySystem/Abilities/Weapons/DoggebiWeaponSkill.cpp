@@ -2,7 +2,6 @@
 
 
 #include "DoggebiWeaponSkill.h"
-
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "Abilities/Tasks/AbilityTask_SpawnActor.h"
@@ -53,12 +52,12 @@ void UDoggebiWeaponSkill::TriggerSpinAttack(FGameplayTag Tag, int Count)
 			DoggebiSpinActor->StartAttack();
 		}
 
-		if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
+		/*if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
 		{
 			FGameplayTagContainer Tags;
 			Tags.AddTagFast(FPRGameplayTags::Get().Ability_WeaponSkill_Doggebi);
 			ASC->RemoveActiveEffectsWithGrantedTags(Tags);
-		}
+		}*/
 	}
 }
 
@@ -80,9 +79,6 @@ bool UDoggebiWeaponSkill::SpawnDoggebiSpinActor()
 		
 		if (bDidBeginSpawn && IsValid(SpawnedActor))
 		{
-			SpawnedActor->AttachToActor(SourceActor, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-			SpawnedActor->AddActorLocalOffset(SpawnOffset);
-
 			if (ADoggebiSpinActor* DoggebiSpinActor = Cast<ADoggebiSpinActor>(SpawnedActor))
 			{
 				DoggebiSpinActor->SourceActor = SourceActor;

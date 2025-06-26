@@ -3,8 +3,11 @@
 
 #include "BaseMontageDamageSkill.h"
 
+#include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystemComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
+#include "PayRock/PRGameplayTags.h"
 
 void UBaseMontageDamageSkill::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
                                               const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
@@ -37,6 +40,17 @@ void UBaseMontageDamageSkill::ActivateAbility(const FGameplayAbilitySpecHandle H
 		MontageTask->OnInterrupted.AddDynamic(this, &UBaseMontageDamageSkill::OnMontageInterrupted);
 		MontageTask->OnCancelled.AddDynamic(this, &UBaseMontageDamageSkill::OnMontageInterrupted);
 		MontageTask->ReadyForActivation();
+
+		float MontageLength = ActivationMontage->GetPlayLength();
+		if (IsValid(InputBlockEffect))
+		{
+			UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+			FGameplayEffectContextHandle Context = ASC->MakeEffectContext();
+			FGameplayEffectSpecHandle Spec = ASC->MakeOutgoingSpec(InputBlockEffect, 1.f, Context);
+			UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(
+				Spec, FPRGameplayTags::Get().Player_Block_InputPressed, MontageLength);
+			ASC->ApplyGameplayEffectSpecToSelf(*Spec.Data);
+		}
 	}
 
 	UAbilityTask_WaitGameplayEvent* WaitEventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(

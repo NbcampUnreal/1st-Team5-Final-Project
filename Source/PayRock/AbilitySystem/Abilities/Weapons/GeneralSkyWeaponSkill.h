@@ -3,33 +3,31 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PayRock/AbilitySystem/Abilities/BaseDamageGameplayAbility.h"
 #include "PayRock/AbilitySystem/Abilities/BaseMontageDamageSkill.h"
-#include "DoggebiWeaponSkill.generated.h"
-
+#include "GeneralSkyWeaponSkill.generated.h"
 
 UCLASS()
-class PAYROCK_API UDoggebiWeaponSkill : public UBaseMontageDamageSkill
+class PAYROCK_API UGeneralSkyWeaponSkill : public UBaseMontageDamageSkill
 {
 	GENERATED_BODY()
-
-public:
 	
+public:
 	virtual void OnEventReceived(FGameplayEventData Payload) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
-protected:
 	UFUNCTION()
-	void TriggerSpinAttack(FGameplayTag Tag, int Count);
-	bool SpawnDoggebiSpinActor();
+	void OnLanded(const FHitResult& Hit);
 
+protected:
 	UPROPERTY(EditDefaultsOnly)
-	float Duration;
+	float LaunchSpeed = 500.f;
 	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<AActor> SpawnClass;
+	float Radius = 300.f;
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UGameplayEffect> KnockbackEffectClass;
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<UAnimMontage> LandMontage;
+
 	UPROPERTY()
-	AActor* SpawnedActor;
-	
-	
-	FTimerHandle StopTimer;
+	TSet<AActor*> UniqueActors;
 };
