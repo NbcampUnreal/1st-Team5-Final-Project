@@ -81,7 +81,6 @@ public:
 	float GrayscaleFadeDuration = 1.f;
 	FTimerHandle GrayscaleFadeTimer;
 	FTimerHandle ResetRagdollTimer;
-	
 
 	/* 공격/피격 */
 	UFUNCTION(Server, Reliable)
@@ -122,6 +121,8 @@ public:
 	bool bIsExtracted = false;
 
 	/* Status */
+	UFUNCTION(BlueprintImplementableEvent)
+	void InitializeEquipment();
 	UFUNCTION()
 	void UpdateClothesColor();
 	UPROPERTY(Replicated)
