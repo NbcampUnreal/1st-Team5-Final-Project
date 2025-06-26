@@ -8,6 +8,8 @@
 #include "Components/PawnNoiseEmitterComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "PayRock/Character/Buff/BuffComponent.h"
+#include "PayRock/PRGameplayTags.h"
 #include "PayRock/AbilitySystem/PRAbilitySystemComponent.h"
 #include "PayRock/AbilitySystem/PRAttributeSet.h"
 #include "PayRock/GameSystem/PRAdvancedGameInstance.h"
@@ -30,6 +32,7 @@ AEnemyCharacter::AEnemyCharacter()
 	StimuliSourceComponent->RegisterForSense(UAISense_Hearing::StaticClass());
 	
 	PawnNoiseEmitterComp = CreateDefaultSubobject<UPawnNoiseEmitterComponent>(TEXT("PawnNoiseEmitter"));
+	BuffComponent = CreateDefaultSubobject<UBuffComponent>(TEXT("BuffComponent"));
 
 	bReplicates = true;
 	bAlwaysRelevant = true;
@@ -74,6 +77,14 @@ void AEnemyCharacter::InitAbilityActorInfo()
 	BindToTagChange();
 
 	Cast<UPRAbilitySystemComponent>(AbilitySystemComponent)->OnAbilityActorInfoInitialized();
+}
+void AEnemyCharacter::BindToTagChange()
+{
+	Super::BindToTagChange();
+	AbilitySystemComponent->RegisterGameplayTagEvent(FPRGameplayTags::Get().Status_Debuff_Frozen).AddUObject(
+		BuffComponent, &UBuffComponent::OnFrozenTagChange);
+	AbilitySystemComponent->RegisterGameplayTagEvent(FPRGameplayTags::Get().Status_Debuff_Shocked).AddUObject(
+		BuffComponent, &UBuffComponent::OnShockedTagChange);
 }
 
 void AEnemyCharacter::AddCharacterAbilities()

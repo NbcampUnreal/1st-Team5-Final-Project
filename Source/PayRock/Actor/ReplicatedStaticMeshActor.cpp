@@ -39,10 +39,16 @@ void AReplicatedStaticMeshActor::BeginPlay()
 			{
 				MeshComponent->SetMaterial(0, ClientMaterial);
 			}
+			
+			if (GEngine)
+			{
+				GEngine->Exec(GetWorld(), TEXT("r.SSR.Quality 3")); 
+				GEngine->Exec(GetWorld(), TEXT("r.SSR.Temporal 1"));
+				GEngine->Exec(GetWorld(), TEXT("r.ReflectionEnvironment 1")); 
+			}
 		}
 	}
 }
-
 void AReplicatedStaticMeshActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
