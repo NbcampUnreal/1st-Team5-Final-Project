@@ -36,9 +36,9 @@ protected:
 	float AttackSpeed;
 	UPROPERTY(EditDefaultsOnly)
 	float IdleSpeed;
+/*
 	UPROPERTY(EditDefaultsOnly)
-	float AttackReach;
-	
+	float AttackReach; 
 	UPROPERTY()
 	FVector BaseBoxExtent;
 	UPROPERTY()
@@ -50,9 +50,9 @@ protected:
 	FVector BaseMeshScale;
 	UPROPERTY(EditDefaultsOnly)
 	float MeshScaleMultiplier = .5f;
-	
+	*/
 	UPROPERTY(EditDefaultsOnly)
-	float Cooldown = 2.f;
+	float Cooldown = 1.f;
 
 private:
 	UFUNCTION()
@@ -67,7 +67,7 @@ private:
 	bool bShouldAttack;
 	bool bCanAttack;
 	float TotalRotationYaw = 0.f;
-	float CurrentExtension = 0.f;
+	// float CurrentExtension = 0.f;
 
 	FTimerHandle CooldownTimer;
 };

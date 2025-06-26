@@ -27,8 +27,6 @@ protected:
 	float Duration;
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<AActor> SpawnClass;
-	UPROPERTY(EditDefaultsOnly)
-	FVector SpawnOffset;
 	UPROPERTY()
 	AActor* SpawnedActor;
 	

@@ -135,6 +135,10 @@ void AEnemyCharacter::Client_NotifyQuestKill_Implementation(APlayerController* K
 		FString ShortName;
 		CharacterTypeString.Split(TEXT("::"), nullptr, &ShortName);
 
+		UE_LOG(LogTemp, Warning, TEXT("[퀘스트] 몬스터를 죽인 컨트롤러: %s (IsLocal=%d)"),
+			*KillerPC->GetName(),
+			KillerPC->IsLocalController());
+		
 		if (TargetName == ShortName)
 		{
 			PRGI->GetQuestManager()->UpdateProgress();
@@ -186,10 +190,14 @@ void AEnemyCharacter::Die(FVector HitDirection)
 		ACharacter* KillerPawn = LastHitInstigator->GetCharacter();
 		APlayerController* KillerPC = Cast<APlayerController>(LastHitInstigator);
 
+		FString InstigatorName = LastHitInstigator->GetName();
+		FString IsLocalStr = LastHitInstigator->IsLocalController() ? TEXT("Local") : TEXT("Remote");
+		UE_LOG(LogTemp, Warning, TEXT("[EnemyCharacter_Die] LastHitInstigator: %s (%s)"), *InstigatorName, *IsLocalStr);
+
 		if (KillerPawn && KillerPC)
 		{
 			Client_NotifyQuestKill(KillerPC);  
-			UE_LOG(LogTemp, Log, TEXT("[Client]Die함수_클라노티파이") );
+			UE_LOG(LogTemp, Log, TEXT("[EnemyCharacter_Die]Client_NotifyQuestKill"));
 		}
 	}
 	
