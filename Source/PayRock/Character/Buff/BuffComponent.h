@@ -31,6 +31,18 @@ public:
 
 	bool IsKnockedBack() const { return bIsKnockedBack; }
 	void StartKnockbackRecovery();
+	// === Multicast Functions ===
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_ApplyFrozen();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_RemoveFrozen();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_ApplyShocked(const FGameplayTag Tag);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_RemoveShocked();
 
 protected:
 	virtual void BeginPlay() override;
