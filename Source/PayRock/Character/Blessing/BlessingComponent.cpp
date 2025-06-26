@@ -90,6 +90,11 @@ void UBlessingComponent::Server_EquipActiveBlessing_Implementation(const FBlessi
 		EquippedActiveBlessingData = Blessing;
 		Client_BroadcastActiveBlessing(Blessing);
 	}
+
+	if (IsValid(OwningPRCharacter))
+	{
+		OwningPRCharacter->InitializeEquipment();
+	}
 }
 
 void UBlessingComponent::Server_EquipPassiveBlessing_Implementation(const FBlessingData& Blessing)
