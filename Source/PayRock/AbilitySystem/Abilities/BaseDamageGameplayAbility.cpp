@@ -94,20 +94,6 @@ void UBaseDamageGameplayAbility::CauseDamage(AActor* TargetActor, const FHitResu
 		}
 	}
 
-	/*if (const UPRAttributeSet* TargetAttributes = Cast<UPRAttributeSet>(
-		TargetASC->GetAttributeSet(UPRAttributeSet::StaticClass())))
-	{
-		float CurrentHP = TargetAttributes->GetHealth();
-		float MaxHP = TargetAttributes->GetMaxHealth();
-
-		UE_LOG(LogTemp, Warning, TEXT("[Damage] %s to %s | Damage: %.2f | HP: %.2f / %.2f"),
-			*GetAvatarActorFromActorInfo()->GetName(),
-			*TargetActor->GetName(),
-			ScaledDamage,
-			CurrentHP,
-			MaxHP);
-	}*/
-
 	UAISense_Damage::ReportDamageEvent(
 		GetWorld(),
 		TargetActor,
