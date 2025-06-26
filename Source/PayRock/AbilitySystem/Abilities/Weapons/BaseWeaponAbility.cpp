@@ -8,10 +8,10 @@ void UBaseWeaponAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
 	const FGameplayEventData* TriggerEventData)
 {
+	CurrentAttackType = EAttackType::NormalAttack;
 	if (APRCharacter* Character = Cast<APRCharacter>(GetAvatarActorFromActorInfo()))
 	{
 		UpdateCurrentAttackType(Character);
-		
 	}
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 }
