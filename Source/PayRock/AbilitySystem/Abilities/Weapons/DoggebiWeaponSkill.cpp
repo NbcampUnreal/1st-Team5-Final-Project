@@ -80,9 +80,6 @@ bool UDoggebiWeaponSkill::SpawnDoggebiSpinActor()
 		
 		if (bDidBeginSpawn && IsValid(SpawnedActor))
 		{
-			SpawnedActor->AttachToActor(SourceActor, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-			SpawnedActor->AddActorLocalOffset(SpawnOffset);
-
 			if (ADoggebiSpinActor* DoggebiSpinActor = Cast<ADoggebiSpinActor>(SpawnedActor))
 			{
 				DoggebiSpinActor->SourceActor = SourceActor;

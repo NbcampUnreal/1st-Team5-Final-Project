@@ -5,7 +5,7 @@
 #include "PayRock/AbilitySystem/Abilities/BaseDamageGameplayAbility.h"
 
 ADoggebiSpinActor::ADoggebiSpinActor()
-	: AttackSpeed(720.f), IdleSpeed(120.f), bShouldAttack(false), bCanAttack(true)
+	: AttackSpeed(720.f), IdleSpeed(90.f), bShouldAttack(false), bCanAttack(true)
 {
 	PrimaryActorTick.bCanEverTick = true;
 	bReplicates = true;
@@ -43,9 +43,16 @@ void ADoggebiSpinActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (SourceActor)
+	{
+		SetActorLocation(SourceActor->GetActorLocation());
+	}
+	
 	float DeltaYaw = (bShouldAttack ? AttackSpeed : IdleSpeed) * DeltaTime;
-	AddActorLocalRotation(FRotator(0.f, DeltaYaw, 0.f));
 	TotalRotationYaw += DeltaYaw;
+    
+	SceneRoot->AddRelativeRotation(FRotator(0.f, DeltaYaw, 0.f));
+    
 	if (TotalRotationYaw >= 720.0f) {
 		TotalRotationYaw = 0.f;
 		OnRotationComplete();
