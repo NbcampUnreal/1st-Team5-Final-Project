@@ -29,7 +29,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, meta = (ExposeOnSpawn = true))
 	TObjectPtr<UGameplayAbility> SourceAbility;
 
-	UPROPERTY(BlueprintReadWrite, Replicated)
+	UPROPERTY(BlueprintReadWrite, Replicated, meta = (ExposeOnSpawn = true))
 	TObjectPtr<AActor> SourceActor;
 	
 	UPROPERTY(BlueprintReadWrite, meta = (ExposeOnSpawn = true))
