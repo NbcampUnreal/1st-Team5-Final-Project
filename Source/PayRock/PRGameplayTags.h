@@ -96,6 +96,8 @@ public:
 	FGameplayTag Cooldown_Attack;
 
 	FGameplayTag Ability_Guard;
+	FGameplayTag Ability_WeaponSkill_Doggebi;
+
 private:
 	static FPRGameplayTags GameplayTags;
 };
