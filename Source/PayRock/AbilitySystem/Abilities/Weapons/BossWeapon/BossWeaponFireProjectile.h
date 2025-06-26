@@ -18,14 +18,12 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 protected:
-	virtual void BeginPlay() override;
-
 	UPROPERTY(EditDefaultsOnly)
 	float InterpSpeed;
 
 public:
 	UPROPERTY()
-	TWeakObjectPtr<AActor> TargetActor;
+	AActor* TargetActor;
 
 	
 };
