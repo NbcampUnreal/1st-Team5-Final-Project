@@ -5,9 +5,9 @@
 #include "CoreMinimal.h"
 #include "PayRock/AbilitySystem/Abilities/BaseDamageGameplayAbility.h"
 #include "PayRock/Character/BaseCharacter.h"
-#include "PayRock/Enemy/SpecialEnemy/SamuraiStatue/SamuraiStatueCharacter.h"
 #include "GA_EnemyNormalAttack.generated.h"
 
+class ASamuraiStatueCharacter;
 /**
  * 
  */
@@ -27,16 +27,6 @@ public:
 		const FGameplayEventData* TriggerEventData) override;
 
 	
-protected:
-	UFUNCTION(BlueprintCallable)
-	void BindCallbackToWeaponCollision();
-
-	UFUNCTION()
-	void OnWeaponOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
-		int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-	
-	UFUNCTION(BlueprintCallable)
-	void ToggleColiision(bool isActive);
 
 private:
 	UFUNCTION(BlueprintCallable)
