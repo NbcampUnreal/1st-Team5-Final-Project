@@ -26,6 +26,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	UQuestManager* GetQuestManager() const;
 
+	void OnPreExitHandler();
 	
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Quest")
 	UQuestManager* QuestManager;

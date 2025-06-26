@@ -143,8 +143,11 @@ float UPRAttributeSet::HandleIncomingDamage(const FEffectProperties& Props, cons
 		if (NewHealth <= 0.f)
 		{
 			// Handle death
+			//피해를받은 캐릭터 ==target
 			ABaseCharacter* Character = Cast<ABaseCharacter>(Props.TargetCharacter);
 
+			//피해를 준 상대가있을때 ==source
+			//피해를 받은 몬스터
 			if (Character && Props.SourceController)
 			{
 				AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(Character);

@@ -5,6 +5,7 @@
 
 #include "QuestInfoUI.h"
 #include "Blueprint/UserWidget.h"
+#include "GameFramework/PlayerState.h"
 #include "Kismet/GameplayStatics.h"
 
 UQuestManager::UQuestManager()
@@ -32,33 +33,12 @@ void UQuestManager::Init()
 
 	if (!QuestWidget && QuestWidgetClass)
 	{
-
-		
-		// if (UWorld* World = GEngine->GetWorldFromContextObjectChecked(this))
-		// {
-		// 	if (APlayerController* PC = UGameplayStatics::GetPlayerController(World, 0))
-		// 	{
-		// 		if (PC->IsLocalController())  
-		// 		{
-		// 			QuestWidget = CreateWidget<UQuestInfoUI>(PC, QuestWidgetClass);
-		// 			if (QuestWidget)
-		// 			{
-		// 				QuestWidget->SetQuestData(CurrentQuest);
-		// 				QuestWidget->SetVisibility(ESlateVisibility::Visible);
-		// 				QuestWidget->AddToViewport();
-		// 				UE_LOG(LogTemp, Warning, TEXT("[QuestManager] 퀘스트위젯 생성"));
-		// 			}
-		// 		}
-		// 	}
-		// }
-		
 		
 		if (UWorld* World = GEngine->GetWorldFromContextObjectChecked(this))
 		{
 			QuestWidget = CreateWidget<UQuestInfoUI>(World, QuestWidgetClass);
 			if (QuestWidget)
 			{
-				QuestWidget->SetQuestData(CurrentQuest);
 				QuestWidget->SetVisibility(ESlateVisibility::Visible);
 				QuestWidget->AddToViewport();
 		UE_LOG(LogTemp, Warning, TEXT("[QuestManager] 퀘스트위젯 생성"));
@@ -106,6 +86,16 @@ void UQuestManager::LoadQuestData()
 
 void UQuestManager::SaveQuestProgress()
 {
+
+	APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
+	if (PC && PC->PlayerState)
+	{
+		FString UniqueStr = PC->PlayerState->GetUniqueId().IsValid() ? PC->PlayerState->GetUniqueId()->ToString() : PC->PlayerState->GetPlayerName();
+
+		SaveSlotName = FString::Printf(TEXT("QuestSave_%s"), *UniqueStr);
+	}
+
+	
 	 SaveGame = nullptr;
 
 	if (UGameplayStatics::DoesSaveGameExist(SaveSlotName, 0))

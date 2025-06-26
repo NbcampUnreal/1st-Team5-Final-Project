@@ -115,6 +115,8 @@ void AEnemyCharacter::Client_NotifyQuestKill_Implementation(APlayerController* K
 {
 	if (!KillerPC) return;
 
+	if (!KillerPC->IsLocalController()) return;
+	
 	if (UPRAdvancedGameInstance* PRGI = Cast<UPRAdvancedGameInstance>(UGameplayStatics::GetGameInstance(KillerPC)))
 	{
 		const FString TargetName = PRGI->GetQuestManager()->GetCurrentQuest().TargetName;
