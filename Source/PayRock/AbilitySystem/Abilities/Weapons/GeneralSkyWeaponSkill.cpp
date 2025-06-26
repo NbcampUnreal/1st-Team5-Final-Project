@@ -102,7 +102,6 @@ void UGeneralSkyWeaponSkill::OnLanded(const FHitResult& Hit)
 				{
 					CauseDamage(Actor, FHitResult());
 				}
-				
 			}
 		}
 	}
