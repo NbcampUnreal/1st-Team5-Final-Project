@@ -5,7 +5,7 @@
 #include "PayRock/AbilitySystem/Abilities/BaseDamageGameplayAbility.h"
 
 ADoggebiSpinActor::ADoggebiSpinActor()
-	: AttackSpeed(500.f), IdleSpeed(120.f), bShouldAttack(false), bCanAttack(true)
+	: AttackSpeed(720.f), IdleSpeed(120.f), bShouldAttack(false), bCanAttack(true)
 {
 	PrimaryActorTick.bCanEverTick = true;
 	bReplicates = true;
@@ -29,13 +29,13 @@ void ADoggebiSpinActor::BeginPlay()
 	if (IsValid(BoxComp))
 	{
 		BoxComp->OnComponentBeginOverlap.AddUniqueDynamic(this, &ADoggebiSpinActor::OnOverlap);
-		BaseBoxExtent = BoxComp->GetScaledBoxExtent();
+		/*BaseBoxExtent = BoxComp->GetScaledBoxExtent();
 		BaseBoxOffset = BoxComp->GetRelativeLocation().X;
 	}
 
 	if (IsValid(StaticMeshComp))
 	{
-		BaseMeshScale = StaticMeshComp->GetRelativeScale3D();
+		BaseMeshScale = StaticMeshComp->GetRelativeScale3D();*/
 	}
 }
 
@@ -46,11 +46,11 @@ void ADoggebiSpinActor::Tick(float DeltaTime)
 	float DeltaYaw = (bShouldAttack ? AttackSpeed : IdleSpeed) * DeltaTime;
 	AddActorLocalRotation(FRotator(0.f, DeltaYaw, 0.f));
 	TotalRotationYaw += DeltaYaw;
-	if (TotalRotationYaw >= 360.0f) {
-		TotalRotationYaw -= 360.f;
+	if (TotalRotationYaw >= 720.0f) {
+		TotalRotationYaw = 0.f;
 		OnRotationComplete();
 	}
-    
+    /*
 	// Interpolate box extent increase
 	float TargetExtension = bShouldAttack ? AttackReach : 0.0f;
 	CurrentExtension = FMath::FInterpTo(CurrentExtension, TargetExtension, DeltaTime, BoxExtensionSpeed);
@@ -73,6 +73,7 @@ void ADoggebiSpinActor::Tick(float DeltaTime)
 	FVector NewScale = BaseMeshScale;
 	NewScale.X *= ScaleFactor;
 	StaticMeshComp->SetRelativeScale3D(NewScale);
+	*/
 }
 
 void ADoggebiSpinActor::StartAttack()
