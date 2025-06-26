@@ -145,6 +145,6 @@ void APRGameMode::SpawnAndPossessNecroCharacter(APlayerController* RequestingCon
 		UE_LOG(LogTemp, Warning, TEXT("APRGameMode::SpawnAndPossessNecroCharacter(): spawned NecroCharacter is not valid"))
 		return;
 	}
-
+	RequestingController->UnPossess();
 	RequestingController->Possess(NecroCharacter);
 }
