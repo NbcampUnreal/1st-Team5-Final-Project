@@ -78,7 +78,7 @@ void UBlessing_JangBoGo::SpawnCannonBall()
 		{
 			float RadiusFloat = Radius.GetValueAtLevel(GetAbilityLevel());
 			FVector2D RandomOffset2D = FMath::RandPointInCircle(RadiusFloat);
-			SpawnedActor->AddActorLocalOffset(FVector(RandomOffset2D.X, RandomOffset2D.Y, 100.f));
+			SpawnedActor->AddActorLocalOffset(FVector(RandomOffset2D.X, RandomOffset2D.Y, SpawnHeight));
 
 			if (ABaseProjectile* SpawnedProjectile = Cast<ABaseProjectile>(SpawnedActor))
 			{
