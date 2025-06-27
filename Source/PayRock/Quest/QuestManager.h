@@ -55,6 +55,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void ToggleQuestUI();
 
+	void ClearTimer();
+
 	
 protected:
 
@@ -80,4 +82,5 @@ public:
 	UQuestInfoUI* QuestWidget;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI") 
 	TSubclassOf<UUserWidget> QuestWidgetClass;
+	FTimerHandle AutoSaveTimerHandle;
 };

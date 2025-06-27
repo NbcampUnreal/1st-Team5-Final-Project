@@ -83,7 +83,7 @@ void UGA_Light::SpawnLightOrbAtCenter(AActor* OriginActor)
 	}
 
 	
-	ProjectedSpawnLoc.Z += 20.f;
+	ProjectedSpawnLoc.Z += 60.f;
 
 	FActorSpawnParameters Params;
 	Params.Owner = OriginActor;

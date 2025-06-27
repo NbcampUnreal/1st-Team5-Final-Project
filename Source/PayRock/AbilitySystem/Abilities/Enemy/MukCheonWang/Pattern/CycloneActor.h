@@ -43,6 +43,9 @@ protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 protected:
+	UPROPERTY(VisibleDefaultsOnly, Category = "Components")
+	TObjectPtr<USceneComponent> RootScene;
+	
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	TObjectPtr<USphereComponent> PullRange;
 

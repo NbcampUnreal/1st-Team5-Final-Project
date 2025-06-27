@@ -14,25 +14,28 @@
 ACycloneActor::ACycloneActor()
 {
 	PrimaryActorTick.bCanEverTick = true;
-
+	bReplicates = true;
+	AActor::SetReplicateMovement(true);
+	
+	RootScene = CreateDefaultSubobject<USceneComponent>(TEXT("RootScene"));
+	SetRootComponent(RootScene);
 	PullRange = CreateDefaultSubobject<USphereComponent>(TEXT("PullRange"));
 	PullRange->InitSphereRadius(600.f);
 	PullRange->SetCollisionProfileName(TEXT("OverlapAll"));
+	PullRange->SetGenerateOverlapEvents(true);
+	PullRange->SetupAttachment(RootComponent);
 	PullRange->OnComponentBeginOverlap.AddUniqueDynamic(this, &ACycloneActor::OnOverlapBegin);
 	PullRange->OnComponentEndOverlap.AddUniqueDynamic(this, &ACycloneActor::OnOverlapEnd);
 	
-	RootComponent = PullRange;
-
 	GeometryCacheComp = CreateDefaultSubobject<UGeometryCacheComponent>(TEXT("CycloneVFX"));
 	GeometryCacheComp->SetupAttachment(RootComponent);
 	GeometryCacheComp->SetRelativeLocation(FVector::ZeroVector);
-	GeometryCacheComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GeometryCacheComp->SetRelativeScale3D(FVector(0.5f));
+	GeometryCacheComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GeometryCacheComp->SetVisibility(false);
-
-	bReplicates = true;
-	AActor::SetReplicateMovement(true);
+	GeometryCacheComp->SetComponentTickEnabled(false);
 }
+
 
 
 void ACycloneActor::BeginPlay()

@@ -14,6 +14,7 @@
 #include "PayRock/AbilitySystem/PRAttributeSet.h"
 #include "PayRock/GameSystem/PRAdvancedGameInstance.h"
 #include "PayRock/GameSystem/PRGameState.h"
+#include "PayRock/Player/PRPlayerController.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "Perception/AISense_Hearing.h"
 
@@ -122,33 +123,6 @@ void AEnemyCharacter::Multicast_PlayAttackSound_Implementation(USoundBase* Sound
 	}
 }
 
-void AEnemyCharacter::Client_NotifyQuestKill_Implementation(APlayerController* KillerPC)
-{
-	if (!KillerPC) return;
-
-	if (!KillerPC->IsLocalController()) return;
-	
-	if (UPRAdvancedGameInstance* PRGI = Cast<UPRAdvancedGameInstance>(UGameplayStatics::GetGameInstance(KillerPC)))
-	{
-		const FString TargetName = PRGI->GetQuestManager()->GetCurrentQuest().TargetName;
-
-		const FName CharacterTypeName = StaticEnum<ECharacterType>()->GetNameByValue((int64)CharacterType);
-		FString CharacterTypeString = CharacterTypeName.ToString();
-		FString ShortName;
-		CharacterTypeString.Split(TEXT("::"), nullptr, &ShortName);
-
-		UE_LOG(LogTemp, Warning, TEXT("[퀘스트] 몬스터를 죽인 컨트롤러: %s (IsLocal=%d)"),
-			*KillerPC->GetName(),
-			KillerPC->IsLocalController());
-		
-		if (TargetName == ShortName)
-		{
-			PRGI->GetQuestManager()->UpdateProgress();
-			UE_LOG(LogTemp, Log, TEXT("[Client] 퀘스트 진행도 증가: %s"), *ShortName);
-		}
-	}
-}
-
 void AEnemyCharacter::Die(FVector HitDirection)
 {
 	Super::Die(HitDirection);
@@ -189,20 +163,14 @@ void AEnemyCharacter::Die(FVector HitDirection)
 
 	if (HasAuthority() && LastHitInstigator)
 	{
-		ACharacter* KillerPawn = LastHitInstigator->GetCharacter();
 		APlayerController* KillerPC = Cast<APlayerController>(LastHitInstigator);
-
-		FString InstigatorName = LastHitInstigator->GetName();
-		FString IsLocalStr = LastHitInstigator->IsLocalController() ? TEXT("Local") : TEXT("Remote");
-		UE_LOG(LogTemp, Warning, TEXT("[EnemyCharacter_Die] LastHitInstigator: %s (%s)"), *InstigatorName, *IsLocalStr);
-
-		if (KillerPawn && KillerPC)
+		APRPlayerController* APPC = Cast<APRPlayerController>(KillerPC);
+		if (APPC)
 		{
-			Client_NotifyQuestKill(KillerPC);  
-			UE_LOG(LogTemp, Log, TEXT("[EnemyCharacter_Die]Client_NotifyQuestKill"));
+			APPC->Client_NotifyQuestKill(this);
 		}
+		
 	}
-	
 	if (ContainerClass)
 	{
 		FVector Start = GetActorLocation() + FVector(0.f, 0.f, 100.f);

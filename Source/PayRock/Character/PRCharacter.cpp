@@ -397,6 +397,7 @@ void APRCharacter::Move(const FInputActionValue& Value)
 
 void APRCharacter::StartAim(const FInputActionValue& Value)
 {
+    if (bShouldSpin) return;
     if (!HasAuthority())
         ServerSetAiming(true);
     bIsAiming = true;

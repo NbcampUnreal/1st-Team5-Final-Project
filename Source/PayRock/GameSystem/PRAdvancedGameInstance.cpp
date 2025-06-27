@@ -26,6 +26,8 @@ void UPRAdvancedGameInstance::Shutdown()
 	if (QuestManager)
 	{
 		QuestManager->SaveQuestProgress();
+		QuestManager->ClearTimer();
+		
 		UE_LOG(LogTemp, Log, TEXT("[GameInstance] Shutdown - 퀘스트 자동 저장 완료"));
 	}
 }
