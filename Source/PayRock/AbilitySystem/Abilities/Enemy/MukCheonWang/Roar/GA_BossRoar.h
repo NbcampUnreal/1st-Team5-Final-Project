@@ -36,6 +36,12 @@ protected:
 	void OnRoarMontageCancelled();
 	void ResetNearPlayerBlackboardFlag();
 
+	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "Roar")
+	float DelayTime = 5.0f;
+	UFUNCTION()
+	void ResetRoarDelay();
+	FTimerHandle RoarDelayTimerHandle;
+
 private:
 	FGameplayAbilitySpecHandle CurrentSpecHandle;
 	FGameplayAbilityActorInfo* CurrentActorInfo = nullptr;

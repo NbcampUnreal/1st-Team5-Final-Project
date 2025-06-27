@@ -214,14 +214,25 @@ void AEnemyCharacter::Die(FVector HitDirection)
 
 		if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params))
 		{
-			FVector GroundLocation = Hit.ImpactPoint;
+			// FVector GroundLocation = Hit.ImpactPoint + FVector(0, 0, 20);
+			//
+			// FActorSpawnParameters SpawnParams;
+			// SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+			//
+			// AActor* Spawned = GetWorld()->SpawnActor<AActor>(
+			// 	ContainerClass,
+			// 	GroundLocation,
+			// 	FRotator::ZeroRotator,
+			// 	SpawnParams
+			// );
 
+			FVector GroundLocation = Hit.ImpactPoint;
+			FVector SpawnOffset = FVector(0, 0, 30); 
 			FActorSpawnParameters SpawnParams;
 			SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-
 			AActor* Spawned = GetWorld()->SpawnActor<AActor>(
 				ContainerClass,
-				GroundLocation,
+				GroundLocation + SpawnOffset,
 				FRotator::ZeroRotator,
 				SpawnParams
 			);

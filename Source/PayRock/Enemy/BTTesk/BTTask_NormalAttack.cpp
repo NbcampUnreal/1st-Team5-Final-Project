@@ -20,19 +20,30 @@ EBTNodeResult::Type UBTTask_NormalAttack::ExecuteTask(UBehaviorTreeComponent& Ow
 	if (!Enemy || !AttackAbility) return EBTNodeResult::Failed;
 	
 	UAbilitySystemComponent* ASC = Enemy->GetAbilitySystemComponent();
+	
 	if (!ASC) return EBTNodeResult::Failed;
 
+	
+	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
+	bool bblackIsAttacking = BB->GetValueAsBool("bIsAttacking");
+	UE_LOG(LogTemp, Warning, TEXT("[UBTTask_NormalAttack] before %s "),bblackIsAttacking ? TEXT("true") : TEXT("false"));
+	
 	if (ASC->TryActivateAbilityByClass(AttackAbility))
 	{
-		UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
+		
+		UE_LOG(LogTemp, Warning, TEXT("[UBTTask_NormalAttack] After1 %s "),bblackIsAttacking ? TEXT("true") : TEXT("false"));
 		if (!BB || !BB->GetBlackboardAsset()) return EBTNodeResult::Failed;
 
-		{
-			BB->SetValueAsBool("bInAttackRange", false);
-			BB->SetValueAsBool("bIsAttacking", true);
-		}
+		
+		BB->SetValueAsBool("bInAttackRange", false);
+		BB->SetValueAsBool("bIsAttacking", true);
+
+		
+		UE_LOG(LogTemp, Warning, TEXT("[UBTTask_NormalAttack] After2 %s "),bblackIsAttacking ? TEXT("true") : TEXT("false"));
+
 		return EBTNodeResult::Succeeded;
 	}
 
+	UE_LOG(LogTemp, Warning, TEXT("[UBTTask_NormalAttack] After3 %s "),bblackIsAttacking ? TEXT("true") : TEXT("false"));
 	return EBTNodeResult::Failed;
 }

@@ -51,6 +51,17 @@ void UGA_EnemyNormalAttack::EndAttackBlackboardState()
 	if (!samurai) return;
 
 	samurai->ToggleColiision(false);
+
+	
 	samurai->CurrentSamuraiAttackGA = nullptr;
+
+	AController* Controller = Cast<AController>(GetActorInfo().OwnerActor->GetInstigatorController());
+	if (!Controller) return;
+
+	UBlackboardComponent* BB = Controller->FindComponentByClass<UBlackboardComponent>();
+	if (BB)
+	{
+		BB->SetValueAsBool(FName("bIsNearPlayer"), false);
+	}
 
 }

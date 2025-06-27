@@ -28,6 +28,9 @@ protected:
 
 	bool IsPlayerInNavAndOutOfRange(APRCharacter* Player);
 	float GetCurrentSpeed() const;
+	
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_PlayRingVFX();
 
 protected:
 	UPROPERTY(VisibleAnywhere)
@@ -39,6 +42,8 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Collision")
 	TObjectPtr<USphereComponent> InnerSafeSphere;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
+	TObjectPtr<UNiagaraComponent> Ring;
 
 	UPROPERTY(EditDefaultsOnly)
 	float OrbLifetime = 10.f;
@@ -72,4 +77,5 @@ private:
 
 	FTimerHandle DamageTimerHandle;
 	FTimerHandle MoveTimerHandle;
+	FTimerHandle RingVFXTimerHandle;
 };
