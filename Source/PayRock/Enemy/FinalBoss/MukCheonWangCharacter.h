@@ -58,12 +58,12 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
 	USkeletalMeshComponent* ChairMesh;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sit")
+	UPROPERTY(Replicated, BlueprintReadWrite, Category = "AI")
 	bool bIsSit=true;
 
-	UFUNCTION(BlueprintCallable, Category = "Mesh")
-	void ToggleVisibleChairMesh(bool isActive);
-
+	
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_ToggleChairAndSit(bool isActive);
 	//왕관
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
 	USkeletalMeshComponent* KingCrown;

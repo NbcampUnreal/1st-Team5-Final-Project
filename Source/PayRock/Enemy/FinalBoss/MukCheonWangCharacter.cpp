@@ -133,7 +133,7 @@ void AMukCheonWangCharacter::Tick(float DeltaTime)
                 if (NewPhase == EBossPhase::Phase2)
                 {
                     BB->SetValueAsBool(TEXT("bIsSpecialPattern1"), true);
-                    ToggleVisibleChairMesh(false);
+                    Multicast_ToggleChairAndSit(false);
                 }
                 
                 if (NewPhase == EBossPhase::Phase3)
@@ -146,13 +146,14 @@ void AMukCheonWangCharacter::Tick(float DeltaTime)
 
 }
 
-    void AMukCheonWangCharacter::ToggleVisibleChairMesh(bool isActive)
-    {
-        ChairMesh->SetVisibility(isActive);
+
+void AMukCheonWangCharacter::Multicast_ToggleChairAndSit_Implementation(bool isActive)
+{
+    ChairMesh->SetVisibility(isActive);
     
-        ChairMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-        bIsSit = isActive;
-    }
+    ChairMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    bIsSit = isActive;
+}
 
 void AMukCheonWangCharacter::PerformMeleeSweep(FName SocketName, UBaseDamageGameplayAbility* Ablilty)
 {

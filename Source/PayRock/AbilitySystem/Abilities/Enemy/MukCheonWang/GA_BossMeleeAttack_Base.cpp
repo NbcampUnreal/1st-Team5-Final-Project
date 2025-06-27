@@ -49,5 +49,6 @@ void UGA_BossMeleeAttack_Base::EndAttackBlackboardState()
 	{
 		BB->SetValueAsBool(FName("bIsNearPlayer"), false);
 		BB->SetValueAsBool("bIsAttacking", false);
+		BB->SetValueAsBool("bIsAttacking", false);
 	}
 }
