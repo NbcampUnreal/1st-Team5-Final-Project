@@ -40,6 +40,7 @@ protected:
 	virtual void Multicast_PlayVFX_Implementation() override;
 
 	void SpawnLightning();
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 protected:
 	UPROPERTY(VisibleAnywhere, Category = "Components")
@@ -63,7 +64,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Cyclone")
 	float MaxInterval = 2.5f;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Cyclone")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Replicated, Category = "Cyclone")
 	TObjectPtr<UGeometryCache> GeometryCacheAsset;
 
 private:

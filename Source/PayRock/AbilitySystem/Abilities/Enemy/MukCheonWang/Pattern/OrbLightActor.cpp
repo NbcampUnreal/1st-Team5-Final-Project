@@ -33,6 +33,9 @@ AOrbLightActor::AOrbLightActor()
 	
 	VFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("VFX"));
 	VFX->SetupAttachment(RootComponent);
+
+	bReplicates = true;
+	AActor::SetReplicateMovement(true);
 }
 
 void AOrbLightActor::BeginPlay()
