@@ -242,8 +242,17 @@ void UQuestManager::ToggleQuestUI()
 
 void UQuestManager::ClearTimer()
 {
-	if (UWorld* World = GEngine->GetWorldFromContextObjectChecked(this))
+	
+	UWorld* World = nullptr;
+	if (GEngine)
+		World = GEngine->GetWorldFromContextObject(this, EGetWorldErrorMode::ReturnNull);
+
+	if (World)
 	{
 		World->GetTimerManager().ClearTimer(AutoSaveTimerHandle);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[QuestManager] 월드파괴."));
 	}
 }
