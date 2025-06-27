@@ -45,6 +45,17 @@ void UQuestManager::Init()
 			}
 		}
 	}
+	if (UWorld* World = GEngine->GetWorldFromContextObjectChecked(this))
+	{
+		World->GetTimerManager().SetTimer(
+			AutoSaveTimerHandle,
+			this,
+			&UQuestManager::SaveQuestProgress,
+			30.0f, 
+			true  
+		);
+	}
+	
 }
 
 void UQuestManager::LoadQuestData()
@@ -86,8 +97,11 @@ void UQuestManager::LoadQuestData()
 
 void UQuestManager::SaveQuestProgress()
 {
-
-	APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
+	APlayerController* PC = nullptr;
+	if (GEngine && GetWorld())
+	{
+		PC = GEngine->GetFirstLocalPlayerController(GetWorld());
+	}
 	if (PC && PC->PlayerState)
 	{
 		FString UniqueStr = PC->PlayerState->GetUniqueId().IsValid() ? PC->PlayerState->GetUniqueId()->ToString() : PC->PlayerState->GetPlayerName();
@@ -204,7 +218,7 @@ void UQuestManager::ToggleQuestUI()
 {
 	if (!QuestWidget) return;
 
-	APlayerController* PC = GetWorld()->GetFirstPlayerController();
+	APlayerController* PC = GEngine->GetFirstLocalPlayerController(GetWorld());
 	QuestWidget->CallCheckItemCollectQuest();
 	
 	if (QuestWidget->IsVisible())
@@ -223,5 +237,22 @@ void UQuestManager::ToggleQuestUI()
 			QuestWidget->SetVisibility(ESlateVisibility::Visible);
 
 			UE_LOG(LogTemp, Error, TEXT("[QuestManager] 토글퀘스트 보이기"));
+	}
+}
+
+void UQuestManager::ClearTimer()
+{
+	
+	UWorld* World = nullptr;
+	if (GEngine)
+		World = GEngine->GetWorldFromContextObject(this, EGetWorldErrorMode::ReturnNull);
+
+	if (World)
+	{
+		World->GetTimerManager().ClearTimer(AutoSaveTimerHandle);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[QuestManager] 월드파괴."));
 	}
 }

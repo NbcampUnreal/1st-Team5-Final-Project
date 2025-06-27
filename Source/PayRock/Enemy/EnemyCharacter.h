@@ -62,9 +62,6 @@ public:
 	UFUNCTION()
 	void RestoreAnimInstance();
 
-	// === Quest / Kill ===
-	UFUNCTION(Client, Reliable)
-	void Client_NotifyQuestKill(APlayerController* KillerPC);
 
 	// === Spawn Handling ===
 	TSubclassOf<AActor> GetSpawnedActor() { return SpawnerClass; }
