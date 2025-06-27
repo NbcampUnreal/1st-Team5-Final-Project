@@ -12,9 +12,10 @@ void UNecroWidgetController::HandleRemoval()
 	{
 		if (GetWorld() && !GetWorld()->bIsTearingDown)
 		{
-			GetWorld()->GetTimerManager().ClearTimer(Pair.Value);	
+			GetWorld()->GetTimerManager().ClearTimer(Pair.Value);  
 		}
 	}
+	CooldownUpdateTimers.Empty();
 
 	for (auto& Pair : CooldownDelegates.Array())
 	{
@@ -23,6 +24,7 @@ void UNecroWidgetController::HandleRemoval()
 			Pair.Value.Clear();
 		}
 	}
+	CooldownDelegates.Empty(); 
 }
 
 void UNecroWidgetController::BroadcastInitialValues()
@@ -52,11 +54,13 @@ void UNecroWidgetController::CooldownChanged(const FGameplayTag Tag, int32 TagCo
 	
 	if (TagCount > 0)
 	{
-		FTimerDelegate TimerDelegate;
-		TimerDelegate.BindLambda([this, Tag]()
+		if (CooldownUpdateTimers.Contains(Tag))
 		{
-			BroadcastCooldown(Tag);
-		});
+			GetWorld()->GetTimerManager().ClearTimer(CooldownUpdateTimers[Tag]);
+		}
+		
+		FTimerDelegate TimerDelegate;
+		TimerDelegate.BindUFunction(this, FName("BroadcastCooldownForTag"), Tag);
 
 		FTimerHandle& TimerHandle = CooldownUpdateTimers.FindOrAdd(Tag);
 			
@@ -76,7 +80,7 @@ void UNecroWidgetController::CooldownChanged(const FGameplayTag Tag, int32 TagCo
 
 			if (FOnCooldownChanged* Delegate = CooldownDelegates.Find(Tag))
 			{
-				Delegate->Broadcast(0.f);	
+				Delegate->Broadcast(0.f);  
 			}
 		}
 	}
@@ -84,19 +88,28 @@ void UNecroWidgetController::CooldownChanged(const FGameplayTag Tag, int32 TagCo
 
 void UNecroWidgetController::BroadcastCooldown(const FGameplayTag& Tag)
 {
+	if (!IsValid(this) || !IsValid(AbilitySystemComponent) || !GetWorld() || GetWorld()->bIsTearingDown) return;
+    
 	float RemainingTime = 0.f;
-	if (!IsValid(AbilitySystemComponent)) return;
 	if (UPRAbilitySystemComponent* PRASC = Cast<UPRAbilitySystemComponent>(AbilitySystemComponent))
 	{
 		RemainingTime = PRASC->GetCooldownRemainingTimeForTag(Tag);
 	}
+    
 	if (FOnCooldownChanged* Delegate = CooldownDelegates.Find(Tag))
 	{
 		if (Delegate->IsBound())
 		{
-			Delegate->Broadcast(RemainingTime);	
+			Delegate->Broadcast(RemainingTime);    
 		}
 	}
+}
+
+void UNecroWidgetController::BroadcastCooldownForTag(FGameplayTag Tag)
+{
+	if (!IsValid(this) || !IsValid(AbilitySystemComponent) || !GetWorld() || GetWorld()->bIsTearingDown) return;
+    
+	BroadcastCooldown(Tag);
 }
 
 void UNecroWidgetController::BroadcastExtractionEnabled()
