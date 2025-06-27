@@ -92,7 +92,10 @@ void UNecroWidgetController::BroadcastCooldown(const FGameplayTag& Tag)
 	}
 	if (FOnCooldownChanged* Delegate = CooldownDelegates.Find(Tag))
 	{
-		Delegate->Broadcast(RemainingTime);
+		if (Delegate->IsBound())
+		{
+			Delegate->Broadcast(RemainingTime);	
+		}
 	}
 }
 

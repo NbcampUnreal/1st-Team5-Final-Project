@@ -78,11 +78,6 @@ void UBaseWeaponAbility::PerformSweep()
 		Box,
 		Params
 	);
-
-	// DEBUG BOX
-	const FColor BoxColor = bHit ? FColor::Red : FColor::Green;
-	DrawDebugBox(GetWorld(), Start, BoxExtent, Rotation, BoxColor, false, 1.0f);
-	DrawDebugBox(GetWorld(), End, BoxExtent, Rotation, BoxColor, false, 1.0f);
 	
 	if (bHit)
 	{

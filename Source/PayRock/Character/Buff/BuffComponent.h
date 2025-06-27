@@ -8,7 +8,7 @@
 #include "BuffComponent.generated.h"
 
 struct FGameplayTag;
-class APRCharacter;
+class ABaseCharacter;
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class PAYROCK_API UBuffComponent : public UActorComponent
@@ -31,6 +31,18 @@ public:
 
 	bool IsKnockedBack() const { return bIsKnockedBack; }
 	void StartKnockbackRecovery();
+	// === Multicast Functions ===
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_ApplyFrozen();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_RemoveFrozen();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_ApplyShocked(const FGameplayTag Tag);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_RemoveShocked();
 
 protected:
 	virtual void BeginPlay() override;
@@ -46,7 +58,7 @@ private:
 	void CancelActiveAbilities();
 	
 	UPROPERTY()
-	APRCharacter* OwningPRCharacter;
+	ABaseCharacter* OwningPRCharacter;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Debuff|Knockback")
 	float KnockbackForce;

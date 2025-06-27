@@ -64,8 +64,6 @@ void UGeneralSkyWeaponSkill::OnLanded(const FHitResult& Hit)
 		Sphere,
 		QueryParams
 	);
-
-	DrawDebugSphere(GetWorld(), Origin, Radius, 8, FColor::Cyan, false, 1.f);
 	
 	if (bHit)
 	{
@@ -83,6 +81,10 @@ void UGeneralSkyWeaponSkill::OnLanded(const FHitResult& Hit)
 				if (UAbilitySystemComponent* TargetASC =
 					UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Actor))
 				{
+					if (UPRAbilitySystemComponent* PRASC = Cast<UPRAbilitySystemComponent>(TargetASC))
+					{
+						PRASC->StoredHitDirection = (Actor->GetActorLocation() - GetAvatarActorFromActorInfo()->GetActorLocation()).GetSafeNormal();
+					}
 					FGameplayEffectContextHandle ContextHandle = SourceASC->MakeEffectContext();
 					ContextHandle.AddOrigin(Actor->GetActorLocation());
 					FGameplayEffectSpecHandle SpecHandle = SourceASC->MakeOutgoingSpec(
@@ -91,11 +93,6 @@ void UGeneralSkyWeaponSkill::OnLanded(const FHitResult& Hit)
 						*SpecHandle.Data.Get(),
 						TargetASC
 					);
-
-					if (UPRAbilitySystemComponent* PRASC = Cast<UPRAbilitySystemComponent>(TargetASC))
-					{
-						PRASC->StoredHitDirection = (Actor->GetActorLocation() - GetAvatarActorFromActorInfo()->GetActorLocation()).GetSafeNormal();
-					}
 				}
 
 				if (GetAvatarActorFromActorInfo()->HasAuthority())
