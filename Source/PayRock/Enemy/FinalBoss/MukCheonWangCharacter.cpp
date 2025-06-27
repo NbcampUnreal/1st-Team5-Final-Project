@@ -12,6 +12,7 @@
 #include "NiagaraFunctionLibrary.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Net/UnrealNetwork.h"
 #include "PayRock/AbilitySystem/PRAttributeSet.h"
 #include "PayRock/AbilitySystem/Abilities/BaseDamageGameplayAbility.h"
 #include "PayRock/Character/PRCharacter.h"
@@ -228,6 +229,13 @@ void AMukCheonWangCharacter::StartMeleeAttack(FName SocketName, UBaseDamageGamep
 void AMukCheonWangCharacter::PerformMeleeSweep_Internal()
 {
     PerformMeleeSweep(ActiveSocketName, CurrentAbilityRef);
+}
+
+void AMukCheonWangCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+    DOREPLIFETIME(AMukCheonWangCharacter, bIsSit);
 }
 
 void AMukCheonWangCharacter::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)

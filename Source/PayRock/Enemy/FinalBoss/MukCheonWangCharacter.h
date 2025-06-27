@@ -109,7 +109,7 @@ public:
 	
 //endregion
 
-	
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
 	
 	UFUNCTION()
