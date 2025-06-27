@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
+#include "Components/BoxComponent.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/Actor.h"
 #include "PayRock/AbilitySystem/Abilities/Enemy/MukCheonWang/BaseCombatEffectActor.h"
@@ -33,6 +34,12 @@ protected:
 	void Multicast_PlayRingVFX();
 
 protected:
+	UPROPERTY(VisibleDefaultsOnly, Category = "Components")
+	TObjectPtr<USceneComponent> RootScene;
+	
+	UPROPERTY(VisibleDefaultsOnly, Category = "Components")
+	TObjectPtr<USceneComponent> FixedScene;
+	
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UPointLightComponent> LightSource;
 	
@@ -44,6 +51,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
 	TObjectPtr<UNiagaraComponent> Ring;
+
+	UPROPERTY(EditAnywhere, Category = "Movement")
+	TObjectPtr<UBoxComponent> MovementBox;
 
 	UPROPERTY(EditDefaultsOnly)
 	float OrbLifetime = 10.f;
