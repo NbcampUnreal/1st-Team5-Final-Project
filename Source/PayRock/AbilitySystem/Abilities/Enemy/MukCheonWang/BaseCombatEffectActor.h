@@ -64,4 +64,6 @@ public:
 	virtual void InitializeEffectSource(UGameplayAbility* InAbility);
 protected:
 	void ApplyDamageEffect(AActor* TargetActor);
+	
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 };
