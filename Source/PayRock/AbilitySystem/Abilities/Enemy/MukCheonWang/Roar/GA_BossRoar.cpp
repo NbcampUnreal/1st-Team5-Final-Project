@@ -25,6 +25,28 @@ void UGA_BossRoar::ActivateAbility(
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
+
+
+
+	AController* Controller = Cast<AController>(GetActorInfo().OwnerActor->GetInstigatorController());
+	if (!Controller) return;
+
+	UBlackboardComponent* BB = Controller->FindComponentByClass<UBlackboardComponent>();
+	if (BB)
+	{
+		BB->SetValueAsBool(FName("bRoarDelay"), true);
+		
+		if (UWorld* World = Boss->GetWorld())
+		{
+			World->GetTimerManager().SetTimer(
+				RoarDelayTimerHandle,
+				this,
+				&UGA_BossRoar::ResetRoarDelay,
+				DelayTime, 
+				false 
+			);
+		}
+	}
 	
 	CurrentSpecHandle = Handle;
 	CurrentActorInfo = const_cast<FGameplayAbilityActorInfo*>(ActorInfo);
@@ -42,11 +64,15 @@ void UGA_BossRoar::ActivateAbility(
 void UGA_BossRoar::OnRoarMontageEnded()
 {
 	ResetNearPlayerBlackboardFlag();
+
+	
+	
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
 void UGA_BossRoar::OnRoarMontageCancelled()
 {
+
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 }
 
@@ -59,5 +85,22 @@ void UGA_BossRoar::ResetNearPlayerBlackboardFlag()
 	if (BB)
 	{
 		BB->SetValueAsBool(FName("bIsNearPlayer"), false);
+	}
+}
+
+void UGA_BossRoar::ResetRoarDelay()
+{
+	ACharacter* Boss = Cast<ACharacter>(GetAvatarActorFromActorInfo());
+	if (!Boss)
+		return;
+
+	AController* Controller = Cast<AController>(Boss->GetController());
+	if (!Controller)
+		return;
+
+	UBlackboardComponent* BB = Controller->FindComponentByClass<UBlackboardComponent>();
+	if (BB)
+	{
+		BB->SetValueAsBool(FName("bRoarDelay"), false);
 	}
 }

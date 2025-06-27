@@ -146,11 +146,13 @@ void AMukCheonWangCharacter::Tick(float DeltaTime)
 
 }
 
-void AMukCheonWangCharacter::ToggleVisibleChairMesh(bool isActive)
-{
-    ChairMesh->SetVisibility(isActive);
-    bIsSit = isActive;
-}
+    void AMukCheonWangCharacter::ToggleVisibleChairMesh(bool isActive)
+    {
+        ChairMesh->SetVisibility(isActive);
+    
+        ChairMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+        bIsSit = isActive;
+    }
 
 void AMukCheonWangCharacter::PerformMeleeSweep(FName SocketName, UBaseDamageGameplayAbility* Ablilty)
 {
@@ -174,6 +176,7 @@ void AMukCheonWangCharacter::PerformMeleeSweep(FName SocketName, UBaseDamageGame
         Params
     );
 
+    
     //이 부분 공격 GA-에 들어가서 켜주고 애니메이션 끝나는지점에 Clear해주기
     if (bHit)
     {
