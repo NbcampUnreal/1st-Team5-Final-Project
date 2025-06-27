@@ -14,6 +14,8 @@
 #include "PayRock/Character/PRCharacter.h"
 #include "PayRock/UI/Widget/BaseUserWidget.h"
 //#include "PayRock/GameSystem/PRGameState.h"
+#include "Kismet/GameplayStatics.h"
+#include "PayRock/GameSystem/PRAdvancedGameInstance.h"
 #include "PayRock/GameSystem/PRGameMode.h"
 #include "PayRock/UI/Manager/UIManager.h"
 #include "PayRock/UI/Widget/CleanPercent.h"
@@ -223,6 +225,31 @@ void APRPlayerController::OnSpectateTargetDied(AActor* DeadActor)
 	}
 }
 
+void APRPlayerController::Client_NotifyQuestKill_Implementation(AEnemyCharacter* DeadEnemy)
+{
+	if (UPRAdvancedGameInstance* PRGI = Cast<UPRAdvancedGameInstance>(UGameplayStatics::GetGameInstance(this)))
+	{
+		UE_LOG(LogTemp, Log, TEXT("[APRPlayerController]:UPRAdvancedGameInstance불러오기성공")  );
+		const FString TargetName = PRGI->GetQuestManager()->GetCurrentQuest().TargetName;
+
+		if (AEnemyCharacter* DeadCharacter = DeadEnemy)
+		{
+			UE_LOG(LogTemp, Log, TEXT("[APRPlayerController]:AEnemyCharacter 불러오기성공")  );
+			const FName CharacterTypeName = StaticEnum<ECharacterType>()->GetNameByValue((int64)DeadCharacter->CharacterType);
+			FString CharacterTypeString = CharacterTypeName.ToString();
+			FString ShortName;
+			CharacterTypeString.Split(TEXT("::"), nullptr, &ShortName);
+
+			if (TargetName == ShortName)
+			{
+				PRGI->GetQuestManager()->UpdateProgress();
+				UE_LOG(LogTemp, Log, TEXT("[APRPlayerController] 퀘스트 진행도 증가: %s"), *ShortName);
+			}
+		}
+	}
+}
+
+
 FString APRPlayerController::GetNetModeAsString() const
 {
 	UWorld* World = GetWorld();
@@ -400,10 +427,11 @@ void APRPlayerController::HandleMatchFlowStateChanged(EMatchFlowState NewState)
 		OnExtractionEnabled.Broadcast();
 		break;
 	case EMatchFlowState::MatchEnded:
+		SetInputMode(FInputModeUIOnly());
 		DisableInput(this);
 		UIManager->RemoveAllWidgets();
 		UIManager->RemoveAllWidgetControllers();
-		if (!Cast<APRPlayerState>(PlayerState)->GetIsExtracted())
+		if (IsValid(PlayerState) && !Cast<APRPlayerState>(PlayerState)->GetIsExtracted())
 		{
 			UIManager->ShowWidget(EWidgetCategory::MatchEnd);
 		}
