@@ -34,6 +34,9 @@ AOrbLightActor::AOrbLightActor()
 	VFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("VFX"));
 	VFX->SetupAttachment(RootComponent);
 
+	Ring = CreateDefaultSubobject<UNiagaraComponent>(TEXT("Ring"));
+	Ring->SetupAttachment(RootComponent);
+	
 	bReplicates = true;
 	AActor::SetReplicateMovement(true);
 }
@@ -53,11 +56,15 @@ void AOrbLightActor::BeginPlay()
 			SetActorLocation(NavLoc.Location + FVector(0.f, 0.f, 20.f));
 		}
 	}
-	
+
 	if (HasAuthority())
 	{
 		Multicast_PlayVFX();
 
+		// 🔄 링 VFX 주기적 재생
+		GetWorldTimerManager().SetTimer(RingVFXTimerHandle, this, &AOrbLightActor::Multicast_PlayRingVFX, 1.0f, true);
+
+		MoveToRandomLocation(); 
 		GetWorldTimerManager().SetTimer(DamageTimerHandle, this, &AOrbLightActor::ApplyLightSurvivalDOT, DamageTickInterval, true);
 		GetWorldTimerManager().SetTimer(MoveTimerHandle, this, &AOrbLightActor::MoveToRandomLocation, MoveInterval, true);
 
@@ -72,7 +79,6 @@ void AOrbLightActor::BeginPlay()
 		}
 	}
 }
-
 
 void AOrbLightActor::Tick(float DeltaTime)
 {
@@ -98,26 +104,20 @@ void AOrbLightActor::ApplyLightSurvivalDOT()
 	for (APRCharacter* Player : CachedPlayers)
 	{
 		if (!IsValid(Player)) continue;
-		
 		if (!OuterDamageSphere->IsOverlappingActor(Player)) continue;
-		
 		if (InnerSafeSphere->IsOverlappingActor(Player)) continue;
-		
 		ApplyDamageEffect(Player);
 	}
 }
-
 
 void AOrbLightActor::MoveToRandomLocation()
 {
 	FNavLocation GroundPoint;
 	UNavigationSystemV1* NavSys = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
 
-	
 	if (NavSys && NavSys->GetRandomReachablePointInRadius(GetActorLocation(), MoveRadius, GroundPoint))
 	{
 		FVector DesiredLocation = GroundPoint.Location;
-		
 		DesiredLocation.Z = FixedHeight;
 
 		FVector CurrentLocation = GetActorLocation();
@@ -140,8 +140,6 @@ void AOrbLightActor::MoveToRandomLocation()
 		bIsMoving = true;
 	}
 }
-
-
 
 bool AOrbLightActor::IsPlayerInNavAndOutOfRange(APRCharacter* Player)
 {
@@ -171,13 +169,27 @@ void AOrbLightActor::Multicast_PlayVFX_Implementation()
 	{
 		LightSource->SetVisibility(true);
 	}
+
+	if (VFX && GetNetMode() != NM_DedicatedServer)
+	{
+		VFX->Activate(true);
+	}
+}
+
+void AOrbLightActor::Multicast_PlayRingVFX_Implementation()
+{
+	if (Ring && GetNetMode() != NM_DedicatedServer)
+	{
+		Ring->Activate(true);
+	}
 }
 
 void AOrbLightActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	GetWorldTimerManager().ClearTimer(DamageTimerHandle);
 	GetWorldTimerManager().ClearTimer(MoveTimerHandle);
-	
+	GetWorldTimerManager().ClearTimer(RingVFXTimerHandle);
+
 	if (APawn* OwnerPawn = Cast<APawn>(GetOwner()))
 	{
 		if (AAIController* AICon = Cast<AAIController>(OwnerPawn->GetController()))
