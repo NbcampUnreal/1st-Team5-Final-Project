@@ -40,6 +40,9 @@ protected:
 	FScalableFloat Radius;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Blessing")
+	float SpawnHeight = 300.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Blessing")
 	TSubclassOf<ABaseProjectile> CannonBallClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Blessing")
