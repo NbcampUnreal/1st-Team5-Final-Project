@@ -59,7 +59,7 @@ protected:
 	USkeletalMeshComponent* ChairMesh;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sit")
-	bool bIsSit;
+	bool bIsSit=true;
 
 	UFUNCTION(BlueprintCallable, Category = "Mesh")
 	void ToggleVisibleChairMesh(bool isActive);
