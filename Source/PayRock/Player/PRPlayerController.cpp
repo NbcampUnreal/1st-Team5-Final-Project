@@ -449,7 +449,7 @@ void APRPlayerController::ServerRequestNecroCharacter_Implementation()
 	if (APRGameMode* GameMode = GetWorld()->GetAuthGameMode<APRGameMode>())
 	{
 		FVector Location = IsValid(GetCharacter()) ? GetCharacter()->GetActorLocation() : FVector(0, 0, 0);
-		GameMode->SpawnAndPossessNecroCharacter(this, GetCharacter()->GetActorLocation());
+		GameMode->SpawnAndPossessNecroCharacter(this, Location);
 	}
 
 	ClientOnNecroPossessed();
@@ -461,6 +461,13 @@ void APRPlayerController::ClientOnNecroPossessed_Implementation()
 	{
 		SetInputMode(FInputModeGameOnly());
 		EnableInput(this);
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem =
+		ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
+		{
+			Subsystem->RemoveMappingContext(SpectorIMC);
+			Subsystem->RemoveMappingContext(PlayerIMC);
+			Subsystem->AddMappingContext(PlayerIMC,0);
+		}
 		SetShowMouseCursor(false);
 	}
 }

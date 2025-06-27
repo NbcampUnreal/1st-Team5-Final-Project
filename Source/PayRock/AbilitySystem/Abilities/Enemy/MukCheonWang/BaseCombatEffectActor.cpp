@@ -94,3 +94,8 @@ void ABaseCombatEffectActor::ApplyDamageEffect(AActor* TargetActor)
 		);
 	}
 }
+
+void ABaseCombatEffectActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+}

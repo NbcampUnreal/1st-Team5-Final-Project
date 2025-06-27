@@ -106,24 +106,14 @@ void UBuffComponent::KnockbackRecovery()
 void UBuffComponent::OnFrozenTagChange(const FGameplayTag Tag, int32 TagCount)
 {
 	if (!IsValid(OwningPRCharacter)) return;
-
-	USkeletalMeshComponent* Mesh = OwningPRCharacter->GetMesh();
-	if (!IsValid(Mesh)) return;
-	UAnimInstance* AnimInstance = Mesh->GetAnimInstance();
-	if (!IsValid(AnimInstance)) return;
 	
 	if (TagCount > 0)
 	{
-		AnimInstance->Montage_Pause();
-		Mesh->bPauseAnims = true;
-		// CancelActiveAbilities();
-		DisableMovement();
+		Multicast_ApplyFrozen();
 	}
 	else
 	{
-		AnimInstance->Montage_Resume(nullptr);
-		Mesh->bPauseAnims = false;
-		EnableMovement();
+		Multicast_RemoveFrozen();
 	}
 
 	Client_BroadcastTagChange(Tag, TagCount > 0);
@@ -133,18 +123,66 @@ void UBuffComponent::OnShockedTagChange(const FGameplayTag Tag, int32 TagCount)
 {
 	if (TagCount > 0)
 	{
-		// CancelActiveAbilities();
-		DisableMovement();
-		PlayMontageByTag(Tag);
+		Multicast_ApplyShocked(Tag);
 	}
 	else
 	{
-		OwningPRCharacter->StopAnimMontage();
-		EnableMovement();
+		Multicast_RemoveShocked();
 	}
 
 	Client_BroadcastTagChange(Tag, TagCount > 0);
 }
+//=== Multicast Functions ===
+void UBuffComponent::Multicast_ApplyFrozen_Implementation()
+{
+	if (!IsValid(OwningPRCharacter)) return;
+
+	USkeletalMeshComponent* Mesh = OwningPRCharacter->GetMesh();
+	if (!IsValid(Mesh)) return;
+	UAnimInstance* AnimInstance = Mesh->GetAnimInstance();
+	if (!IsValid(AnimInstance)) return;
+
+	//add AIController ClearFocus? if(Cast<Controller>(OwningPRCharacter->GetController())~~..
+
+	AnimInstance->Montage_Pause();
+	Mesh->bPauseAnims = true;
+	// CancelActiveAbilities();
+	DisableMovement();
+
+}
+void UBuffComponent::Multicast_RemoveFrozen_Implementation()
+{
+	if (!IsValid(OwningPRCharacter)) return;
+
+	USkeletalMeshComponent* Mesh = OwningPRCharacter->GetMesh();
+	if (!IsValid(Mesh)) return;
+	UAnimInstance* AnimInstance = Mesh->GetAnimInstance();
+	if (!IsValid(AnimInstance)) return;
+
+	AnimInstance->Montage_Resume(nullptr);
+	Mesh->bPauseAnims = false;
+	EnableMovement();
+}
+
+void UBuffComponent::Multicast_ApplyShocked_Implementation(const FGameplayTag Tag)
+{
+	if (!IsValid(OwningPRCharacter)) return;
+
+	DisableMovement();
+	PlayMontageByTag(Tag);
+
+}
+
+void UBuffComponent::Multicast_RemoveShocked_Implementation()
+{
+	if (!IsValid(OwningPRCharacter)) return;
+
+	OwningPRCharacter->StopAnimMontage();
+	EnableMovement();
+}
+
+
+
 
 void UBuffComponent::Client_BroadcastTagChange_Implementation(const FGameplayTag& Tag, int32 TagCount)
 {
