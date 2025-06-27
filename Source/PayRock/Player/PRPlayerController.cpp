@@ -400,10 +400,11 @@ void APRPlayerController::HandleMatchFlowStateChanged(EMatchFlowState NewState)
 		OnExtractionEnabled.Broadcast();
 		break;
 	case EMatchFlowState::MatchEnded:
+		SetInputMode(FInputModeUIOnly());
 		DisableInput(this);
 		UIManager->RemoveAllWidgets();
 		UIManager->RemoveAllWidgetControllers();
-		if (!Cast<APRPlayerState>(PlayerState)->GetIsExtracted())
+		if (IsValid(PlayerState) && !Cast<APRPlayerState>(PlayerState)->GetIsExtracted())
 		{
 			UIManager->ShowWidget(EWidgetCategory::MatchEnd);
 		}
