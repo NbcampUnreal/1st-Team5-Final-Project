@@ -181,11 +181,13 @@ void UOverlayWidgetController::CooldownChanged(const FGameplayTag Tag, int32 Tag
 	
 	if (TagCount > 0)
 	{
-		FTimerDelegate TimerDelegate;
-		TimerDelegate.BindLambda([this, Tag]()
+		if (CooldownUpdateTimers.Contains(Tag))
 		{
-			BroadcastCooldown(Tag);
-		});
+			GetWorld()->GetTimerManager().ClearTimer(CooldownUpdateTimers[Tag]);
+		}
+		
+		FTimerDelegate TimerDelegate;
+		TimerDelegate.BindUFunction(this, FName("BroadcastCooldownForTag"), Tag);
 
 		FTimerHandle& TimerHandle = CooldownUpdateTimers.FindOrAdd(Tag);
 			
@@ -205,7 +207,7 @@ void UOverlayWidgetController::CooldownChanged(const FGameplayTag Tag, int32 Tag
 
 			if (FOnCooldownChanged* Delegate = CooldownDelegates.Find(Tag))
 			{
-				Delegate->Broadcast(0.f);	
+				Delegate->Broadcast(0.f);  
 			}
 		}
 	}
@@ -213,13 +215,26 @@ void UOverlayWidgetController::CooldownChanged(const FGameplayTag Tag, int32 Tag
 
 void UOverlayWidgetController::BroadcastCooldown(const FGameplayTag& Tag)
 {
+	if (!IsValid(this) || !IsValid(AbilitySystemComponent) || !GetWorld() || GetWorld()->bIsTearingDown) return;
+    
 	float RemainingTime = 0.f;
 	if (UPRAbilitySystemComponent* PRASC = Cast<UPRAbilitySystemComponent>(AbilitySystemComponent))
 	{
 		RemainingTime = PRASC->GetCooldownRemainingTimeForTag(Tag);
 	}
+    
 	if (FOnCooldownChanged* Delegate = CooldownDelegates.Find(Tag))
 	{
-		Delegate->Broadcast(RemainingTime);
+		if (Delegate->IsBound())
+		{
+			Delegate->Broadcast(RemainingTime);    
+		}
 	}
+}
+
+void UOverlayWidgetController::BroadcastCooldownForTag(const FGameplayTag Tag)
+{
+	if (!IsValid(this) || !IsValid(AbilitySystemComponent) || !GetWorld() || GetWorld()->bIsTearingDown) return;
+    
+	BroadcastCooldown(Tag);
 }

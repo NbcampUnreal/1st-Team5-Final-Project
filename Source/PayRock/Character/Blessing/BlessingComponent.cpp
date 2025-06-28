@@ -146,14 +146,14 @@ void UBlessingComponent::Client_BroadcastActiveBlessing_Implementation(const FBl
 {
 	OnActiveBlessingChange.Broadcast(Blessing);
 
-	// client needs to find the texture from savedata subsystem
 	if (!GetWorld() || GetWorld()->bIsTearingDown) return;
 	USaveDataSubsystem* SaveDataSystem = GetWorld()->GetGameInstance()->GetSubsystem<USaveDataSubsystem>();
 	if (!SaveDataSystem) return;
 
 	const UBlessingDataAsset* BlessingDA = SaveDataSystem->GetBlessingDataAsset();
-	if (const auto FoundBlessing = BlessingDA->ActiveBlessings.Find(Blessing.BlessingName.ToString()))
+	if (auto FoundBlessing = BlessingDA->ActiveBlessings.Find(Blessing.BlessingName.ToString()))
 	{
+		EquippedActiveBlessingData = *FoundBlessing;
 		LocalEquippedActiveBlessingIcon = FoundBlessing->Icon;
 	}
 }

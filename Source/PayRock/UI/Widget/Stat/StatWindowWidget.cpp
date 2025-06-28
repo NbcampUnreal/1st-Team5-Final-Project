@@ -9,4 +9,17 @@ void UStatWindowWidget::OnWidgetControllerSet()
 	{
 		StatContainer->SetWidgetController(WidgetController);
 	}
+	if (BlessingSkillInfo)
+	{
+		BlessingSkillInfo->SetWidgetController(WidgetController);
+	}
+	if (AccessorySkillInfo)
+	{
+		AccessorySkillInfo->SetWidgetController(WidgetController);
+	}
+	if (WeaponSkillInfo)
+	{
+		WeaponSkillInfo->SetWidgetController(WidgetController);
+	}
+	
 }

@@ -10,6 +10,9 @@ struct FOnAttributeChangeData;
 struct FGameplayAttribute;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnAttributeChange, const FString&, AttributeName, const float&, NewValue);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnActiveBlessingInfoSet, const FBlessingData&, BlessingData);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponSkillChange, const FSkillData&, SkillData);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAccessorySkillChange, const FSkillData&, SkillData);
 
 UCLASS()
 class PAYROCK_API UStatWidgetController : public UBaseWidgetController
@@ -22,11 +25,19 @@ public:
 
 private:
 	void InitializeAttributesArray();
-	void BroadcastAttributeChange(const FOnAttributeChangeData& Data);
+	void BroadcastAttributeChange(const FOnAttributeChangeData& Data) const;
+	void BroadcastWeaponSkillChange(const FName& WeaponID) const;
+	void BroadcastAccessorySkillChange(const FName& AccessoryID) const;
 
 public:
-	UPROPERTY(BlueprintAssignable, Category = "Stat")
+	UPROPERTY()
 	FOnAttributeChange OnAttributeChangeDelegate;
+	UPROPERTY()
+	FOnActiveBlessingInfoSet OnActiveBlessingInfoSet;
+	UPROPERTY()
+	FOnAccessorySkillChange OnAccessorySkillChanged;
+	UPROPERTY()
+	FOnWeaponSkillChange OnWeaponSkillChanged;
 	
 	UPROPERTY()
 	TArray<FGameplayAttribute> Attributes;
