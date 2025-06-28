@@ -72,6 +72,8 @@ protected:
 	
 	void CooldownChanged(const FGameplayTag Tag, int32 TagCount);
 	void BroadcastCooldown(const FGameplayTag& Tag);
+	UFUNCTION()
+	void BroadcastCooldownForTag(const FGameplayTag Tag);
 
 private:
 	UPROPERTY()
