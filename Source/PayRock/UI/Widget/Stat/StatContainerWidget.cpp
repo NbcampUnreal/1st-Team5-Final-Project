@@ -14,6 +14,7 @@ void UStatContainerWidget::OnWidgetControllerSet()
 	{
 		InitializeStatRows();
 		StatWidgetController->OnAttributeChangeDelegate.AddUniqueDynamic(this, &UStatContainerWidget::UpdateStatRow);
+		
 	}
 }
 
