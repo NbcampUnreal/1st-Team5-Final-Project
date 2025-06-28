@@ -36,6 +36,8 @@ void USkillInfoWidget::SetBlessingSkillInfo(const FBlessingData& BlessingData)
 		SetVisibility(ESlateVisibility::Collapsed);
 		return;
 	}
+	SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+	
 	if (IsValid(SkillName))
 	{
 		SkillName->SetText(BlessingData.KoreanName);
@@ -61,6 +63,8 @@ void USkillInfoWidget::SetItemSkillInfo(const FSkillData& SkillData)
 		SetVisibility(ESlateVisibility::Collapsed);
 		return;
 	}
+	SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+	
 	if (IsValid(SkillName))
 	{
 		SkillName->SetText(SkillData.DisplayName);
