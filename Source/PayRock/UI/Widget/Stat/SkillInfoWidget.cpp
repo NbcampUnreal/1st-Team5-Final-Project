@@ -34,6 +34,7 @@ void USkillInfoWidget::SetBlessingSkillInfo(const FBlessingData& BlessingData)
 	if (BlessingData.KoreanName.IsEmpty())
 	{
 		SetVisibility(ESlateVisibility::Collapsed);
+		return;
 	}
 	if (IsValid(SkillName))
 	{
