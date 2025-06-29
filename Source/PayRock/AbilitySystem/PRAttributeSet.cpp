@@ -7,9 +7,7 @@
 #include "PayRock/PRGameplayTags.h"
 #include "PayRock/Character/BaseCharacter.h"
 #include "Abilities/Blessing/BaseBlessingAbility.h"
-#include "Kismet/GameplayStatics.h"
 #include "PayRock/Enemy/EnemyCharacter.h"
-#include "PayRock/GameSystem/PRAdvancedGameInstance.h"
 
 UPRAttributeSet::UPRAttributeSet()
 {
