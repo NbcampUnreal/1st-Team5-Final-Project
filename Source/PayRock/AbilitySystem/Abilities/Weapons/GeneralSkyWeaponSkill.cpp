@@ -44,6 +44,8 @@ void UGeneralSkyWeaponSkill::OnLanded(const FHitResult& Hit)
 		Character->PlayAnimMontage(LandMontage);
 		Character->LandedDelegate.RemoveAll(this);
 	}
+
+	ActivateLandEffect();
 	
 	FVector Origin = GetAvatarActorFromActorInfo()->GetActorLocation();
 	FCollisionShape Sphere = FCollisionShape::MakeSphere(Radius);
@@ -104,4 +106,16 @@ void UGeneralSkyWeaponSkill::OnLanded(const FHitResult& Hit)
 	}
 	
 	K2_EndAbility();
+}
+
+void UGeneralSkyWeaponSkill::ActivateLandEffect()
+{
+	UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo();
+	if (!SourceASC) return;
+	
+	FGameplayEffectContextHandle ContextHandle = SourceASC->MakeEffectContext();
+	ContextHandle.AddOrigin(GetAvatarActorFromActorInfo()->GetActorLocation());
+	FGameplayEffectSpecHandle SpecHandle = SourceASC->MakeOutgoingSpec(
+		LandEffectClass, GetAbilityLevel(), ContextHandle);
+	SourceASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 }
