@@ -19,12 +19,16 @@ public:
 	void OnLanded(const FHitResult& Hit);
 
 protected:
+	void ActivateLandEffect();
+	
 	UPROPERTY(EditDefaultsOnly)
 	float LaunchSpeed = 500.f;
 	UPROPERTY(EditDefaultsOnly)
 	float Radius = 300.f;
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UGameplayEffect> KnockbackEffectClass;
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UGameplayEffect> LandEffectClass;
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UAnimMontage> LandMontage;
 

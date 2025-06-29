@@ -47,6 +47,11 @@ void UNecroWidgetController::BindCallbacksToDependencies()
 	}
 }
 
+void UNecroWidgetController::BroadcastExtractionEnabled()
+{
+	OnNotificationRequest.Broadcast(ENotificationType::ExtractionEnabled);
+}
+
 void UNecroWidgetController::CooldownChanged(const FGameplayTag Tag, int32 TagCount)
 {
 	if (!IsValid(AbilitySystemComponent)) return;
@@ -112,7 +117,4 @@ void UNecroWidgetController::BroadcastCooldownForTag(FGameplayTag Tag)
 	BroadcastCooldown(Tag);
 }
 
-void UNecroWidgetController::BroadcastExtractionEnabled()
-{
-	OnNotificationRequest.Broadcast(ENotificationType::ExtractionEnabled);
-}
+
