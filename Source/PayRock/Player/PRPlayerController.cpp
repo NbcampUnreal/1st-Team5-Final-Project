@@ -431,14 +431,7 @@ void APRPlayerController::HandleMatchFlowStateChanged(EMatchFlowState NewState)
 		DisableInput(this);
 		UIManager->RemoveAllWidgets();
 		UIManager->RemoveAllWidgetControllers();
-		if (IsValid(PlayerState) && !Cast<APRPlayerState>(PlayerState)->GetIsExtracted())
-		{
-			UIManager->ShowWidget(EWidgetCategory::MatchEnd);
-		}
-		else
-		{
-			// TODO : 탈출한 상태에서 매치 종료 시 띄울 위젯
-		}
+		UIManager->ShowWidget(EWidgetCategory::MatchEnd);
 		break;
 	}
 }
