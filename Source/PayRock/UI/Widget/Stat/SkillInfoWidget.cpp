@@ -83,7 +83,7 @@ void USkillInfoWidget::SetItemSkillInfo(const FSkillData& SkillData)
 	}
 	if (IsValid(Cooldown))
 	{
-		ManaCost->SetText(SkillData.Cooldown);
+		Cooldown->SetText(SkillData.Cooldown);
 	}
 }
 
