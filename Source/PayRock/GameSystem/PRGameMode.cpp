@@ -8,6 +8,7 @@
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/Pawn.h"
 #include "PayRock/Enemy/EnemyGenerator.h"
+#include "PayRock/Player/PRPlayerController.h"
 
 APRGameMode::APRGameMode()
 {
@@ -147,4 +148,9 @@ void APRGameMode::SpawnAndPossessNecroCharacter(APlayerController* RequestingCon
 	}
 	RequestingController->UnPossess();
 	RequestingController->Possess(NecroCharacter);
+
+	if (APRPlayerController* PlayerController = Cast<APRPlayerController>(RequestingController))
+	{
+		PlayerController->InitNecroVoice();
+	}
 }
