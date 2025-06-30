@@ -1,10 +1,10 @@
 ﻿#include "RoarCollisionActor.h"
-
 #include "NiagaraComponent.h"
 #include "Components/SphereComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
+
 
 ARoarCollisionActor::ARoarCollisionActor()
 {
@@ -64,7 +64,15 @@ void ARoarCollisionActor::OnOverlapBegin(
 	{
 		const FVector Direction = (Player->GetActorLocation() - GetActorLocation()).GetSafeNormal();
 		const FVector Knockback = Direction * KnockbackStrength;
-
+		
+		if (UAnimInstance* AnimInstance = Player->GetMesh()->GetAnimInstance())
+		{
+			if (AnimInstance->IsAnyMontagePlaying())
+			{
+				AnimInstance->Montage_Stop(0.2f); 
+			}
+		}
+		
 		Player->LaunchCharacter(Knockback, true, true);
 	}
 }
