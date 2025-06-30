@@ -141,6 +141,8 @@ public:
 	void ServerRequestNecroCharacter();
 	UFUNCTION(Client, Reliable)
 	void ClientOnNecroPossessed();
+	UFUNCTION(BlueprintImplementableEvent)
+	void InitNecroVoice();
 	void UpdateCleanData();
 
 	UPROPERTY()
