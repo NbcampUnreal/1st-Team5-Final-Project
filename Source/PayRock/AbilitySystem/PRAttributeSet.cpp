@@ -102,6 +102,10 @@ void UPRAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
 		HandleLifeSteal(Props, Damage);
 		HandleAutoCounter(Props, Damage);
 	}
+	else if (Data.EvaluatedData.Attribute == GetMoveSpeedAttribute())
+	{
+		SetMoveSpeed(FMath::Max(5.f, GetMoveSpeed()));
+	}
 }
 
 float UPRAttributeSet::HandleIncomingDamage(const FEffectProperties& Props, const FGameplayEffectModCallbackData& Data)
@@ -159,8 +163,6 @@ float UPRAttributeSet::HandleIncomingDamage(const FEffectProperties& Props, cons
 			{
 				Character->Die((Props.TargetCharacter->GetActorLocation() - Props.SourceCharacter->GetActorLocation()).GetSafeNormal());
 			}
-
-			
 		}
 	}
 	return CalculatedDamage;

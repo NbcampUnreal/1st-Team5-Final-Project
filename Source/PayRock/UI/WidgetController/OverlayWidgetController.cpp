@@ -80,6 +80,10 @@ void UOverlayWidgetController::BindCallbacksToDependencies()
 		this, &UOverlayWidgetController::CooldownChanged);
 	AbilitySystemComponent->RegisterGameplayTagEvent(FPRGameplayTags::Get().Ability_WeaponSkill_Cooldown).AddUObject(
 		this, &UOverlayWidgetController::CooldownChanged);
+
+	// BlockSkills (penalty)
+	AbilitySystemComponent->RegisterGameplayTagEvent(FPRGameplayTags::Get().Status_Penalty_BlockSkills).AddUObject(
+		this, &UOverlayWidgetController::OnSkillsBlocked);
 	
 	if (APRPlayerState* PS = Cast<APRPlayerState>(PlayerState))
 	{
@@ -237,4 +241,16 @@ void UOverlayWidgetController::BroadcastCooldownForTag(const FGameplayTag Tag)
 	if (!IsValid(this) || !IsValid(AbilitySystemComponent) || !GetWorld() || GetWorld()->bIsTearingDown) return;
     
 	BroadcastCooldown(Tag);
+}
+
+void UOverlayWidgetController::OnSkillsBlocked(const FGameplayTag Tag, int32 TagCount)
+{
+	if (TagCount > 0)
+	{
+		OnSkillsBlockedDelegate.Broadcast(true);
+	}
+	else
+	{
+		OnSkillsBlockedDelegate.Broadcast(false);
+	}
 }

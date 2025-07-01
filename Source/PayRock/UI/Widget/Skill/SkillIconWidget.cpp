@@ -34,6 +34,8 @@ void USkillIconWidget::OnWidgetControllerSet()
 			OverlayWC->OnActiveBlessingChanged.AddUniqueDynamic(this, &USkillIconWidget::OnSkillChanged);
 			BlessingCooldownDelegate.AddUniqueDynamic(this, &USkillIconWidget::UpdateCooldown);
 		}
+
+		OverlayWC->OnSkillsBlockedDelegate.AddUniqueDynamic(this, &USkillIconWidget::OnSkillsBlocked);
 	}
 	else if (UNecroWidgetController* NecroWC = Cast<UNecroWidgetController>(WidgetController))
 	{
@@ -92,5 +94,13 @@ void USkillIconWidget::UpdateCooldown(float RemainingTime)
 		FText::FromString(FString::Printf(TEXT("%.0f"), RemainingTime)) :
 		FText::FromString(FString::Printf(TEXT("%.1f"), RemainingTime)))
 		);
+	}
+}
+
+void USkillIconWidget::OnSkillsBlocked(bool bIsBlocked)
+{
+	if (IsValid(BlockImage))
+	{
+		BlockImage->SetVisibility(bIsBlocked ? ESlateVisibility::SelfHitTestInvisible : ESlateVisibility::Collapsed);
 	}
 }
