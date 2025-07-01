@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "NiagaraSystem.h"
+#include "Components/SphereComponent.h"
 #include "PayRock/Enemy/EBossPhase.h"
 #include "PayRock/Enemy/EnemyCharacter.h"
 #include "Perception/AIPerceptionTypes.h"
@@ -105,7 +106,11 @@ public:
 	
 	FName ActiveSocketName;
 	UBaseDamageGameplayAbility* CurrentAbilityRef;
-
+	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "Combat")
+	TObjectPtr<USphereComponent> WeaponCollision;
+	
+	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite, Category = "Combat")
+	FName CollisionSocketName = FName("CollisionSocket");
 	
 //endregion
 
