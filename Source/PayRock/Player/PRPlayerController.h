@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "PayRock/Enemy/EnemyCharacter.h"
 #include "PayRock/GameSystem/PRGameState.h"
 #include "PRPlayerController.generated.h"
 
@@ -82,6 +83,10 @@ public:
 	
 	void OnSpectateTargetDied(AActor* DeadActor); // 관전 타겟 사망시 그 타겟 제거
 
+	//퀘스트
+	UFUNCTION(Client, Reliable)
+	void Client_NotifyQuestKill(AEnemyCharacter* DeadEnemy);
+
 protected:
 	void UpdateClothesColor();
 	virtual void BeginPlay() override;
@@ -136,6 +141,8 @@ public:
 	void ServerRequestNecroCharacter();
 	UFUNCTION(Client, Reliable)
 	void ClientOnNecroPossessed();
+	UFUNCTION(BlueprintImplementableEvent)
+	void InitNecroVoice();
 	void UpdateCleanData();
 
 	UPROPERTY()

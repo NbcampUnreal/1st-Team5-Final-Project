@@ -8,37 +8,54 @@
 #include "AIController.h"
 #include "NiagaraComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "Components/BoxComponent.h"
 #include "Components/SphereComponent.h"
 
 AOrbLightActor::AOrbLightActor()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
+	RootScene = CreateDefaultSubobject<USceneComponent>(TEXT("RootScene"));
+	SetRootComponent(RootScene);
+
 	OuterDamageSphere = CreateDefaultSubobject<USphereComponent>(TEXT("OuterDamageSphere"));
 	OuterDamageSphere->InitSphereRadius(600.f);
 	OuterDamageSphere->SetCollisionProfileName(TEXT("OverlapAll"));
 	OuterDamageSphere->SetGenerateOverlapEvents(true);
-	SetRootComponent(OuterDamageSphere);
+	OuterDamageSphere->SetupAttachment(RootComponent);
 
 	InnerSafeSphere = CreateDefaultSubobject<USphereComponent>(TEXT("InnerSafeSphere"));
 	InnerSafeSphere->InitSphereRadius(200.f);
-	InnerSafeSphere->SetupAttachment(RootComponent);
 	InnerSafeSphere->SetCollisionProfileName(TEXT("OverlapAll"));
 	InnerSafeSphere->SetGenerateOverlapEvents(true);
-	
+	InnerSafeSphere->SetupAttachment(RootComponent);
+
 	LightSource = CreateDefaultSubobject<UPointLightComponent>(TEXT("PointLight"));
 	LightSource->SetupAttachment(RootComponent);
 	LightSource->SetIntensity(8000.f);
 	LightSource->SetAttenuationRadius(1000.f);
-	
+
 	VFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("VFX"));
 	VFX->SetupAttachment(RootComponent);
+
+	Ring = CreateDefaultSubobject<UNiagaraComponent>(TEXT("Ring"));
+	Ring->SetupAttachment(RootComponent);
+	
+	FixedScene = CreateDefaultSubobject<USceneComponent>(TEXT("FixedScene"));
+	FixedScene->SetupAttachment(nullptr);
+	
+	MovementBox = CreateDefaultSubobject<UBoxComponent>(TEXT("MovementBox"));
+	MovementBox->SetBoxExtent(FVector(800.f, 800.f, 50.f));
+	MovementBox->SetupAttachment(FixedScene);
+
+	bReplicates = true;
+	AActor::SetReplicateMovement(true);
 }
 
 void AOrbLightActor::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	if (HasAuthority())
 	{
 		FVector SpawnLoc = GetActorLocation();
@@ -47,14 +64,13 @@ void AOrbLightActor::BeginPlay()
 		UNavigationSystemV1* NavSys = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
 		if (NavSys && NavSys->ProjectPointToNavigation(SpawnLoc, NavLoc, FVector(500.f, 500.f, 1000.f)))
 		{
-			SetActorLocation(NavLoc.Location + FVector(0.f, 0.f, 20.f));
+			SetActorLocation(NavLoc.Location + FVector(0.f, 0.f, 80.f));
 		}
-	}
-	
-	if (HasAuthority())
-	{
+
 		Multicast_PlayVFX();
 
+		GetWorldTimerManager().SetTimer(RingVFXTimerHandle, this, &AOrbLightActor::Multicast_PlayRingVFX, 1.0f, true);
+		MoveToRandomLocation();
 		GetWorldTimerManager().SetTimer(DamageTimerHandle, this, &AOrbLightActor::ApplyLightSurvivalDOT, DamageTickInterval, true);
 		GetWorldTimerManager().SetTimer(MoveTimerHandle, this, &AOrbLightActor::MoveToRandomLocation, MoveInterval, true);
 
@@ -69,7 +85,6 @@ void AOrbLightActor::BeginPlay()
 		}
 	}
 }
-
 
 void AOrbLightActor::Tick(float DeltaTime)
 {
@@ -95,50 +110,37 @@ void AOrbLightActor::ApplyLightSurvivalDOT()
 	for (APRCharacter* Player : CachedPlayers)
 	{
 		if (!IsValid(Player)) continue;
-		
 		if (!OuterDamageSphere->IsOverlappingActor(Player)) continue;
-		
 		if (InnerSafeSphere->IsOverlappingActor(Player)) continue;
-		
 		ApplyDamageEffect(Player);
 	}
 }
 
-
 void AOrbLightActor::MoveToRandomLocation()
 {
-	FNavLocation GroundPoint;
-	UNavigationSystemV1* NavSys = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
+	if (!IsValid(MovementBox)) return;
 
-	
-	if (NavSys && NavSys->GetRandomReachablePointInRadius(GetActorLocation(), MoveRadius, GroundPoint))
-	{
-		FVector DesiredLocation = GroundPoint.Location;
-		
-		DesiredLocation.Z = FixedHeight;
+	FBox Bounds = MovementBox->Bounds.GetBox();
+	FVector RandomLocation = FMath::RandPointInBox(Bounds);
+	RandomLocation.Z = GetActorLocation().Z;
 
-		FVector CurrentLocation = GetActorLocation();
-		CurrentLocation.Z = FixedHeight;
+	FHitResult Hit;
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
 
-		FHitResult Hit;
-		FCollisionQueryParams Params;
-		Params.AddIgnoredActor(this);
+	bool bBlocked = GetWorld()->LineTraceSingleByChannel(
+		Hit,
+		GetActorLocation(),
+		RandomLocation,
+		ECC_WorldStatic,
+		Params
+	);
 
-		bool bBlocked = GetWorld()->LineTraceSingleByChannel(
-			Hit,
-			CurrentLocation,
-			DesiredLocation,
-			ECC_WorldStatic,
-			Params
-		);
-		if (bBlocked) return;
+	if (bBlocked) return;
 
-		NextTargetLocation = DesiredLocation;
-		bIsMoving = true;
-	}
+	NextTargetLocation = RandomLocation;
+	bIsMoving = true;
 }
-
-
 
 bool AOrbLightActor::IsPlayerInNavAndOutOfRange(APRCharacter* Player)
 {
@@ -168,13 +170,27 @@ void AOrbLightActor::Multicast_PlayVFX_Implementation()
 	{
 		LightSource->SetVisibility(true);
 	}
+
+	if (VFX && GetNetMode() != NM_DedicatedServer)
+	{
+		VFX->Activate(true);
+	}
+}
+
+void AOrbLightActor::Multicast_PlayRingVFX_Implementation()
+{
+	if (Ring && GetNetMode() != NM_DedicatedServer)
+	{
+		Ring->Activate(true);
+	}
 }
 
 void AOrbLightActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	GetWorldTimerManager().ClearTimer(DamageTimerHandle);
 	GetWorldTimerManager().ClearTimer(MoveTimerHandle);
-	
+	GetWorldTimerManager().ClearTimer(RingVFXTimerHandle);
+
 	if (APawn* OwnerPawn = Cast<APawn>(GetOwner()))
 	{
 		if (AAIController* AICon = Cast<AAIController>(OwnerPawn->GetController()))

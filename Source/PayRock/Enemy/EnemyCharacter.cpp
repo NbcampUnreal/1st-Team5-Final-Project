@@ -8,10 +8,13 @@
 #include "Components/PawnNoiseEmitterComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "PayRock/Character/Buff/BuffComponent.h"
+#include "PayRock/PRGameplayTags.h"
 #include "PayRock/AbilitySystem/PRAbilitySystemComponent.h"
 #include "PayRock/AbilitySystem/PRAttributeSet.h"
 #include "PayRock/GameSystem/PRAdvancedGameInstance.h"
 #include "PayRock/GameSystem/PRGameState.h"
+#include "PayRock/Player/PRPlayerController.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "Perception/AISense_Hearing.h"
 
@@ -30,6 +33,7 @@ AEnemyCharacter::AEnemyCharacter()
 	StimuliSourceComponent->RegisterForSense(UAISense_Hearing::StaticClass());
 	
 	PawnNoiseEmitterComp = CreateDefaultSubobject<UPawnNoiseEmitterComponent>(TEXT("PawnNoiseEmitter"));
+	BuffComponent = CreateDefaultSubobject<UBuffComponent>(TEXT("BuffComponent"));
 
 	bReplicates = true;
 	bAlwaysRelevant = true;
@@ -75,6 +79,14 @@ void AEnemyCharacter::InitAbilityActorInfo()
 
 	Cast<UPRAbilitySystemComponent>(AbilitySystemComponent)->OnAbilityActorInfoInitialized();
 }
+void AEnemyCharacter::BindToTagChange()
+{
+	Super::BindToTagChange();
+	AbilitySystemComponent->RegisterGameplayTagEvent(FPRGameplayTags::Get().Status_Debuff_Frozen).AddUObject(
+		BuffComponent, &UBuffComponent::OnFrozenTagChange);
+	AbilitySystemComponent->RegisterGameplayTagEvent(FPRGameplayTags::Get().Status_Debuff_Shocked).AddUObject(
+		BuffComponent, &UBuffComponent::OnShockedTagChange);
+}
 
 void AEnemyCharacter::AddCharacterAbilities()
 {
@@ -108,27 +120,6 @@ void AEnemyCharacter::Multicast_PlayAttackSound_Implementation(USoundBase* Sound
 	AttackAttenuation ,
 	nullptr
 	);
-	}
-}
-
-void AEnemyCharacter::Client_NotifyQuestKill_Implementation(APlayerController* KillerPC)
-{
-	if (!KillerPC) return;
-
-	if (UPRAdvancedGameInstance* PRGI = Cast<UPRAdvancedGameInstance>(UGameplayStatics::GetGameInstance(KillerPC)))
-	{
-		const FString TargetName = PRGI->GetQuestManager()->GetCurrentQuest().TargetName;
-
-		const FName CharacterTypeName = StaticEnum<ECharacterType>()->GetNameByValue((int64)CharacterType);
-		FString CharacterTypeString = CharacterTypeName.ToString();
-		FString ShortName;
-		CharacterTypeString.Split(TEXT("::"), nullptr, &ShortName);
-
-		if (TargetName == ShortName)
-		{
-			PRGI->GetQuestManager()->UpdateProgress();
-			UE_LOG(LogTemp, Log, TEXT("[Client] 퀘스트 진행도 증가: %s"), *ShortName);
-		}
 	}
 }
 
@@ -172,16 +163,14 @@ void AEnemyCharacter::Die(FVector HitDirection)
 
 	if (HasAuthority() && LastHitInstigator)
 	{
-		ACharacter* KillerPawn = LastHitInstigator->GetCharacter();
 		APlayerController* KillerPC = Cast<APlayerController>(LastHitInstigator);
-
-		if (KillerPawn && KillerPC)
+		APRPlayerController* APPC = Cast<APRPlayerController>(KillerPC);
+		if (APPC)
 		{
-			Client_NotifyQuestKill(KillerPC);  
-			UE_LOG(LogTemp, Log, TEXT("[Client]Die함수_클라노티파이") );
+			APPC->Client_NotifyQuestKill(this);
 		}
+		
 	}
-	
 	if (ContainerClass)
 	{
 		FVector Start = GetActorLocation() + FVector(0.f, 0.f, 100.f);
@@ -193,14 +182,25 @@ void AEnemyCharacter::Die(FVector HitDirection)
 
 		if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params))
 		{
-			FVector GroundLocation = Hit.ImpactPoint;
+			// FVector GroundLocation = Hit.ImpactPoint + FVector(0, 0, 20);
+			//
+			// FActorSpawnParameters SpawnParams;
+			// SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+			//
+			// AActor* Spawned = GetWorld()->SpawnActor<AActor>(
+			// 	ContainerClass,
+			// 	GroundLocation,
+			// 	FRotator::ZeroRotator,
+			// 	SpawnParams
+			// );
 
+			FVector GroundLocation = Hit.ImpactPoint;
+			FVector SpawnOffset = FVector(0, 0, 30); 
 			FActorSpawnParameters SpawnParams;
 			SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-
 			AActor* Spawned = GetWorld()->SpawnActor<AActor>(
 				ContainerClass,
-				GroundLocation,
+				GroundLocation + SpawnOffset,
 				FRotator::ZeroRotator,
 				SpawnParams
 			);
@@ -289,17 +289,29 @@ void AEnemyCharacter::Multicast_PlayDetectMontage_Implementation(UAnimMontage* M
 
 void AEnemyCharacter::DisableAnimInstance()
 {
-	if (GetMesh() && GetMesh()->GetAnimInstance())
+	if (USkeletalMeshComponent* MeshComp = GetMesh())
 	{
-		SavedAnimClass = GetMesh()->GetAnimInstance()->GetClass();
-		GetMesh()->SetAnimInstanceClass(nullptr);
+		MeshComp->bPauseAnims = true;
+		MeshComp->bNoSkeletonUpdate = true;
+		
+		if (MeshComp->GetAnimInstance())
+		{
+			SavedAnimClass = MeshComp->GetAnimInstance()->GetClass();
+			MeshComp->SetAnimInstanceClass(nullptr);
+		}
 	}
 }
 
 void AEnemyCharacter::RestoreAnimInstance()
 {
-	if (GetMesh() && SavedAnimClass)
+	if (USkeletalMeshComponent* MeshComp = GetMesh())
 	{
-		GetMesh()->SetAnimInstanceClass(SavedAnimClass);
+		MeshComp->bPauseAnims = false;
+		MeshComp->bNoSkeletonUpdate = false;
+		
+		if (SavedAnimClass)
+		{
+			MeshComp->SetAnimInstanceClass(SavedAnimClass);
+		}
 	}
 }

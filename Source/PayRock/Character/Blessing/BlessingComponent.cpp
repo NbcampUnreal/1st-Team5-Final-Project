@@ -95,18 +95,24 @@ void UBlessingComponent::Server_EquipActiveBlessing_Implementation(const FBlessi
 void UBlessingComponent::Server_EquipPassiveBlessing_Implementation(const FBlessingData& Blessing)
 {
 	if (!GetAbilitySystemComponent()) return;
-	if (!IsValid(Blessing.PassiveEffectClass)) return;
-
-	Server_UnequipPassiveBlessing();
+	if (IsValid(Blessing.PassiveEffectClass))
+	{
+		Server_UnequipPassiveBlessing();
 	
-	FGameplayEffectContextHandle ContextHandle = CachedAbilitySystemComponent->MakeEffectContext();
-	FGameplayEffectSpecHandle SpecHandle = CachedAbilitySystemComponent->MakeOutgoingSpec(
-		Blessing.PassiveEffectClass,
-		FMath::Max(1, static_cast<int>(Blessing.BlessingRarity)),
-		ContextHandle);
-	PassiveBlessingHandle = CachedAbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
-	EquippedPassiveBlessingData = Blessing;
-	Client_BroadcastPassiveBlessing(Blessing);
+		FGameplayEffectContextHandle ContextHandle = CachedAbilitySystemComponent->MakeEffectContext();
+		FGameplayEffectSpecHandle SpecHandle = CachedAbilitySystemComponent->MakeOutgoingSpec(
+			Blessing.PassiveEffectClass,
+			FMath::Max(1, static_cast<int>(Blessing.BlessingRarity)),
+			ContextHandle);
+		PassiveBlessingHandle = CachedAbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+		EquippedPassiveBlessingData = Blessing;
+		Client_BroadcastPassiveBlessing(Blessing);	
+	}
+
+	if (IsValid(OwningPRCharacter))
+	{
+		OwningPRCharacter->InitializeEquipment();
+	}
 }
 
 void UBlessingComponent::Server_UnequipActiveBlessing_Implementation()
@@ -140,14 +146,14 @@ void UBlessingComponent::Client_BroadcastActiveBlessing_Implementation(const FBl
 {
 	OnActiveBlessingChange.Broadcast(Blessing);
 
-	// client needs to find the texture from savedata subsystem
 	if (!GetWorld() || GetWorld()->bIsTearingDown) return;
 	USaveDataSubsystem* SaveDataSystem = GetWorld()->GetGameInstance()->GetSubsystem<USaveDataSubsystem>();
 	if (!SaveDataSystem) return;
 
 	const UBlessingDataAsset* BlessingDA = SaveDataSystem->GetBlessingDataAsset();
-	if (const auto FoundBlessing = BlessingDA->ActiveBlessings.Find(Blessing.BlessingName.ToString()))
+	if (auto FoundBlessing = BlessingDA->ActiveBlessings.Find(Blessing.BlessingName.ToString()))
 	{
+		EquippedActiveBlessingData = *FoundBlessing;
 		LocalEquippedActiveBlessingIcon = FoundBlessing->Icon;
 	}
 }

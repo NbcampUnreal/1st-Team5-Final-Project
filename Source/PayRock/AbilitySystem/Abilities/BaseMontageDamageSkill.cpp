@@ -2,9 +2,13 @@
 
 
 #include "BaseMontageDamageSkill.h"
-
+#include "Engine/OverlapResult.h"
+#include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystemComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
+#include "PayRock/PRGameplayTags.h"
+#include "PayRock/AbilitySystem/PRAbilitySystemComponent.h"
 
 void UBaseMontageDamageSkill::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
                                               const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
@@ -37,6 +41,17 @@ void UBaseMontageDamageSkill::ActivateAbility(const FGameplayAbilitySpecHandle H
 		MontageTask->OnInterrupted.AddDynamic(this, &UBaseMontageDamageSkill::OnMontageInterrupted);
 		MontageTask->OnCancelled.AddDynamic(this, &UBaseMontageDamageSkill::OnMontageInterrupted);
 		MontageTask->ReadyForActivation();
+
+		float MontageLength = ActivationMontage->GetPlayLength();
+		if (IsValid(InputBlockEffect))
+		{
+			UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+			FGameplayEffectContextHandle Context = ASC->MakeEffectContext();
+			FGameplayEffectSpecHandle Spec = ASC->MakeOutgoingSpec(InputBlockEffect, 1.f, Context);
+			UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(
+				Spec, FPRGameplayTags::Get().Player_Block_InputPressed, MontageLength);
+			ASC->ApplyGameplayEffectSpecToSelf(*Spec.Data);
+		}
 	}
 
 	UAbilityTask_WaitGameplayEvent* WaitEventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
@@ -83,4 +98,42 @@ void UBaseMontageDamageSkill::OnMontageInterrupted()
 
 void UBaseMontageDamageSkill::OnEventReceived(FGameplayEventData Payload)
 {
+}
+
+void UBaseMontageDamageSkill::GetSphereOverlapResults(float Radius, TArray<AActor*>& OutOverlapActors)
+{
+	FVector Origin = GetAvatarActorFromActorInfo()->GetActorLocation();
+	FCollisionShape Sphere = FCollisionShape::MakeSphere(Radius);
+
+	TArray<FOverlapResult> Overlaps;
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(GetAvatarActorFromActorInfo());	
+	QueryParams.bTraceIntoSubComponents = false;
+
+	FCollisionObjectQueryParams CollisionParams;
+	CollisionParams.AddObjectTypesToQuery(ECC_Pawn);
+	
+	bool bHit = GetWorld()->OverlapMultiByObjectType(
+		Overlaps,
+		Origin,
+		FQuat::Identity,
+		CollisionParams,
+		Sphere,
+		QueryParams
+	);
+	
+	if (bHit)
+	{
+		UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo();
+		if (!SourceASC) return;
+
+		for (const FOverlapResult& Result : Overlaps)
+		{
+			if (AActor* Actor = Result.GetActor())
+			{
+				if (OutOverlapActors.Contains(Actor)) continue;
+				OutOverlapActors.Add(Actor);
+			}
+		}
+	}
 }

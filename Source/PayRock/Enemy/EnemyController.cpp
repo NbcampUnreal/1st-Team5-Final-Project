@@ -13,6 +13,7 @@
 #include "NavigationSystem.h"
 #include "AI/NavigationSystemBase.h"
 #include "Kismet/GameplayStatics.h"
+#include "DrawDebugHelpers.h"
 
 AEnemyController::AEnemyController()
 {
@@ -40,7 +41,6 @@ AEnemyController::AEnemyController()
 void AEnemyController::BeginPlay()
 {
 	Super::BeginPlay();
-
 	PrimaryActorTick.bCanEverTick = false;
 
 	if (AIPerceptionComponent)
@@ -52,7 +52,6 @@ void AEnemyController::BeginPlay()
 	GetWorldTimerManager().SetTimer(DistanceCheckHandle, this, &AEnemyController::CheckPlayerDistance, 1.5f, true);
 }
 
-
 void AEnemyController::CheckPlayerDistance()
 {
 	if (!HasAuthority()) return;
@@ -61,56 +60,57 @@ void AEnemyController::CheckPlayerDistance()
 	APRCharacter* NearestPlayer = FindNearestPlayer(Distance);
 	AEnemyCharacter* EnemyChar = Cast<AEnemyCharacter>(GetPawn());
 
+	if (!EnemyChar) return;
+
 	if (Distance <= 2200.f && !bIsAIActive)
 	{
 		SetPerceptionActive(true);
 		ActivateAI();
-
-		if (EnemyChar)
-		{
-			EnemyChar->RestoreAnimInstance();
-		}
+		EnemyChar->RestoreAnimInstance();
+		EnemyChar->bIsSleeping = false;
 	}
-	else if (Distance > 3000.f && bIsAIActive)
+	else if (Distance > 3000.f)
 	{
 		DeactivateAI();
 		SetPerceptionActive(false);
+		EnemyChar->DisableAnimInstance();
 
-		if (EnemyChar)
+		float CurrentTime = GetWorld()->GetTimeSeconds();
+		if (!EnemyChar->bIsSleeping)
 		{
-			EnemyChar->DisableAnimInstance();
-
-			if (EnemyChar->GetSpawnedActor())
-			{
-				FVector BaseLoc = EnemyChar->GetActorLocation();
-				FVector RandomOffset = FMath::VRand().GetSafeNormal() * 150.f;
-				FVector SpawnLoc = BaseLoc + RandomOffset;
-				
-				UNavigationSystemV1* NavSys = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
-				FNavLocation ProjectedLoc;
-
-				if (NavSys && NavSys->ProjectPointToNavigation(SpawnLoc, ProjectedLoc, FVector(300.f, 300.f, 300.f)))
-				{
-					FRotator SpawnRot = FRotator::ZeroRotator;
-					FActorSpawnParameters Params;
-					Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-
-					GetWorld()->SpawnActor<AActor>(
-						EnemyChar->GetSpawnedActor(), ProjectedLoc.Location, SpawnRot, Params);
-				}
-			}
-
+			EnemyChar->bIsSleeping = true;
+			EnemyChar->SleepStartTime = CurrentTime;
+		}
+		else if (CurrentTime - EnemyChar->SleepStartTime > EnemyChar->MaxSleepDuration)
+		{
+			SpawnRespawnPointAt(EnemyChar->GetActorLocation());
 			EnemyChar->Destroy();
 		}
 	}
 }
 
+void AEnemyController::SpawnRespawnPointAt(const FVector& Location)
+{
+	AEnemyCharacter* EnemyChar = Cast<AEnemyCharacter>(GetPawn());
+	if (!EnemyChar || !EnemyChar->GetSpawnedActor()) return;
+
+	FVector Offset = FMath::VRand().GetSafeNormal() * 150.f;
+	FVector SpawnLoc = Location + Offset;
+	UNavigationSystemV1* NavSys = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
+	FNavLocation ProjectedLoc;
+
+	if (NavSys && NavSys->ProjectPointToNavigation(SpawnLoc, ProjectedLoc, FVector(300.f)))
+	{
+		FActorSpawnParameters Params;
+		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+		GetWorld()->SpawnActor<AActor>(EnemyChar->GetSpawnedActor(), ProjectedLoc.Location, FRotator::ZeroRotator, Params);
+	}
+}
 
 APRCharacter* AEnemyController::FindNearestPlayer(float& OutDistance)
 {
 	OutDistance = FLT_MAX;
 	APRCharacter* NearestPlayer = nullptr;
-
 	AActor* MyPawn = GetPawn();
 	if (!MyPawn) return nullptr;
 
@@ -131,24 +131,17 @@ APRCharacter* AEnemyController::FindNearestPlayer(float& OutDistance)
 	return NearestPlayer;
 }
 
-
 void AEnemyController::ActivateAI()
 {
 	if (bIsAIActive || !DefaultBehaviorTree) return;
-	
+
 	if (!BrainComponent || !BrainComponent->IsRunning())
 	{
-		const bool bSuccess = RunBehaviorTree(DefaultBehaviorTree);
-		if (!bSuccess)
-		{
-			return;
-		}
+		if (!RunBehaviorTree(DefaultBehaviorTree)) return;
 	}
 
 	bIsAIActive = true;
 }
-
-
 
 void AEnemyController::DeactivateAI()
 {
@@ -177,7 +170,6 @@ void AEnemyController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stim
 		{
 			ActivateAI();
 		}
-
 		if (BlackboardComponent && !BlackboardComponent->GetValueAsObject(TEXT("TargetActor")))
 		{
 			BlackboardComponent->SetValueAsObject(TEXT("TargetActor"), Actor);
@@ -190,36 +182,39 @@ void AEnemyController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stim
 	}
 }
 
-
 void AEnemyController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
 
 	if (!InPawn || !DefaultBehaviorTree)
 	{
+		UE_LOG(LogTemp, Error, TEXT("[AEnemyController] InPawn 또는 BehaviorTree가 null입니다."));
+		return;
+	}
+
+	if (!DefaultBehaviorTree->BlackboardAsset)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[AEnemyController] BehaviorTree의 BlackboardAsset이 null입니다."));
 		return;
 	}
 
 	AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(InPawn);
-	if (!Enemy)
-	{
-		return;
-	}
-	
+	if (!Enemy) return;
+
 	Enemy->InitAbilityActorInfo();
 	Enemy->InitializeDefaultAttributes();
 	Enemy->AddCharacterAbilities();
-	
+
 	UBlackboardComponent* BBComponent = nullptr;
 	if (!UseBlackboard(DefaultBehaviorTree->BlackboardAsset, BBComponent) || !BBComponent)
 	{
+		UE_LOG(LogTemp, Error, TEXT("[AEnemyController] UseBlackboard 실패"));
 		return;
 	}
 
 	BlackboardComponent = BBComponent;
 	BlackboardComponent->SetValueAsVector(FName("StartPosition"), Enemy->GetActorLocation());
 }
-
 
 void AEnemyController::OnUnPossess()
 {
@@ -230,12 +225,10 @@ void AEnemyController::OnUnPossess()
 void AEnemyController::ClearBlackboardKeys()
 {
 	if (!BlackboardComponent) return;
-
 	static const TArray<FName> KeysToClear = {
 		TEXT("TargetActor"), TEXT("bPlayerDetect"), TEXT("bIsBusy"),
 		TEXT("bInAttackRange"), TEXT("bDetect"), TEXT("bIsAttacking")
 	};
-
 	for (const FName& Key : KeysToClear)
 	{
 		BlackboardComponent->ClearValue(Key);
@@ -251,15 +244,9 @@ void AEnemyController::ClearDetectedPlayer()
 	}
 }
 
-const TArray<AActor*>& AEnemyController::GetSensedActors() const
-{
-	return SensedActors;
-}
-
 void AEnemyController::SetPerceptionActive(bool bEnable)
 {
 	if (!AIPerceptionComponent) return;
-
 	AIPerceptionComponent->SetComponentTickEnabled(bEnable);
 	AIPerceptionComponent->SetActive(bEnable);
 	AIPerceptionComponent->bAutoActivate = bEnable;

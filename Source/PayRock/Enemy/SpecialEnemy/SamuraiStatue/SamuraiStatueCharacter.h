@@ -6,6 +6,8 @@
 #include "PayRock/Enemy/EnemyCharacter.h"
 #include "SamuraiStatueCharacter.generated.h"
 
+
+class UGA_EnemyNormalAttack;
 /**
  * 
  */
@@ -25,11 +27,22 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	bool GetDie();
+
+	
+	UFUNCTION()
+	void OnWeaponOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	
+	UFUNCTION(BlueprintCallable)
+	void ToggleColiision(bool isActive);
+
+	bool bHit = false;
 	
 virtual void Die(FVector HitDiretion) override;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CollisionComponent")
 	UCapsuleComponent* WeaponCollision;
 
-	
+	UPROPERTY()
+	UGA_EnemyNormalAttack* CurrentSamuraiAttackGA = nullptr;
 };

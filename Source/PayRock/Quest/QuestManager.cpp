@@ -5,6 +5,7 @@
 
 #include "QuestInfoUI.h"
 #include "Blueprint/UserWidget.h"
+#include "GameFramework/PlayerState.h"
 #include "Kismet/GameplayStatics.h"
 
 UQuestManager::UQuestManager()
@@ -32,39 +33,29 @@ void UQuestManager::Init()
 
 	if (!QuestWidget && QuestWidgetClass)
 	{
-
-		
-		// if (UWorld* World = GEngine->GetWorldFromContextObjectChecked(this))
-		// {
-		// 	if (APlayerController* PC = UGameplayStatics::GetPlayerController(World, 0))
-		// 	{
-		// 		if (PC->IsLocalController())  
-		// 		{
-		// 			QuestWidget = CreateWidget<UQuestInfoUI>(PC, QuestWidgetClass);
-		// 			if (QuestWidget)
-		// 			{
-		// 				QuestWidget->SetQuestData(CurrentQuest);
-		// 				QuestWidget->SetVisibility(ESlateVisibility::Visible);
-		// 				QuestWidget->AddToViewport();
-		// 				UE_LOG(LogTemp, Warning, TEXT("[QuestManager] 퀘스트위젯 생성"));
-		// 			}
-		// 		}
-		// 	}
-		// }
-		
 		
 		if (UWorld* World = GEngine->GetWorldFromContextObjectChecked(this))
 		{
 			QuestWidget = CreateWidget<UQuestInfoUI>(World, QuestWidgetClass);
 			if (QuestWidget)
 			{
-				QuestWidget->SetQuestData(CurrentQuest);
 				QuestWidget->SetVisibility(ESlateVisibility::Visible);
 				QuestWidget->AddToViewport();
 		UE_LOG(LogTemp, Warning, TEXT("[QuestManager] 퀘스트위젯 생성"));
 			}
 		}
 	}
+	if (UWorld* World = GEngine->GetWorldFromContextObjectChecked(this))
+	{
+		World->GetTimerManager().SetTimer(
+			AutoSaveTimerHandle,
+			this,
+			&UQuestManager::SaveQuestProgress,
+			30.0f, 
+			true  
+		);
+	}
+	
 }
 
 void UQuestManager::LoadQuestData()
@@ -106,6 +97,19 @@ void UQuestManager::LoadQuestData()
 
 void UQuestManager::SaveQuestProgress()
 {
+	APlayerController* PC = nullptr;
+	if (GEngine && GetWorld())
+	{
+		PC = GEngine->GetFirstLocalPlayerController(GetWorld());
+	}
+	if (PC && PC->PlayerState)
+	{
+		FString UniqueStr = PC->PlayerState->GetUniqueId().IsValid() ? PC->PlayerState->GetUniqueId()->ToString() : PC->PlayerState->GetPlayerName();
+
+		SaveSlotName = FString::Printf(TEXT("QuestSave_%s"), *UniqueStr);
+	}
+
+	
 	 SaveGame = nullptr;
 
 	if (UGameplayStatics::DoesSaveGameExist(SaveSlotName, 0))
@@ -214,7 +218,7 @@ void UQuestManager::ToggleQuestUI()
 {
 	if (!QuestWidget) return;
 
-	APlayerController* PC = GetWorld()->GetFirstPlayerController();
+	APlayerController* PC = GEngine->GetFirstLocalPlayerController(GetWorld());
 	QuestWidget->CallCheckItemCollectQuest();
 	
 	if (QuestWidget->IsVisible())
@@ -233,5 +237,22 @@ void UQuestManager::ToggleQuestUI()
 			QuestWidget->SetVisibility(ESlateVisibility::Visible);
 
 			UE_LOG(LogTemp, Error, TEXT("[QuestManager] 토글퀘스트 보이기"));
+	}
+}
+
+void UQuestManager::ClearTimer()
+{
+	
+	UWorld* World = nullptr;
+	if (GEngine)
+		World = GEngine->GetWorldFromContextObject(this, EGetWorldErrorMode::ReturnNull);
+
+	if (World)
+	{
+		World->GetTimerManager().ClearTimer(AutoSaveTimerHandle);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[QuestManager] 월드파괴."));
 	}
 }

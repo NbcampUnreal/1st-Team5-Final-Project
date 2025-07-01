@@ -14,6 +14,13 @@ class PAYROCK_API UStatWindowWidget : public UBaseUserWidget
 public:
 	UPROPERTY(meta = (BindWidget))
 	UBaseUserWidget* StatContainer;
+
+	UPROPERTY(meta = (BindWidget))
+	UBaseUserWidget* BlessingSkillInfo;
+	UPROPERTY(meta = (BindWidget))
+	UBaseUserWidget* AccessorySkillInfo;
+	UPROPERTY(meta = (BindWidget))
+	UBaseUserWidget* WeaponSkillInfo;
 	
 protected:
 	virtual void OnWidgetControllerSet() override;

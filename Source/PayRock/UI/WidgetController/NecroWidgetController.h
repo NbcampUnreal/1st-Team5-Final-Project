@@ -26,11 +26,14 @@ public:
 protected:
 	UFUNCTION()
 	void BroadcastExtractionEnabled();
-	
 	void CooldownChanged(const FGameplayTag Tag, int32 TagCount);
 	void BroadcastCooldown(const FGameplayTag& Tag);
+	UFUNCTION()
+	void BroadcastCooldownForTag(FGameplayTag Tag);
 
 private:
+	UPROPERTY()
+	FGameplayTag CooldownTag;
 	UPROPERTY()
 	TMap<FGameplayTag, FTimerHandle> CooldownUpdateTimers;
 };

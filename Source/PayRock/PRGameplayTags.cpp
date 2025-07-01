@@ -265,4 +265,11 @@ void FPRGameplayTags::InitializeNativeGameplayTags()
     GameplayTags.Ability_Guard = UGameplayTagsManager::Get().AddNativeGameplayTag(
         FName("Guard.Active")
 	);
+
+    /*
+     * Weapon Skill
+     */
+    GameplayTags.Ability_WeaponSkill_Doggebi = UGameplayTagsManager::Get().AddNativeGameplayTag(
+        FName("Ability.WeaponSkill.Doggebi")
+        );
 }

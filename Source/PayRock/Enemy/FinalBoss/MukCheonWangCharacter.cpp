@@ -12,6 +12,7 @@
 #include "NiagaraFunctionLibrary.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Net/UnrealNetwork.h"
 #include "PayRock/AbilitySystem/PRAttributeSet.h"
 #include "PayRock/AbilitySystem/Abilities/BaseDamageGameplayAbility.h"
 #include "PayRock/Character/PRCharacter.h"
@@ -133,7 +134,7 @@ void AMukCheonWangCharacter::Tick(float DeltaTime)
                 if (NewPhase == EBossPhase::Phase2)
                 {
                     BB->SetValueAsBool(TEXT("bIsSpecialPattern1"), true);
-                    ToggleVisibleChairMesh(false);
+                    Multicast_ToggleChairAndSit(false);
                 }
                 
                 if (NewPhase == EBossPhase::Phase3)
@@ -146,9 +147,12 @@ void AMukCheonWangCharacter::Tick(float DeltaTime)
 
 }
 
-void AMukCheonWangCharacter::ToggleVisibleChairMesh(bool isActive)
+
+void AMukCheonWangCharacter::Multicast_ToggleChairAndSit_Implementation(bool isActive)
 {
     ChairMesh->SetVisibility(isActive);
+    
+    ChairMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     bIsSit = isActive;
 }
 
@@ -174,6 +178,7 @@ void AMukCheonWangCharacter::PerformMeleeSweep(FName SocketName, UBaseDamageGame
         Params
     );
 
+    
     //이 부분 공격 GA-에 들어가서 켜주고 애니메이션 끝나는지점에 Clear해주기
     if (bHit)
     {
@@ -224,6 +229,13 @@ void AMukCheonWangCharacter::StartMeleeAttack(FName SocketName, UBaseDamageGamep
 void AMukCheonWangCharacter::PerformMeleeSweep_Internal()
 {
     PerformMeleeSweep(ActiveSocketName, CurrentAbilityRef);
+}
+
+void AMukCheonWangCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+    DOREPLIFETIME(AMukCheonWangCharacter, bIsSit);
 }
 
 void AMukCheonWangCharacter::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)

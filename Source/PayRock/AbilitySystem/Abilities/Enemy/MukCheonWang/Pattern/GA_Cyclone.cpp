@@ -1,6 +1,8 @@
 ﻿#include "GA_Cyclone.h"
 #include "CycloneActor.h"
 #include "AIController.h"
+#include "NavigationSystem.h"
+#include "AI/NavigationSystemBase.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "PayRock/Enemy/FinalBoss/MukCheonWangCharacter.h"
 
@@ -16,24 +18,35 @@ void UGA_Cyclone::OnAuraEffectComplete()
 	if (!AvatarActor.IsValid() || !CycloneClass) return;
 
 	const FVector ForwardDir = AvatarActor->GetActorForwardVector();
-	const FVector SpawnLoc = AvatarActor->GetActorLocation() + ForwardDir * ForwardOffset;
-	const FRotator SpawnRot = AvatarActor->GetActorRotation();
+	const FVector InitialLoc = AvatarActor->GetActorLocation() + ForwardDir * ForwardOffset;
+
+	FVector ProjectedSpawnLoc = InitialLoc;
+	FNavLocation NavLoc;
+
+	UNavigationSystemV1* NavSys = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
+	if (NavSys && NavSys->ProjectPointToNavigation(InitialLoc, NavLoc, FVector(500.f, 500.f, 1000.f)))
+	{
+		ProjectedSpawnLoc = NavLoc.Location;
+	}
+	else
+	{
+		ProjectedSpawnLoc.Z = AvatarActor->GetActorLocation().Z;
+	}
+
+	ProjectedSpawnLoc.Z += 20.f;
 
 	FActorSpawnParameters Params;
 	Params.Owner = AvatarActor.Get();
-	if (AvatarActor.IsValid())
-	{
-		Params.Instigator = AvatarActor->GetInstigator();
-	}
+	Params.Instigator = AvatarActor->GetInstigator();
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
-	SpawnedCyclone = GetWorld()->SpawnActor<ACycloneActor>(CycloneClass, SpawnLoc, SpawnRot, Params);
-	
+	SpawnedCyclone = GetWorld()->SpawnActor<ACycloneActor>(CycloneClass, ProjectedSpawnLoc, AvatarActor->GetActorRotation(), Params);
+
 	if (SpawnedCyclone.IsValid())
 	{
 		SpawnedCyclone->InitializeEffectSource(this);
 	}
-	
+
 	GetWorld()->GetTimerManager().SetTimer(
 		DestroyTimerHandle,
 		this,

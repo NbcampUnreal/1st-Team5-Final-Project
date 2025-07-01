@@ -27,26 +27,13 @@ public:
 	
 protected:
 	UFUNCTION(BlueprintCallable)
-	void ToggleCollision(bool bShouldEnable);
-	UFUNCTION()
-	void OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
-		int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-
-	UFUNCTION(BlueprintCallable)
 	void PerformSweep();
+	UFUNCTION(BlueprintCallable)
+	void ResetHitActors();
 	
-	void GetCollisionComponents(USkeletalMeshComponent* WeaponMesh, const FName& SocketName);
-	void BindCallbackToCollision();
 	void UpdateCurrentAttackType(APRCharacter* PlayerCharacter);
-
-public:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	FName CollisionSocketName;
 	
 protected:
-	UPROPERTY()
-	TArray<UShapeComponent*> CollisionComponents;
-
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	float ComboTimeLimit = 0.3f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
@@ -60,7 +47,15 @@ protected:
 	TObjectPtr<UAnimMontage> JumpAttackMontage;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float SweepForwardOffset;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	float SweepDistance;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float SweepWidth;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float DashDistanceMultiplier;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float JumpDistanceMultiplier;
 	
 	UPROPERTY()
 	TSet<AActor*> AlreadyHitActors;

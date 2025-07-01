@@ -6,28 +6,36 @@
 #include "Kismet/GameplayStatics.h"
 #include "GeometryCacheComponent.h"
 #include "GeometryCache.h"
+#include "NiagaraComponent.h"
+#include "Net/UnrealNetwork.h"
 #include "PayRock/AbilitySystem/Abilities/Enemy/MukCheonWang/Lightning/LightningStrikeActor.h"
 #include "PayRock/Character/PRCharacter.h"
 
 ACycloneActor::ACycloneActor()
 {
 	PrimaryActorTick.bCanEverTick = true;
-
+	bReplicates = true;
+	AActor::SetReplicateMovement(true);
+	
+	RootScene = CreateDefaultSubobject<USceneComponent>(TEXT("RootScene"));
+	SetRootComponent(RootScene);
 	PullRange = CreateDefaultSubobject<USphereComponent>(TEXT("PullRange"));
 	PullRange->InitSphereRadius(600.f);
 	PullRange->SetCollisionProfileName(TEXT("OverlapAll"));
+	PullRange->SetGenerateOverlapEvents(true);
+	PullRange->SetupAttachment(RootComponent);
 	PullRange->OnComponentBeginOverlap.AddUniqueDynamic(this, &ACycloneActor::OnOverlapBegin);
 	PullRange->OnComponentEndOverlap.AddUniqueDynamic(this, &ACycloneActor::OnOverlapEnd);
 	
-	RootComponent = PullRange;
-
 	GeometryCacheComp = CreateDefaultSubobject<UGeometryCacheComponent>(TEXT("CycloneVFX"));
 	GeometryCacheComp->SetupAttachment(RootComponent);
 	GeometryCacheComp->SetRelativeLocation(FVector::ZeroVector);
-	GeometryCacheComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GeometryCacheComp->SetRelativeScale3D(FVector(0.5f));
+	GeometryCacheComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GeometryCacheComp->SetVisibility(false);
+	GeometryCacheComp->SetComponentTickEnabled(false);
 }
+
 
 
 void ACycloneActor::BeginPlay()
@@ -36,9 +44,17 @@ void ACycloneActor::BeginPlay()
 
 	if (HasAuthority())
 	{
-		Multicast_PlayVFX();
+		FTimerHandle VFXDelayHandle;
+		GetWorld()->GetTimerManager().SetTimer(
+			VFXDelayHandle,
+			this,
+			&ACycloneActor::Multicast_PlayVFX,
+			1.0f, 
+			false
+		);
+
 		SpawnLightning();
-		
+
 		TArray<AActor*> InitialOverlaps;
 		PullRange->GetOverlappingActors(InitialOverlaps, APRCharacter::StaticClass());
 
@@ -51,6 +67,7 @@ void ACycloneActor::BeginPlay()
 		}
 	}
 }
+
 
 
 void ACycloneActor::Tick(float DeltaTime)
@@ -137,15 +154,34 @@ void ACycloneActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void ACycloneActor::Multicast_PlayVFX_Implementation()
 {
-	if (!GeometryCacheAsset || GetNetMode() == NM_DedicatedServer) return;
+	if (GetNetMode() == NM_DedicatedServer) return;
 
-	GeometryCacheComp->SetVisibility(true);
-	GeometryCacheComp->SetGeometryCache(GeometryCacheAsset);
-	GeometryCacheComp->Play();
+	if (GeometryCacheAsset)
+	{
+		GeometryCacheComp->SetGeometryCache(GeometryCacheAsset);
+		GeometryCacheComp->SetLooping(true);
+		GeometryCacheComp->ResetAnimationTime();
+		GeometryCacheComp->SetVisibility(true);
+		GeometryCacheComp->SetComponentTickEnabled(true);
+		GeometryCacheComp->Play();
+		
+	}
+
+
+	if (VFX)
+	{
+		VFX->Activate(true);
+	}
 }
-
 
 void ACycloneActor::InitializeEffectSource(UGameplayAbility* InAbility)
 {
 	InstigatorAbility = InAbility;
+}
+
+void ACycloneActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ACycloneActor, GeometryCacheAsset);
 }

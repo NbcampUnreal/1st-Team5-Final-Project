@@ -51,5 +51,7 @@ EBTNodeResult::Type UBTTask_BossMeleeAttack::ExecuteTask(UBehaviorTreeComponent&
 	}
 	
 	ASC->OnAbilityEnded.Remove(AbilityEndedHandle);
+
+	
 	return EBTNodeResult::Failed;
 }
