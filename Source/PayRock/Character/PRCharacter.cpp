@@ -65,17 +65,6 @@ APRCharacter::APRCharacter()
 
     RightHandCollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("RightHandCollision"));
     LeftHandCollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("LefttHandCollision"));
-
-    WeaponCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("WeaponCollision"));
-    WeaponCollision->SetupAttachment(Weapon);
-    WeaponCollision->SetIsReplicated(true);
-    WeaponCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-    
-
-    /* NOTE: Weapon2 is currently unused */
-    Weapon2 = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Weapon2"));
-    Weapon2->SetupAttachment(GetMesh(), Weapon2SocketName);
-    Weapon2->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     
     BlessingComponent = CreateDefaultSubobject<UBlessingComponent>(TEXT("BlessingComponent"));
     BuffComponent = CreateDefaultSubobject<UBuffComponent>(TEXT("BuffComponent"));
@@ -99,8 +88,7 @@ APRCharacter::APRCharacter()
     GetCharacterMovement()->SetCrouchedHalfHeight(60.f);
 
     SetupStimuliSource();
-    APRCharacter::SetReplicateMovement(true);
-    
+    ACharacter::SetReplicateMovement(true);
 }
 
 void APRCharacter::BeginPlay()
@@ -139,8 +127,6 @@ void APRCharacter::BeginPlay()
     RightHandCollisionComp->SetSphereRadius(10.f);
     RightHandCollisionComp->SetCollisionResponseToAllChannels(ECR_Ignore);
     RightHandCollisionComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
-    RightHandCollisionComp->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Overlap);
-    RightHandCollisionComp->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
     RightHandCollisionComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
     LeftHandCollisionComp->AttachToComponent(
@@ -149,11 +135,34 @@ void APRCharacter::BeginPlay()
     LeftHandCollisionComp->SetSphereRadius(10.f);
     LeftHandCollisionComp->SetCollisionResponseToAllChannels(ECR_Ignore);
     LeftHandCollisionComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
-    LeftHandCollisionComp->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Overlap);
-    LeftHandCollisionComp->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
     LeftHandCollisionComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
+    GetCapsuleComponent()->SetCollisionObjectType(ECC_Camera);
+    GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECR_Ignore);
+    GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_GameTraceChannel6, ECR_Block);
+    GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
+
+    GetMesh()->SetCollisionObjectType(ECC_Camera);
+    GetMesh()->SetCollisionResponseToAllChannels(ECR_Ignore);
+    GetMesh()->SetCollisionResponseToChannel(ECC_GameTraceChannel6, ECR_Block);
+    GetMesh()->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
+    
     UpdateClothesColor();
+}
+
+void APRCharacter::UpdateCollision()
+{
+    GetCapsuleComponent()->SetCollisionObjectType(ECC_Pawn);
+    GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECR_Block);
+    GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
+    GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
+
+    GetMesh()->SetCollisionObjectType(ECC_Pawn);
+    GetMesh()->SetCollisionResponseToAllChannels(ECR_Block);
+    GetMesh()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+    GetMesh()->SetCollisionResponseToChannel(ECC_Vehicle, ECR_Ignore);
+    GetMesh()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
+    GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 }
 
 void APRCharacter::PlayHitOverlay()
@@ -1082,11 +1091,7 @@ void APRCharacter::MulticastRagdoll(const FVector& HitDirection)
         FVector Impulse = GetActorRightVector() * 10000.f;
         Weapon->AddImpulseAtLocation(Impulse, GetActorLocation());
     }
-
-    if (IsValid(WeaponCollision))
-    {
-        WeaponCollision->DestroyComponent();
-    }
+    
     if (IsValid(LeftHandCollisionComp))
     {
         LeftHandCollisionComp->DestroyComponent();
@@ -1098,10 +1103,8 @@ void APRCharacter::MulticastRagdoll(const FVector& HitDirection)
     
     if (GetWorld() && !GetWorld()->bIsTearingDown)
     {
-        
         GetWorldTimerManager().SetTimer(
             ResetRagdollTimer, this, &APRCharacter::ResetRagdoll, 1.5f, false);
-            
     }
 }
 

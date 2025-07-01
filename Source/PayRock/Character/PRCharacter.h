@@ -37,9 +37,6 @@ public:
 	bool GetbIsInvisible() const { return bIsInvisible; }
 
 	/* Components */
-	UFUNCTION(BlueprintCallable, Category = "Weapon")
-	USkeletalMeshComponent* GetWeapon2() const { return Weapon2; }
-	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
 	UAIPerceptionStimuliSourceComponent* StimuliSourceComponent;
 	
@@ -47,13 +44,7 @@ public:
 	USphereComponent* LeftHandCollisionComp;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CollisionComponent")
 	USphereComponent* RightHandCollisionComp;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CollisionComponent")
-	UBoxComponent* WeaponCollision;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
-	USkeletalMeshComponent* Weapon2;
-	UPROPERTY(EditAnywhere, Category = "Weapon")
-	FName Weapon2SocketName = FName("Weapon2Socket");
-
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Blessing")
 	class UBlessingComponent* BlessingComponent;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Blessing")
@@ -93,6 +84,8 @@ public:
 	void ShakeCamera();
 	void PlayHitOverlay();
 	void PlayHitMarker();
+
+	void UpdateCollision();
 
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UUserWidget> HitOverlayWidgetClass;
