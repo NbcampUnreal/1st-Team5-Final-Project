@@ -61,6 +61,14 @@ AMukCheonWangCharacter::AMukCheonWangCharacter()
     KingCrown->SetupAttachment(GetMesh(),CrownSocketName);
     KingCrown->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     
+    WeaponCollision = CreateDefaultSubobject<USphereComponent>(TEXT("WeaponCollision"));
+    WeaponCollision->SetupAttachment(Weapon, CollisionSocketName);
+    WeaponCollision->InitSphereRadius(50.f); 
+    WeaponCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    WeaponCollision->SetCollisionObjectType(ECC_WorldDynamic);
+    WeaponCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
+    WeaponCollision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+    WeaponCollision->SetGenerateOverlapEvents(true);
     
     SetReplicates(true);
 }
@@ -68,7 +76,10 @@ AMukCheonWangCharacter::AMukCheonWangCharacter()
 void AMukCheonWangCharacter::BeginPlay()
 {
     Super::BeginPlay();
-
+    
+    Weapon->SetVisibility(false);
+    Weapon->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    
     if (AIPerception)
     {
         AIPerception->OnTargetPerceptionUpdated.AddDynamic(this, &AMukCheonWangCharacter::OnTargetPerceptionUpdated);
@@ -115,11 +126,8 @@ void AMukCheonWangCharacter::Tick(float DeltaTime)
     EBossPhase NewPhase = EBossPhase::Phase1;
     if (HPPercent <= 0.3f)
         NewPhase = EBossPhase::Phase3;
-    else if (HPPercent <= 0.6f)
+    else if (HPPercent <= 0.7f)
         NewPhase = EBossPhase::Phase2;
-    
-
-
     
     if (NewPhase != CurrentPhase)
     {
@@ -349,6 +357,11 @@ void AMukCheonWangCharacter::OnPhaseChanged(EBossPhase NewPhase)
     switch (NewPhase)
     {
     case EBossPhase::Phase2:
+        if (Weapon)
+        {
+            Weapon->SetVisibility(true);
+            Weapon->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+        }
             break;
     case EBossPhase::Phase3:
             break;
