@@ -36,6 +36,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound")
 	USoundAttenuation* AttackAttenuation;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
+	TObjectPtr<USkeletalMeshComponent> WeaponSecond;
 	// === Detection ===
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_PlayDetectMontage(UAnimMontage* Montage);

@@ -68,6 +68,12 @@ void AEnemyController::CheckPlayerDistance()
 		ActivateAI();
 		EnemyChar->RestoreAnimInstance();
 		EnemyChar->bIsSleeping = false;
+		
+		if (NearestPlayer && BlackboardComponent)
+		{
+			BlackboardComponent->SetValueAsObject(TEXT("TargetActor"), NearestPlayer);
+			BlackboardComponent->SetValueAsBool(TEXT("bPlayerDetect"), true);
+		}
 	}
 	else if (Distance > 3000.f)
 	{
@@ -88,6 +94,7 @@ void AEnemyController::CheckPlayerDistance()
 		}
 	}
 }
+
 
 void AEnemyController::SpawnRespawnPointAt(const FVector& Location)
 {
@@ -119,7 +126,7 @@ APRCharacter* AEnemyController::FindNearestPlayer(float& OutDistance)
 		APRCharacter* Player = *It;
 		if (!Player || Player->GetbIsDead() || Player->GetbIsExtracted() || Player->GetbIsInvisible())
 			continue;
-
+		
 		const float Dist = FVector::Dist(Player->GetActorLocation(), MyPawn->GetActorLocation());
 		if (Dist < OutDistance)
 		{
@@ -130,6 +137,7 @@ APRCharacter* AEnemyController::FindNearestPlayer(float& OutDistance)
 
 	return NearestPlayer;
 }
+
 
 void AEnemyController::ActivateAI()
 {
@@ -188,13 +196,11 @@ void AEnemyController::OnPossess(APawn* InPawn)
 
 	if (!InPawn || !DefaultBehaviorTree)
 	{
-		UE_LOG(LogTemp, Error, TEXT("[AEnemyController] InPawn 또는 BehaviorTree가 null입니다."));
 		return;
 	}
 
 	if (!DefaultBehaviorTree->BlackboardAsset)
 	{
-		UE_LOG(LogTemp, Error, TEXT("[AEnemyController] BehaviorTree의 BlackboardAsset이 null입니다."));
 		return;
 	}
 
@@ -208,7 +214,6 @@ void AEnemyController::OnPossess(APawn* InPawn)
 	UBlackboardComponent* BBComponent = nullptr;
 	if (!UseBlackboard(DefaultBehaviorTree->BlackboardAsset, BBComponent) || !BBComponent)
 	{
-		UE_LOG(LogTemp, Error, TEXT("[AEnemyController] UseBlackboard 실패"));
 		return;
 	}
 

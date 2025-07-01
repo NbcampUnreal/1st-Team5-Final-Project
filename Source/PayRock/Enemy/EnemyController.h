@@ -97,4 +97,5 @@ protected:
 
 	UFUNCTION()
 	void ClearDetectedPlayer();
+	
 };
