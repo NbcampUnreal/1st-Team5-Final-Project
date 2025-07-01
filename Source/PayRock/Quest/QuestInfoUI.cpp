@@ -6,6 +6,7 @@
 #include "Components/TextBlock.h"
 #include "PayRock/GameSystem/PRAdvancedGameInstance.h"
 #include "PayRock/GameSystem/PRGameInstance.h"
+#include "PayRock/UI/Manager/UIManager.h"
 
 void UQuestInfoUI::SetQuestData(const FQuestData& Quest)
 {
@@ -26,7 +27,12 @@ void UQuestInfoUI::SetQuestData(const FQuestData& Quest)
 	}
 	if (UTextBlock* TargetText= Cast<UTextBlock>(GetWidgetFromName(TargetTextName)))
 	{
-		TargetText->SetText(FText::FromString(Quest.TargetName));
+		FString DisplayName;
+		if (UUIManager* UIManager = GetGameInstance()->GetSubsystem<UUIManager>())
+		{
+			DisplayName = UIManager->TranslateEnglishToKorean(Quest.TargetName);
+		}
+		TargetText->SetText(FText::FromString(DisplayName.IsEmpty() ? Quest.TargetName : DisplayName));
 	}
 	if (UTextBlock* CurrentCountText = Cast<UTextBlock>(GetWidgetFromName(CurrentCountTextName)))
 	{

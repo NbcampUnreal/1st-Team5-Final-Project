@@ -223,6 +223,10 @@ void FPRGameplayTags::InitializeNativeGameplayTags()
         FName("Status.Necro.Visible")
         );
 
+    GameplayTags.Status_Penalty_BlockSkills = UGameplayTagsManager::Get().AddNativeGameplayTag(
+        FName("Status.Penalty.BlockSkills")
+        );
+
     /*
      *  Cooldown
      */

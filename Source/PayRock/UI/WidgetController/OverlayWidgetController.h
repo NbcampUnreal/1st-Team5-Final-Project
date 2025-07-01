@@ -21,6 +21,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAccessorySkillChangedSignature, U
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponSkillChangedSignature, UTexture2D*, IconTexture);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCooldownChanged, float, RemainingTime);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSkillsBlocked, bool, bIsBlocked);
+
 UCLASS(BlueprintType, Blueprintable)
 class PAYROCK_API UOverlayWidgetController : public UBaseWidgetController
 {
@@ -56,6 +58,9 @@ public:
 	UPROPERTY()
 	TMap<FGameplayTag, FOnCooldownChanged> CooldownDelegates;
 
+	UPROPERTY()
+	FOnSkillsBlocked OnSkillsBlockedDelegate;
+
 protected:
 	void HealthChanged(const FOnAttributeChangeData& Data) const;
 	void MaxHealthChanged(const FOnAttributeChangeData& Data) const;
@@ -74,6 +79,9 @@ protected:
 	void BroadcastCooldown(const FGameplayTag& Tag);
 	UFUNCTION()
 	void BroadcastCooldownForTag(const FGameplayTag Tag);
+
+	UFUNCTION()
+	void OnSkillsBlocked(const FGameplayTag Tag, int32 TagCount);
 
 private:
 	UPROPERTY()

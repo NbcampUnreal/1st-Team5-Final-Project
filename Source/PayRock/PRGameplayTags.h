@@ -83,6 +83,8 @@ public:
 
 	FGameplayTag Status_Necro_Visible;
 
+	FGameplayTag Status_Penalty_BlockSkills;
+
 	FGameplayTag Ability_Blessing_Cooldown;
 	FGameplayTag Ability_AccessorySkill_Cooldown;
 	FGameplayTag Ability_WeaponSkill_Cooldown;

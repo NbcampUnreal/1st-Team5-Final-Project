@@ -178,13 +178,11 @@ void UBlessingComponent::SetInvisibleMaterial(bool bShouldMakeInvisible)
 		}
 		OwningPRCharacter->GetMesh()->SetOverlayMaterial(InvisibleMaterialDynamic);
 		OwningPRCharacter->GetWeapon()->SetOverlayMaterial(InvisibleMaterialDynamic);
-		OwningPRCharacter->GetWeapon2()->SetOverlayMaterial(InvisibleMaterialDynamic);
 	}
 	else
 	{
 		OwningPRCharacter->GetMesh()->SetOverlayMaterial(nullptr);
 		OwningPRCharacter->GetWeapon()->SetOverlayMaterial(nullptr);
-		OwningPRCharacter->GetWeapon2()->SetOverlayMaterial(nullptr);
 	}
 	
 }
@@ -206,7 +204,6 @@ void UBlessingComponent::OnInvisibleTagChanged(const FGameplayTag ChangedTag, in
 		{
 			OwningPRCharacter->GetMesh()->SetHiddenInGame(true);
 			OwningPRCharacter->GetWeapon()->SetHiddenInGame(true);
-			OwningPRCharacter->GetWeapon2()->SetHiddenInGame(true);
 		}
 		Server_UnregisterStimuli();
 	}
@@ -225,7 +222,6 @@ void UBlessingComponent::OnInvisibleTagChanged(const FGameplayTag ChangedTag, in
 		{
 			OwningPRCharacter->GetMesh()->SetHiddenInGame(false);
 			OwningPRCharacter->GetWeapon()->SetHiddenInGame(false);
-			OwningPRCharacter->GetWeapon2()->SetHiddenInGame(false);
 		}
 		Server_RegisterStimuli();
 	}

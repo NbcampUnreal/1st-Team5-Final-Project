@@ -31,10 +31,16 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* CooldownTimeText;
 
+	UPROPERTY(meta = (BindWidgetOptional))
+	UImage* BlockImage;
+
 private:
 	UFUNCTION()
 	void OnSkillChanged(UTexture2D* IconTexture);
 
 	UFUNCTION()
 	void UpdateCooldown(float RemainingTime);
+
+	UFUNCTION()
+	void OnSkillsBlocked(bool bIsBlocked);
 };
