@@ -121,6 +121,8 @@ void APRCharacter::BeginPlay()
         DefaultSocketOffset = SpringArmComp->SocketOffset;
     }
 
+    CapsuleHalfHeight = GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+    
     RightHandCollisionComp->AttachToComponent(
         GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, RightHandSocketName);
     RightHandCollisionComp->SetRelativeLocation(FVector::ZeroVector);
@@ -964,6 +966,12 @@ void APRCharacter::Tick(float DeltaSeconds)
     {
         MoveSpeed = AS->GetMoveSpeed() / 100.f;
     }
+    // 강물 이동속도 감소
+    if (GetActorLocation().Z - CapsuleHalfHeight < WaterThresholdZ)
+    {
+        MoveSpeed *= WaterSpeedMultiplier;
+    }
+    MoveSpeed = FMath::Max(MoveSpeed, 0.05f);
     DesiredTargetSpeed *= MoveSpeed;
 
     float NewSpeed = FMath::FInterpTo(GetCharacterMovement()->MaxWalkSpeed, DesiredTargetSpeed, DeltaSeconds, CurrentInterpRate);

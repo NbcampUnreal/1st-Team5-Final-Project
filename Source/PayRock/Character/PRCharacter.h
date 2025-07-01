@@ -180,6 +180,12 @@ public:
 	float SpeedInterpRateWalk = 3.f;
 	UPROPERTY(EditAnywhere, Category = "Input")
 	float MouseSensitivity;
+	UPROPERTY()
+	float CapsuleHalfHeight;
+	UPROPERTY(EditDefaultsOnly, Category = "Movement|Water")
+	float WaterThresholdZ = -30.f;
+	UPROPERTY(EditDefaultsOnly, Category = "Movement|Water")
+	float WaterSpeedMultiplier = 0.5f;
 
 	/* 방향 Direction */
 	UFUNCTION(BlueprintCallable, Category = "Movement")
