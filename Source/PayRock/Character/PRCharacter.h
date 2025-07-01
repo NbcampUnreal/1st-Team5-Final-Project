@@ -308,15 +308,17 @@ public:
 	UFUNCTION(BlueprintCallable)
 	USoundBase* GetFootstepSoundBySurface(EPhysicalSurface SurfaceType);
 	
-	UPROPERTY(EditDefaultsOnly, Category = "Footstep")
+	UPROPERTY(EditDefaultsOnly, Category = "Sound")
 	USoundBase* DefaultFootstepSound;
 	UPROPERTY(EditAnywhere, Category = "Sound")
 	TArray<USoundBase*> FootstepSounds;
 	UPROPERTY(EditAnywhere, Category = "Sound")
 	USoundAttenuation* FootstepAttenuation;
+	UPROPERTY(EditAnywhere, Category = "Sound")
+	TArray<USoundBase*> FootstepSound_Water;
 
-	int32 FootstepSoundIndex = 0;// 순차 재생용 인덱스
-
+	int32 FootstepSoundIndex = 0; // 순차 재생용 인덱스
+	int32 FootstepWaterSoundIndex = 0;
 
 protected:
 	virtual void BeginPlay() override;

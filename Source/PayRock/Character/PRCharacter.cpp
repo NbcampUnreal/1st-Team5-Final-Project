@@ -719,12 +719,29 @@ void APRCharacter::MulticastPlayFootstep_Implementation(FVector Location, USound
 
 USoundBase* APRCharacter::GetFootstepSoundBySurface(EPhysicalSurface SurfaceType)
 {
+    // 돌 표면 소리
+    if (SurfaceType == SurfaceType1)
+    {
+        USoundBase* SoundToPlay = FootstepSound_Water[FootstepWaterSoundIndex];
+        FootstepWaterSoundIndex = (FootstepWaterSoundIndex + 1) % FootstepSound_Water.Num();
+        return SoundToPlay;
+    }
+    // 물 표면 소리
+    if (SurfaceType == SurfaceType2)
+    {
+        USoundBase* SoundToPlay = FootstepSound_Water[FootstepWaterSoundIndex];
+        FootstepWaterSoundIndex = (FootstepWaterSoundIndex + 1) % FootstepSound_Water.Num();
+        return SoundToPlay;
+    }
+
+    // 그 외 디폴트
     if (FootstepSounds.Num() > 0)
     {
         USoundBase* SoundToPlay = FootstepSounds[FootstepSoundIndex];
-        FootstepSoundIndex = (FootstepSoundIndex + 1) % FootstepSounds.Num(); // 순환
+        FootstepSoundIndex = (FootstepSoundIndex + 1) % FootstepSounds.Num();
         return SoundToPlay;
     }
+
     return DefaultFootstepSound;
 }
 
