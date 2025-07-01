@@ -422,6 +422,7 @@ void APRPlayerController::HandleMatchFlowStateChanged(EMatchFlowState NewState)
 		UIManager->ShowWidget(EWidgetCategory::InGameHUD);
 		UpdateClothesColor();
 		UpdateCleanData();
+		UpdateCharacterCollision();
 		break;
 	case EMatchFlowState::ExtractionEnabled:
 		OnExtractionEnabled.Broadcast();
@@ -447,6 +448,27 @@ void APRPlayerController::UpdateCleanData()
 		if (UInGameWidget* InGameHUD = Cast<UInGameWidget>(FoundWidget))
 		{
 			InGameHUD->UpdateCleanPercent();
+		}
+	}
+}
+
+void APRPlayerController::Server_UpdateCharacterCollision_Implementation()
+{
+	if (APRCharacter* PRCharacter = Cast<APRCharacter>(GetCharacter()))
+	{
+		PRCharacter->UpdateCollision();
+	}
+}
+
+void APRPlayerController::UpdateCharacterCollision()
+{
+	if (APRCharacter* PRCharacter = Cast<APRCharacter>(GetCharacter()))
+	{
+		PRCharacter->UpdateCollision();
+
+		if (!HasAuthority())
+		{
+			Server_UpdateCharacterCollision();
 		}
 	}
 }

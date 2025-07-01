@@ -37,7 +37,11 @@ AEnemyCharacter::AEnemyCharacter()
 
 	bReplicates = true;
 	bAlwaysRelevant = true;
-
+	
+	WeaponSecond = CreateDefaultSubobject<USkeletalMeshComponent>("ThrowingWeapon");
+	WeaponSecond->SetupAttachment(GetMesh(), LeftHandSocketName);
+	WeaponSecond->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	
 	GetMesh()->SetIsReplicated(true);
 	GetMesh()->SetOnlyOwnerSee(false);
 }

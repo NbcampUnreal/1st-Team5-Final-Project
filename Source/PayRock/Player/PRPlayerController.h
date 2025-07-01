@@ -88,6 +88,9 @@ public:
 	void Client_NotifyQuestKill(AEnemyCharacter* DeadEnemy);
 
 protected:
+	UFUNCTION(Server, Reliable)
+	void Server_UpdateCharacterCollision();
+	void UpdateCharacterCollision();
 	void UpdateClothesColor();
 	virtual void BeginPlay() override;
 
@@ -141,6 +144,8 @@ public:
 	void ServerRequestNecroCharacter();
 	UFUNCTION(Client, Reliable)
 	void ClientOnNecroPossessed();
+	UFUNCTION(BlueprintImplementableEvent)
+	void InitNecroVoice();
 	void UpdateCleanData();
 
 	UPROPERTY()
