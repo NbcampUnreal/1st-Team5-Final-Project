@@ -23,6 +23,17 @@ EBTNodeResult::Type UBTTask_BossMeleeAttack::ExecuteTask(UBehaviorTreeComponent&
 
 	CachedASC = ASC;
 	ThisAbilityClass = MeleeAbility;
+	
+	if (UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent())
+	{
+		AActor* Target = Cast<AActor>(BB->GetValueAsObject("TargetActor"));
+		if (Target)
+		{
+			FVector Direction = (Target->GetActorLocation() - Boss->GetActorLocation()).GetSafeNormal2D();
+			FRotator TargetRot = Direction.Rotation();
+			Boss->SetActorRotation(FRotator(0.f, TargetRot.Yaw, 0.f));
+		}
+	}
 
 	AbilityEndedHandle = ASC->OnAbilityEnded.AddLambda([this](const FAbilityEndedData& Data)
 	{
@@ -49,9 +60,7 @@ EBTNodeResult::Type UBTTask_BossMeleeAttack::ExecuteTask(UBehaviorTreeComponent&
 		OwnerComp.GetBlackboardComponent()->SetValueAsBool(FName("bIsAttacking"), true);
 		return EBTNodeResult::InProgress;
 	}
-	
-	ASC->OnAbilityEnded.Remove(AbilityEndedHandle);
 
-	
+	ASC->OnAbilityEnded.Remove(AbilityEndedHandle);
 	return EBTNodeResult::Failed;
 }

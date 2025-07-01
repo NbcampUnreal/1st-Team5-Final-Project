@@ -29,6 +29,7 @@ public:
 	virtual void BeginPlay() override;
 	
 	FORCEINLINE UAnimMontage* GetRoarMontage() const { return RoarMontage; }
+	EBossPhase GetCurrentPhase() const {return CurrentPhase;}
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Boss Phase")
 	EBossPhase CurrentPhase;

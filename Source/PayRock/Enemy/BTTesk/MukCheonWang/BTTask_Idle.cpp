@@ -3,6 +3,7 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/Actor.h"
+#include "PayRock/Enemy/FinalBoss/MukCheonWangCharacter.h"
 
 UBTTask_Idle::UBTTask_Idle()
 {
@@ -27,6 +28,18 @@ void UBTTask_Idle::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory
 
 	APawn* AIPawn = AICon->GetPawn();
 	if (!AIPawn) return;
+	
+	if (AMukCheonWangCharacter* Boss = Cast<AMukCheonWangCharacter>(AIPawn))
+	{
+		if (Boss->GetCurrentPhase() == EBossPhase::Phase1)
+		{
+			if (ElapsedTime >= IdleTime)
+			{
+				FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+			}
+			return;
+		}
+	}
 
 	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
 	if (BB)
@@ -39,7 +52,7 @@ void UBTTask_Idle::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory
 			{
 				const FRotator TargetRotation = Direction.Rotation();
 				const FRotator CurrentRotation = AIPawn->GetActorRotation();
-				const FRotator NewRotation = FMath::RInterpTo(CurrentRotation, TargetRotation, DeltaSeconds, 5.0f); // 5.0f = 회전 속도
+				const FRotator NewRotation = FMath::RInterpTo(CurrentRotation, TargetRotation, DeltaSeconds, 5.0f);
 				AIPawn->SetActorRotation(NewRotation);
 			}
 		}
