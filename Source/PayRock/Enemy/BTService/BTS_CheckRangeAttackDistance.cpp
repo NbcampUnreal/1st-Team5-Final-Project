@@ -29,7 +29,13 @@ void UBTS_CheckRangeAttackDistance::TickNode(UBehaviorTreeComponent& OwnerComp, 
 	}
 
 	const float Distance = FVector::Dist(AIPawn->GetActorLocation(), TargetActor->GetActorLocation());
-	const bool bInRange = Distance >= MinDistance && Distance <= MaxDistance;
 
-	BB->SetValueAsBool(InRangeAttackKey, bInRange);
+	if (Distance >= MinDistance && Distance <= MaxDistance)
+	{
+		BB->SetValueAsBool(InRangeAttackKey, true);
+	}
+	else
+	{
+		BB->SetValueAsBool(InRangeAttackKey, false);
+	}
 }
